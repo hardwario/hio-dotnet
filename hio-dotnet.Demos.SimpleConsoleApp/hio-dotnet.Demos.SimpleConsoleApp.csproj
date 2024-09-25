@@ -8,4 +8,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />
+    <ProjectReference Include="..\hio-dotnet.HWDrivers\hio-dotnet.HWDrivers.csproj" />
+  </ItemGroup>
+
 </Project>
