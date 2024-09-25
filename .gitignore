@@ -1,0 +1,93 @@
+# Visual Studio and VS Code specific
+.vscode/
+.vs/
+.vscode/*
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Auto-generated files
+*_i.c
+*_p.c
+*_i.h
+*.ilk
+*.meta
+*.obj
+*.pch
+*.pdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+
+# Build directories
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+# NuGet Packages
+*.nupkg
+# NuGet Packages Cache
+**/packages/*
+# except build/, which is used as an MSBuild target.
+!build/
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on Windows
+$RECYCLE.BIN/
+
+# End of Line configuration
+*.crlf
+*.lf
+*.sb
+
+# Windows shortcuts
+*.lnk
+
+# Mono auto generated files
+mono_crash.*
+
+# Microsoft Office Temporary Files
+~$*
+
+# Database files
+*.mdf
+*.ldf
+*.ndf
+
+# C# auto-generated files
+Generated\*
+
+# Rider files
+.idea/
+*.sln.iml
+.idea/.idea.Cache
+
+# Resharper files
+_ReSharper*/
+*.DotSettings.user
