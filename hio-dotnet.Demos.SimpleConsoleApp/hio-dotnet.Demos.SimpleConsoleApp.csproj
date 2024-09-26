@@ -6,7 +6,16 @@
     <RootNamespace>hio_dotnet.Demos.SimpleConsoleApp</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <DefineConstants>WINDOWS</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+    <DefineConstants>LINUX;OSX</DefineConstants>
+  </PropertyGroup>
+
 
   <ItemGroup>
     <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />

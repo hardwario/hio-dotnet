@@ -71,8 +71,8 @@ namespace hio_dotnet.HWDrivers.JLink
 
         public void ReconnectJLink()
         {
-            JLink.Close();
-            System.Threading.Thread.Sleep(1000);
+            //JLink.Close();
+            //System.Threading.Thread.Sleep(1000);
 
             JLink.Open();
             SetMcuType(_mcu);
