@@ -1,4 +1,5 @@
 ﻿using hio_dotnet.APIs.Chirpstack;
+using hio_dotnet.APIs.ThingsBoard;
 using hio_dotnet.HWDrivers.Enums;
 using hio_dotnet.HWDrivers.JLink;
 using hio_dotnet.HWDrivers.MCU;
@@ -7,7 +8,8 @@ using System.Diagnostics;
 
 var JLINK_TEST = false;
 var PPK2_TEST = false;
-var CHIRPSTACK_TEST = true;
+var CHIRPSTACK_TEST = false;
+var THINGSBOARD_TEST = false;
 
 #if WINDOWS
 Console.WriteLine("Running on Windows");
@@ -236,7 +238,8 @@ if (CHIRPSTACK_TEST)
 
     // The API token (retrieved using the web-interface).
     // !!! You must set your own api key !!!
-    var apiToken = "YOUR_CHIRPSTACK_APIKEY";
+    //var apiToken = "YOUR_CHIRPSTACK_APIKEY";
+    var apiToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjaGlycHN0YWNrIiwiaXNzIjoiY2hpcnBzdGFjayIsInN1YiI6ImE1OWJmMzMyLTVkYzYtNGRkMC04ZGMyLTVmOTE5Yjc3YjcwZCIsInR5cCI6ImtleSJ9.OipZYaLOW8FoIpAAYz-zI4JHPxl5I04FOvxsFZXy8c4";
 
     var cs = new ChirpStackDriver(apiToken, server, 8080, false);
 
@@ -368,4 +371,72 @@ if (CHIRPSTACK_TEST)
     Console.WriteLine("Press key to exit...");
     Console.ReadKey();
 }
+#endregion
+
+#region THINGSBOARDExample
+
+if (THINGSBOARD_TEST)
+{
+    // You need to have ThingsBoard running on localhost to test this example
+
+    // Default localhost ThingsBoard API URL
+    var baseUrl = "http://localhost";
+
+    // Device ID. Use your device id
+    var deviceId = "9d6f6e10-5a6f-11ef-8883-e9c7bb918e65";
+
+    // Specify the keys you want to obtain. If multiple keys are required use ',' as separator
+    // be sure that device telemetry contains those keys otherwise put there some existing keys
+    var keys = "therm_temperature,hygro_humidity";
+
+    var username = "tenant@thingsboard.org";
+    var password = "tenant";
+
+    Console.WriteLine("Initializing driver and connection...");
+    var thingsBoardDriver = new ThingsBoardDriver(baseUrl, username, password, 8080);
+    Console.WriteLine("Connection initialized.");
+
+    Console.WriteLine("Getting actual newest data from API...");
+    var data = await thingsBoardDriver.GetTelemetryDataAsync(deviceId, keys);
+    Console.WriteLine("Parsing the actual data...");
+    var parsedData = await thingsBoardDriver.ParseActualTelemetryDataAsync(data);
+    Console.WriteLine("Data parsed.\n");
+    foreach (var item in parsedData)
+    {
+        Console.WriteLine($"\tTimestamp: {item.Value.Timestamp}");
+        Console.WriteLine($"\t{item.Key}: {item.Value.Value}");
+    }
+
+    Console.WriteLine("\nGetting historic data...");
+    var historicalData = await thingsBoardDriver.GetTelemetryDataForTimeRangeAsync(deviceId, keys, DateTime.Now.AddDays(-1), DateTime.Now);
+    Console.WriteLine("Historic data obtained from api.");
+    Console.WriteLine("Parsing historic data...");
+    var parsedHistoricalData = await thingsBoardDriver.ParseHistoricTelemetryDataAsync(historicalData);
+    Console.WriteLine("Historic data parsed.");
+    Console.WriteLine("Historic data: \n\n");
+
+    foreach (var item in parsedHistoricalData)
+    {
+        Console.WriteLine($"{item.Key}\n");
+
+        var unit = "°C";
+
+        if (item.Key.Contains("temp"))
+            unit = "°C";
+        else if (item.Key.Contains("hygro"))
+            unit = "%";
+        else if (item.Key.Contains("weight"))
+            unit = "kg";
+
+        foreach (var dataItem in item.Value)
+        {
+            Console.WriteLine($"\t{dataItem.Timestamp}: {dataItem.Value} {unit}");
+        }
+    }
+
+    Console.WriteLine("\nPress key to quit...");
+    Console.ReadKey();
+}
+
+
 #endregion
