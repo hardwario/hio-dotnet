@@ -1,14 +1,16 @@
-﻿using hio_dotnet.HWDrivers.Enums;
+﻿using hio_dotnet.APIs.Chirpstack;
+using hio_dotnet.HWDrivers.Enums;
 using hio_dotnet.HWDrivers.JLink;
 using hio_dotnet.HWDrivers.MCU;
 using hio_dotnet.HWDrivers.PPK2;
 using System.Diagnostics;
 
 var JLINK_TEST = false;
-var PPK2_TEST = true;
+var PPK2_TEST = false;
+var CHIRPSTACK_TEST = true;
 
 #if WINDOWS
-    Console.WriteLine("Running on Windows");
+Console.WriteLine("Running on Windows");
 #elif LINUX
     Console.WriteLine("Running on Linux");
 #elif OSX
@@ -218,5 +220,152 @@ if (PPK2_TEST)
             listener.Close();
         }
     }
+}
+#endregion
+
+#region CHIRPSTACKExample
+if (CHIRPSTACK_TEST)
+{
+    // This must point to the API interface.
+    var server = "http://192.168.1.132";
+
+    // Example deveui and tenantId (retrieved using the web-interface)
+    // !!! You must set your own deveui and tenantId!!!
+    var devEui = "3cb77038dbda3643";
+    var tenantId = "52f14cd4-c6f1-4fbd-8f87-4025e1d49242";
+
+    // The API token (retrieved using the web-interface).
+    // !!! You must set your own api key !!!
+    var apiToken = "YOUR_CHIRPSTACK_APIKEY";
+
+    var cs = new ChirpStackDriver(apiToken, server, 8080, false);
+
+    var resp = await cs.ListApplications(tenantId);
+
+    // Print the downlink id.
+    Console.WriteLine("Total count of applications: " + resp.TotalCount.ToString());
+    Console.WriteLine("");
+    foreach (var app in resp.Result)
+    {
+        Console.WriteLine($"AppName: {app.Name}, AppId: {app.Id}");
+
+        Console.WriteLine("Listing devices...");
+        var devs = await cs.ListDevicesInApplication(app.Id);
+        foreach (var dev in devs.Result)
+        {
+            Console.WriteLine($"DeviceName: {dev.Name}, DeviceEui: {dev.DevEui}");
+            var devdetails = cs.GetDeviceDetails(dev.DevEui);
+
+            if (devdetails != null && devdetails.Result != null)
+            {
+                Console.WriteLine($"Device Last Seen: {devdetails.Result.LastSeenAt}");
+                Console.WriteLine($"Device JoinEUI: {devdetails.Result.Device.JoinEui}");
+            }
+            try
+            {
+                var devkeys = cs.GetDeviceKeys(dev.DevEui);
+                if (devkeys != null && devkeys.Result != null)
+                {
+                    Console.WriteLine($"Device AppKey: {devkeys.Result.DeviceKeys.AppKey}");
+                    Console.WriteLine($"Device NwkKey: {devkeys.Result.DeviceKeys.NwkKey}");
+
+                }
+            }
+            catch { }
+
+            try
+            {
+                var devactivation = cs.GetDeviceActivation(dev.DevEui);
+                if (devactivation != null && devactivation.Result != null)
+                {
+                    Console.WriteLine($"Device Address: {devactivation.Result.DeviceActivation.DevAddr}");
+                    Console.WriteLine($"Device AppsKey: {devactivation.Result.DeviceActivation.AppSKey}");
+                    Console.WriteLine($"Device Enc NwkSKey: {devactivation.Result.DeviceActivation.NwkSEncKey}");
+                    Console.WriteLine($"Device FNwkSIntKey: {devactivation.Result.DeviceActivation.FNwkSIntKey}");
+                    Console.WriteLine($"Device SNwkSIntKey: {devactivation.Result.DeviceActivation.SNwkSIntKey}");
+
+                }
+            }
+            catch { }
+            Console.WriteLine("____________________");
+        }
+        Console.WriteLine("----------------------------------------------------------");
+        Console.WriteLine("");
+    }
+
+    var deviceProfiles = await cs.ListDeviceProfiles(tenantId);
+    var devprofId = "";
+    if (deviceProfiles != null && deviceProfiles.Result != null)
+    {
+        Console.WriteLine("Listing Device Profiles...");
+        foreach (var dp in deviceProfiles.Result)
+        {
+            Console.WriteLine($"Device Profile Name: {dp.Name}, Device Profile Id: {dp.Id}");
+            var profile = cs.GetDeviceProfile(dp.Id);
+            if (profile != null && profile.Result != null)
+            {
+                if (profile.Result.DeviceProfile.Name == "devkitProfile")
+                {
+                    devprofId = profile.Result.DeviceProfile.Id;
+                }
+
+                Console.WriteLine($"\tDevice Profile Name: {profile.Result.DeviceProfile.Name}");
+                Console.WriteLine($"\tDevice Profile Id: {profile.Result.DeviceProfile.Id}");
+                Console.WriteLine($"\tDevice Profile MacVersion: {profile.Result.DeviceProfile.MacVersion}");
+                Console.WriteLine($"\tDevice Profile Region: {profile.Result.DeviceProfile.Region}");
+                Console.WriteLine($"\tDevice Profile Supports OTAA: {profile.Result.DeviceProfile.SupportsOtaa}");
+            }
+            Console.WriteLine("____________________");
+        }
+        Console.WriteLine("----------------------------------------------------------");
+        Console.WriteLine("");
+    }
+
+    Console.WriteLine("Creating Application...");
+    var addapp = await cs.CreateApplication("testapp", tenantId, "just testing app");
+    Console.WriteLine($"Application created: {addapp.Id}");
+
+    if (addapp != null && !string.IsNullOrEmpty(addapp.Id))
+    {
+        Console.WriteLine("Creating Device...");
+        var adddev = await cs.CreateDevice(ChirpStackDriver.GetRandomDevEUI(), "testdevice", addapp.Id, devprofId, ChirpStackDriver.GetRandomJoinEUI());
+        Console.WriteLine($"Device created.");
+        var newdeveui = "";
+
+        Console.WriteLine($"Getting all devices of new application: {addapp.Id}");
+        var appdevices = await cs.ListDevicesInApplication(addapp.Id);
+        foreach (var dev in appdevices.Result)
+        {
+            Console.WriteLine($"DeviceName: {dev.Name}, DeviceEui: {dev.DevEui}");
+            var devdetails = cs.GetDeviceDetails(dev.DevEui);
+            newdeveui = dev.DevEui;
+
+            if (devdetails != null && devdetails.Result != null)
+            {
+                Console.WriteLine($"Device Last Seen: {devdetails.Result.LastSeenAt}");
+                Console.WriteLine($"Device JoinEUI: {devdetails.Result.Device.JoinEui}");
+            }
+        }
+
+        // set this to false if you want to see result of created app and device in Chirpstack web ui
+        // if this is set to true the device and app will be deleted to test the delete functions
+        // You can place breakpoint to the next line to see the results in the web ui and then continue to delete items automatically
+        var deletedevicetest = true;
+
+        if (deletedevicetest)
+        {
+            Console.WriteLine("Deleting Device...");
+            var deldev = await cs.DeleteDevice(newdeveui);
+            Console.WriteLine($"Device deleted.");
+
+            Console.WriteLine("Deleting Application...");
+            var delapp = await cs.DeleteApplication(addapp.Id);
+            Console.WriteLine($"Application deleted.");
+        }
+    }
+
+    Console.WriteLine("\n\n");
+    Console.WriteLine("Press key to exit...");
+    Console.ReadKey();
 }
 #endregion
