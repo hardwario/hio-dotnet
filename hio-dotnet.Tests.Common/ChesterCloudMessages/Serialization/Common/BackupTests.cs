@@ -26,10 +26,10 @@ namespace hio_dotnet.Tests.Common.ChesterCloudMessages.Serialization.Common
         public void SetValues_ShouldBeAssignedCorrectly()
         {
             // Arrange
-            var events = new List<ChesterEvent>
+            var events = new List<ChesterBaseEvent>
             {
-                new ChesterEvent { Timestamp = 1627849200, Type = "Event1", Value = 1.1 },
-                new ChesterEvent { Timestamp = 1627849300, Type = "Event2", Value = 2.2 }
+                new ChesterDoubleEvent { Timestamp = 1627849200, Type = "Event1"},
+                new ChesterDoubleEvent { Timestamp = 1627849300, Type = "Event2" }
             };
 
             var backup = new Backup
@@ -62,7 +62,7 @@ namespace hio_dotnet.Tests.Common.ChesterCloudMessages.Serialization.Common
         {
             // Arrange
             var backup = new Backup();
-            var chesterEvent = new ChesterEvent { Timestamp = 1627849200, Type = "Event1", Value = 1.1 };
+            var chesterEvent = new ChesterDoubleEvent { Timestamp = 1627849200, Type = "Event1", Value = 1.1 };
 
             // Act
             backup.Events.Add(chesterEvent);

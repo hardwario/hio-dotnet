@@ -1,22 +1,20 @@
-﻿using System;
+﻿using hio_dotnet.Common.Models.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace hio_dotnet.Common.Models.Common
+namespace hio_dotnet.Common.Models.CatalogApps.Input
 {
-    public class Backup
+    public class ChesterTriggerStates
     {
-        [JsonPropertyName("line_voltage")]
-        public double LineVoltage { get; set; } = 0.0;
-
-        [JsonPropertyName("batt_voltage")]
-        public double BattVoltage { get; set; } = 0.0;
+        [JsonPropertyName("channel")]
+        public int Channel { get; set; } = 0;
 
         [JsonPropertyName("state")]
-        public string? State { get; set; }
+        public string State { get; set; } = Defaults.InactiveState;
 
         [JsonPropertyName("events")]
         public List<ChesterBaseEvent> Events { get; set; } = new List<ChesterBaseEvent>();

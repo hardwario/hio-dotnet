@@ -30,5 +30,8 @@ namespace hio_dotnet.Common.Models
 
         [JsonPropertyName("accelerometer")]
         public Accelerometer Accelerometer { get; set; } = new Accelerometer();
+
+        [JsonPropertyName("tamper")]
+        public Tamper Tamper { get; set; } = new Tamper();
     }
 }

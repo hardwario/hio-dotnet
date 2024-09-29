@@ -10,6 +10,6 @@ namespace hio_dotnet.Common.Models.Common
     public class MotionCount
     {
         [JsonPropertyName("measurements")]
-        public List<ChesterEvent> Measurements { get; set; } = new List<ChesterEvent>();
+        public List<ChesterDoubleEvent> Measurements { get; set; } = new List<ChesterDoubleEvent>();
     }
 }

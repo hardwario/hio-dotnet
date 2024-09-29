@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.Common.Models.Common
 {
-    public class PressCount
+    public class TimestampState
+
     {
-        [JsonPropertyName("measurements")]
-        public List<ChesterDoubleEvent> Measurements { get; set; } = new List<ChesterDoubleEvent>();
+        [JsonPropertyName("timestamp")]
+        public long Timestamp { get; set; } = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     }
 }

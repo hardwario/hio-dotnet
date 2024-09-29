@@ -7,16 +7,10 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.Common.Models.Common
 {
-    public class Backup
+    public class Tamper
     {
-        [JsonPropertyName("line_voltage")]
-        public double LineVoltage { get; set; } = 0.0;
-
-        [JsonPropertyName("batt_voltage")]
-        public double BattVoltage { get; set; } = 0.0;
-
         [JsonPropertyName("state")]
-        public string? State { get; set; }
+        public string State { get; set; } = Defaults.UnknownTamperState;
 
         [JsonPropertyName("events")]
         public List<ChesterBaseEvent> Events { get; set; } = new List<ChesterBaseEvent>();

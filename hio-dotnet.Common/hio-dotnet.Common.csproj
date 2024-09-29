@@ -10,15 +10,6 @@
 
   <ItemGroup>
     <Folder Include="Enums\BLE\" />
-    <Folder Include="Models\CatalogApps\Counter\" />
-    <Folder Include="Models\CatalogApps\Input\" />
-    <Folder Include="Models\CatalogApps\Meteo\" />
-    <Folder Include="Models\CatalogApps\Control\" />
-    <Folder Include="Models\CatalogApps\Boiler\" />
-    <Folder Include="Models\CatalogApps\Radon\" />
-    <Folder Include="Models\CatalogApps\wMBus\" />
-    <Folder Include="Models\CatalogApps\Range\" />
-    <Folder Include="Models\CatalogApps\Push\" />
   </ItemGroup>
 
 </Project>

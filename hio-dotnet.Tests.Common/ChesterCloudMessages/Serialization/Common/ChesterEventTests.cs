@@ -13,7 +13,7 @@ namespace hio_dotnet.Tests.Common.ChesterCloudMessages.Serialization.Common
         public void DefaultValues_ShouldBeCorrect()
         {
             // Arrange
-            var chesterEvent = new ChesterEvent();
+            var chesterEvent = new ChesterDoubleEvent();
 
             // Act & Assert
             Assert.InRange(chesterEvent.Timestamp, DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 1, DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 1);
@@ -26,7 +26,7 @@ namespace hio_dotnet.Tests.Common.ChesterCloudMessages.Serialization.Common
         {
             // Arrange
             var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            var chesterEvent = new ChesterEvent
+            var chesterEvent = new ChesterDoubleEvent
             {
                 Timestamp = timestamp,
                 Type = "EventType",

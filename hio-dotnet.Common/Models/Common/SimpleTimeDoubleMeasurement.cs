@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.Common.Models.Common
 {
-    public class PressCount
+    public class SimpleTimeDoubleMeasurement : TimestampState
     {
-        [JsonPropertyName("measurements")]
-        public List<ChesterDoubleEvent> Measurements { get; set; } = new List<ChesterDoubleEvent>();
+        [JsonPropertyName("value")]
+        public double Value { get; set; } = 0.0;
     }
 }

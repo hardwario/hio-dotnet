@@ -7,14 +7,8 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.Common.Models.Common
 {
-    public class ChesterEvent
+    public class ChesterDoubleEvent : ChesterBaseEvent
     {
-        [JsonPropertyName("timestamp")]
-        public long Timestamp { get; set; } = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-
-        [JsonPropertyName("type")]
-        public string Type { get; set; } = Defaults.UnknownEventType;
-
         [JsonPropertyName("value")]
         public double Value { get; set; } = 0.0;
     }
