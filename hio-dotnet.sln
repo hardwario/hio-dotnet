@@ -17,13 +17,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.Demos.SimpleCons
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.Tests.Common", "hio-dotnet.Tests.Common\hio-dotnet.Tests.Common.csproj", "{6FC6DF2A-10C9-4C88-A3A0-CEFAA1B44C9C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.HWDrivers", "hio-dotnet.HWDrivers\hio-dotnet.HWDrivers.csproj", "{A1CB6940-5130-4548-B87B-4CD36DAEFCA3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.HWDrivers", "hio-dotnet.HWDrivers\hio-dotnet.HWDrivers.csproj", "{A1CB6940-5130-4548-B87B-4CD36DAEFCA3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.APIs.Chirpstack", "hio-dotnet.APIs.Chirpstack\hio-dotnet.APIs.Chirpstack.csproj", "{7F565936-06F1-4A03-8C41-AA1E4F31CF4B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.APIs.Chirpstack", "hio-dotnet.APIs.Chirpstack\hio-dotnet.APIs.Chirpstack.csproj", "{7F565936-06F1-4A03-8C41-AA1E4F31CF4B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "APIs", "APIs", "{78968AF0-D463-4992-9891-424778E2DCF5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.APIs.ThingsBoard", "hio-dotnet.APIs.ThingsBoard\hio-dotnet.APIs.ThingsBoard.csproj", "{707A0052-0F33-45B0-B76E-C99A59ED517D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.APIs.ThingsBoard", "hio-dotnet.APIs.ThingsBoard\hio-dotnet.APIs.ThingsBoard.csproj", "{707A0052-0F33-45B0-B76E-C99A59ED517D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.APIs.HioCloudv2", "hio-dotnet.APIs.HioCloudv2\hio-dotnet.APIs.HioCloudv2.csproj", "{52640F97-6FCB-4286-9330-A482DB72EBAB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +83,14 @@ Global
 		{707A0052-0F33-45B0-B76E-C99A59ED517D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{707A0052-0F33-45B0-B76E-C99A59ED517D}.Release|x64.ActiveCfg = Release|Any CPU
 		{707A0052-0F33-45B0-B76E-C99A59ED517D}.Release|x64.Build.0 = Release|Any CPU
+		{52640F97-6FCB-4286-9330-A482DB72EBAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52640F97-6FCB-4286-9330-A482DB72EBAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52640F97-6FCB-4286-9330-A482DB72EBAB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{52640F97-6FCB-4286-9330-A482DB72EBAB}.Debug|x64.Build.0 = Debug|Any CPU
+		{52640F97-6FCB-4286-9330-A482DB72EBAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52640F97-6FCB-4286-9330-A482DB72EBAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52640F97-6FCB-4286-9330-A482DB72EBAB}.Release|x64.ActiveCfg = Release|Any CPU
+		{52640F97-6FCB-4286-9330-A482DB72EBAB}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -93,6 +103,7 @@ Global
 		{7F565936-06F1-4A03-8C41-AA1E4F31CF4B} = {78968AF0-D463-4992-9891-424778E2DCF5}
 		{78968AF0-D463-4992-9891-424778E2DCF5} = {26E31ECF-53E6-4E5A-B114-38A008891F03}
 		{707A0052-0F33-45B0-B76E-C99A59ED517D} = {78968AF0-D463-4992-9891-424778E2DCF5}
+		{52640F97-6FCB-4286-9330-A482DB72EBAB} = {78968AF0-D463-4992-9891-424778E2DCF5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E1FFF9B6-96C5-48A0-98CB-F203A8890083}

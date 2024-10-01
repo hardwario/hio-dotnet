@@ -1,5 +1,11 @@
 ﻿using hio_dotnet.APIs.Chirpstack;
+using hio_dotnet.APIs.HioCloudv2;
+using hio_dotnet.APIs.HioCloudv2.Models;
 using hio_dotnet.APIs.ThingsBoard;
+using hio_dotnet.Common.Models;
+using hio_dotnet.Common.Models.CatalogApps;
+using hio_dotnet.Common.Models.CatalogApps.Counter;
+using hio_dotnet.Common.Models.CatalogApps.Push;
 using hio_dotnet.HWDrivers.Enums;
 using hio_dotnet.HWDrivers.JLink;
 using hio_dotnet.HWDrivers.MCU;
@@ -10,6 +16,7 @@ var JLINK_TEST = false;
 var PPK2_TEST = false;
 var CHIRPSTACK_TEST = false;
 var THINGSBOARD_TEST = false;
+var HIOCLOUDV2_TEST = false;
 
 #if WINDOWS
 Console.WriteLine("Running on Windows");
@@ -438,5 +445,125 @@ if (THINGSBOARD_TEST)
     Console.ReadKey();
 }
 
+
+#endregion
+
+#region HIOCLOUDV2Example
+
+if(HIOCLOUDV2_TEST)
+{
+    var email = "YOUR EMAIL";
+    var password = "YOUR PASSWORD";
+
+    var apitoken = "YOUR API TOKEN IF YOU HAVE CREATED IT IN HIO CLOUD SPACE";
+
+    // you can init the driver with use of email and password
+    // you need to use this if you want to list all available spaces because api tokens are just for specific space
+    Hiov2CloudDriver hiocloudJWT = null; 
+    if (email != "YOUR EMAIL" && password != "YOUR PASSWORD")
+        hiocloudJWT = new Hiov2CloudDriver(Hiov2CloudDriver.DefaultHardwarioThingsboardUrl, email, password);
+
+    if (hiocloudJWT == null && apitoken == "YOUR API TOKEN IF YOU HAVE CREATED IT IN HIO CLOUD SPACE")
+    {
+        Console.WriteLine("Please set your email and password or API token to test this example.");
+        throw new Exception("Please set your email and password or API token to test this example.");
+    }
+
+    // or if you have already created the API token in HIO Cloud space you can use it
+    var hiocloudAPI = new Hiov2CloudDriver(Hiov2CloudDriver.DefaultHardwarioThingsboardUrl, apitoken, true);
+
+    if (hiocloudJWT != null)
+    {
+        var spaces = await hiocloudJWT.GetSpaces();
+        Console.WriteLine("\n");
+        if (spaces != null)
+        {
+            Console.WriteLine("Spaces:");
+            foreach (var space in spaces)
+            {
+                Console.WriteLine($"Space: {space.Name}, Type: {space.Type}, CreatedAt: {space.CreatedAt}");
+            }
+        }
+        else
+        {
+            Console.WriteLine("No spaces found.");
+        }
+    }
+
+    // fill your own space id
+    var demo_space = new Guid("0189f3f4-9549-78ed-959c-cf4a0b28e28c");
+    var wall_space = new Guid("0190a1c8-e61e-7216-b057-ff32a8d27756");
+    var devices = await hiocloudAPI.GetAllDevicesOfSpace(wall_space);
+    //var devices = await hiocloudAPI.GetAllDevicesOfSpace(demo_space, tags_ids: new string[] { "01922945-0c04-7258-ae68-5b6ef7db4421" });
+
+    if (devices != null)
+    {
+        Console.WriteLine("\n");
+        Console.WriteLine("Devices:");
+        foreach (var d in devices)
+        {
+            Console.WriteLine($"Device: {d.Name}, Id: {d.Id}, SpaceId: {d.SpaceId}, LastSeen: {d.LastSeen}");
+        }
+    }
+    else
+    {
+        Console.WriteLine("No devices found.");
+    }
+
+    // fill your own device id
+    var specific_device = new Guid("0190a1da-1a4d-7bdb-acb9-70a6c702789f");
+    var device = await hiocloudAPI.GetDevice(wall_space, specific_device);
+
+    if (device != null)
+    {
+        Console.WriteLine("\n");
+        Console.WriteLine("Specific Device:");
+        Console.WriteLine($"Device: {device.Name}, Id: {device.Id}, SpaceId: {device.SpaceId}, LastSeen: {device.LastSeen}");
+    }
+    else
+    {
+        Console.WriteLine("No device found.");
+    }
+
+    var messages = await hiocloudAPI.GetAllDeviceMessages(wall_space, specific_device);
+
+    if (messages != null)
+    {
+        Console.WriteLine("\n");
+        Console.WriteLine("Messages:");
+        foreach (var m in messages)
+        {
+            Console.WriteLine($"Message: {m.Type}, Time: {m.CreatedAt}, \n\nPayload:\n {m.Body}\n\n");
+            if (m.Type == HioCloudv2MessageType.Data)
+            {
+                Type guessedType = ChesterCloudMessageAutoIdentifier.FindTypeByMessageStructure(m.Body);
+                var parsed = System.Text.Json.JsonSerializer.Deserialize(m.Body, guessedType);
+                if (parsed != null)
+                {
+                    dynamic deserializedObject = parsed;
+                    Console.WriteLine($"Guessed Type of the data message: {deserializedObject}");
+
+                    string jsonContent = System.Text.Json.JsonSerializer.Serialize(parsed, new System.Text.Json.JsonSerializerOptions
+                    {
+                        WriteIndented = true // Print output nicely formatted
+                    });
+
+                    Console.WriteLine($"Parsed JSON Content:\n\n{jsonContent}\n\n");
+
+                }
+                // skip all other messages, take just first data message to parse and printout to console
+                break;
+            }
+        }
+    }
+    else
+    {
+        Console.WriteLine("No messages found.");
+    }
+
+    Console.WriteLine("Press key to quit...");
+    Console.ReadKey();
+
+}
 
 #endregion

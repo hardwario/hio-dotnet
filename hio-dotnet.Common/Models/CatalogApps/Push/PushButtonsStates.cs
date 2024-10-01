@@ -10,6 +10,9 @@ namespace hio_dotnet.Common.Models.CatalogApps.Push
 {
     public class PushButtonsStates
     {
+        [JsonPropertyName("button")]
+        public string? Button { get; set; }
+
         [JsonPropertyName("count_click")]
         public int CountClick { get; set; } = 0;
         
@@ -17,6 +20,6 @@ namespace hio_dotnet.Common.Models.CatalogApps.Push
         public int CountHold { get; set; } = 0;
 
         [JsonPropertyName("events")]
-        public List<ChesterBaseEvent> Events { get; set; } = new List<ChesterBaseEvent>();
+        public List<ChesterBaseEvent>? Events { get; set; }
     }
 }
