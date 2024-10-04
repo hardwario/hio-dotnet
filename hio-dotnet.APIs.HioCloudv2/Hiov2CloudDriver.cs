@@ -438,15 +438,18 @@ namespace hio_dotnet.APIs.HioCloudv2
 
         /// <summary>
         /// Send downlink message to cloud to the specific device
+        /// This version will send message_body as string
         /// </summary>
         /// <param name="space_id">Guid of space</param>
         /// <param name="device_id">Guid of device</param>
-        /// <param name="message_body">Body to send</param>
+        /// <param name="message_body">Body to send as string</param>
+        /// <param name="message_type">Use HioCloudv2MessageType static class to get types</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public async Task<HioCloudv2Message?> AddNewDownlingMessage(Guid space_id,
                                                                     Guid device_id,
-                                                                    string message_body)
+                                                                    string message_body,
+                                                                    string message_type)
         {
 
             using (var httpClient = GetHioClient())
@@ -455,13 +458,58 @@ namespace hio_dotnet.APIs.HioCloudv2
 
                 try
                 {
-                    httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
-
                     var body = new 
                     { 
                         device_id = device_id, 
                         body = message_body,
-                        type = HioCloudv2MessageType.Config
+                        type = message_type
+                    };
+
+                    var response = await httpClient.PostAsync(url, 
+                                                              new StringContent(System.Text.Json.JsonSerializer.Serialize(body), 
+                                                              Encoding.UTF8, "application/json"));
+
+                    var cnt = response.Content.ReadAsStringAsync().Result;
+
+                    CheckResponse(response);
+
+                    var msg = System.Text.Json.JsonSerializer.Deserialize<HioCloudv2Message?>(cnt);
+                    return msg;
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while fetching spaces data.", ex);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Send downlink message to cloud to the specific device
+        /// This version will send the message_body as object
+        /// </summary>
+        /// <param name="space_id">Guid of space</param>
+        /// <param name="device_id">Guid of device</param>
+        /// <param name="message_body">Body to send as object</param>
+        /// <param name="message_type">Use HioCloudv2MessageType static class to get types</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<HioCloudv2Message?> AddNewDownlingMessage(Guid space_id,
+                                                                    Guid device_id,
+                                                                    object message_body,
+                                                                    string message_type)
+        {
+
+            using (var httpClient = GetHioClient())
+            {
+                var url = $"/v2/spaces/{space_id}/messages";
+
+                try
+                {
+                    var body = new 
+                    { 
+                        device_id = device_id, 
+                        body = message_body,
+                        type = message_type
                     };
 
                     var response = await httpClient.PostAsync(url, 

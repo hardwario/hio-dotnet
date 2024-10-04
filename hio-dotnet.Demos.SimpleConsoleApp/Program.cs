@@ -11,12 +11,14 @@ using hio_dotnet.HWDrivers.JLink;
 using hio_dotnet.HWDrivers.MCU;
 using hio_dotnet.HWDrivers.PPK2;
 using System.Diagnostics;
+using System.Text.Json.Nodes;
 
 var JLINK_TEST = false;
 var PPK2_TEST = false;
 var CHIRPSTACK_TEST = false;
 var THINGSBOARD_TEST = false;
 var HIOCLOUDV2_TEST = false;
+var HIOCLOUDV2_TEST_DOWNLINK = true;
 
 #if WINDOWS
 Console.WriteLine("Running on Windows");
@@ -567,3 +569,31 @@ if(HIOCLOUDV2_TEST)
 }
 
 #endregion
+
+
+#region HIOCLOUDV2DownlinkExample
+if (HIOCLOUDV2_TEST_DOWNLINK)
+{
+    var apitoken = "YOUR_API_TOKEN";
+    var spaceid = "018ab6bb-ae9e-73ca-8917-aaae0ab1c691";
+    var deviceid = "0192579f-35a8-7b29-9fd5-cdd8ac08d13a"; // nove device
+    //var deviceid = "0189df80-834e-7df4-98a0-25030f81076d"; // andon-34
+
+    var hiocloudAPI = new Hiov2CloudDriver(Hiov2CloudDriver.DefaultHardwarioThingsboardUrl, apitoken, true);
+
+    var data = new
+    {
+        button_1_state = 1,
+        buzzer = 5
+    };
+
+    var res = await hiocloudAPI.AddNewDownlingMessage(new Guid(spaceid), 
+                                                      new Guid(deviceid), 
+                                                      data, 
+                                                      HioCloudv2MessageType.Data);
+}
+#endregion
+
+
+
+Console.WriteLine("Program ends. Goodbye");
