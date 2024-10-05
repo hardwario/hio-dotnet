@@ -22,7 +22,7 @@ namespace hio_dotnet.Common.Models.CatalogApps.Clime
         [JsonPropertyName("rtd_thermometer")]
         public List<RTD_Thermometer>? RTD_Thermometers { get; set; }
 
-        [SimulationAttribute(false)]
+        [SimulationMeasurementAttribute(false, numberOfInsideItems:5)]
         [JsonPropertyName("ble_tags")]
         public List<BLE_Tag>? BLE_Tags { get; set; }
     }

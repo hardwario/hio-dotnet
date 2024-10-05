@@ -23,7 +23,7 @@ namespace hio_dotnet.Common.Models
         [JsonPropertyName("system")]
         public ChesterSystem System { get; set; } = new ChesterSystem();
 
-        [SimulationAttribute(true)]
+        [SimulationAttribute(false)]
         [JsonPropertyName("backup")]
         public Backup Backup { get; set; } = new Backup();
 

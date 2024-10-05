@@ -90,6 +90,46 @@ namespace hio_dotnet.Common.Models.DataSimulation
                             property.SetValue(obj, nestedObj);
                         }
                     }
+                    else if (nestedObj.GetType() == typeof(List<BLE_Tag>))
+                    {
+                        var simulationMeasurementAttr = property.GetCustomAttribute<SimulationMeasurementAttribute>();
+                        if (simulationMeasurementAttr != null)
+                        {
+                            var count = simulationMeasurementAttr.NumberOfInsideItems;
+                            for (int i = 0; i < count; i++)
+                            {
+                                // create a new BLE_Tag object
+                                var blt = new BLE_Tag();
+                                BLE_Tag bltp = null;
+                                if (previousNestedObj != null)
+                                {
+                                    bltp = ((List<BLE_Tag>)previousNestedObj)?.FirstOrDefault();
+                                }
+                                Simulate(blt, bltp);
+
+                                if (bltp != null)
+                                {
+                                    blt.Addr = bltp.Addr;
+                                }
+                                else
+                                {
+                                    // create random BLE address in format like BA0987654321
+                                    var random = new Random();
+                                    var addr = new StringBuilder();
+                                    addr.Append("BA");
+                                    for (int j = 0; j < 10; j++)
+                                    {
+                                        addr.Append(random.Next(0, 9));
+                                    }
+                                    blt.Addr = addr.ToString();
+                                }
+
+                                ((List<BLE_Tag>)nestedObj).Add(blt);
+                            }
+
+                            property.SetValue(obj, nestedObj);
+                        }
+                    }
                     else
                     {
                         Simulate(nestedObj, previousNestedObj);
