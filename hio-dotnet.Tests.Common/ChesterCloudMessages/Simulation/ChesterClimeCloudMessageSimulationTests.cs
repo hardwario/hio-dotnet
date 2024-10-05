@@ -16,7 +16,7 @@ namespace hio_dotnet.Tests.Common.ChesterCloudMessages.Simulation
         {
             // Arrange
             var message = new ChesterClimeCloudMessage();
-            BaseSimulator.Simulate(message);
+            BaseSimulator.GetSimulatedData(message);
             Assert.NotEqual(message.W1_Thermometers.Count, 0);
         }
     }

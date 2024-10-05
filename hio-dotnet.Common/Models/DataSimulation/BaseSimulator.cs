@@ -10,6 +10,14 @@ namespace hio_dotnet.Common.Models.DataSimulation
 {
     public class BaseSimulator
     {
+        public static void GetSimulatedData(object obj, object? previousObj = null)
+        {
+            Simulate(obj, previousObj);
+
+            // add name of the FW and other static basic common info
+            FillCommonStatics(obj, previousObj);
+        }
+
         public static void Simulate(object obj, object? previousObj = null)
         {
             var properties = obj.GetType().GetProperties();
@@ -327,6 +335,121 @@ namespace hio_dotnet.Common.Models.DataSimulation
                     property.SetValue(obj, (long)initialValue);
                 }
 
+            }
+        }
+
+        public static void FillCommonStatics(object obj, object? previousObj = null)
+        {
+            if (obj != null)
+            {
+                var type = obj.GetType();
+
+                // add name of the FW and other static basic common info
+                if (obj is ChesterCommonCloudMessage chesterCommonCloudMessage)
+                {
+                    chesterCommonCloudMessage.Attribute.FwVersion = "3.4.0";
+                    chesterCommonCloudMessage.Attribute.HwVariant = "CGLS";
+                    chesterCommonCloudMessage.Attribute.HwRevision = "R3.2";
+                    chesterCommonCloudMessage.Attribute.ProductName = "CHESTER-M";
+                    chesterCommonCloudMessage.Attribute.VendorName = "HARDWARIO";
+
+                    if (type == typeof(CatalogApps.Clime.ChesterClimeCloudMessage))
+                    {
+                        chesterCommonCloudMessage.Attribute.FwName = "CHESTER Clime";
+                    }
+                    else if (type == typeof(CatalogApps.Current.ChesterCurrentCloudMessage))
+                    {
+                        chesterCommonCloudMessage.Attribute.FwName = "CHESTER Current";
+                    }
+                    else if (type == typeof(CatalogApps.Boiler.ChesterBoilerCloudMessage))
+                    {
+                        chesterCommonCloudMessage.Attribute.FwName = "CHESTER Boiler";
+                    }
+                    else if (type == typeof(CatalogApps.ClimeIAQ.ChesterClimeIAQCloudMessage))
+                    {
+                        chesterCommonCloudMessage.Attribute.FwName = "CHESTER Clime IAQ";
+                    }
+                    else if (type == typeof(CatalogApps.Control.ChesterControlCloudMessage))
+                    {
+                        chesterCommonCloudMessage.Attribute.FwName = "CHESTER Control";
+                    }
+                    else if (type == typeof(CatalogApps.Counter.ChesterCounterCloudMessage))
+                    {
+                        chesterCommonCloudMessage.Attribute.FwName = "CHESTER Counter";
+                    }
+                    else if (type == typeof(CatalogApps.Input.ChesterInputCloudMessage))
+                    {
+                        chesterCommonCloudMessage.Attribute.FwName = "CHESTER Input";
+                    }
+                    else if (type == typeof(CatalogApps.Meteo.ChesterMeteoCloudMessage))
+                    {
+                        chesterCommonCloudMessage.Attribute.FwName = "CHESTER Meteo";
+                    }
+                    else if (type == typeof(CatalogApps.Push.ChesterPushCloudMessage))
+                    {
+                        chesterCommonCloudMessage.Attribute.FwName = "CHESTER Push";
+                    }
+                    else if (type == typeof(CatalogApps.Radon.ChesterRadonCloudMessage))
+                    {
+                        chesterCommonCloudMessage.Attribute.FwName = "CHESTER Radon";
+                    }
+                    else if (type == typeof(CatalogApps.Range.ChesterRangeCloudMessage))
+                    {
+                        chesterCommonCloudMessage.Attribute.FwName = "CHESTER Range";
+                    }
+                    else if (type == typeof(CatalogApps.wMBus.ChesterWMBusCloudMessage))
+                    {
+                        chesterCommonCloudMessage.Attribute.FwName = "CHESTER wM-Bus";
+                    }
+
+                    if (previousObj != null)
+                    {
+                        chesterCommonCloudMessage.Attribute.SerialNumber = ((ChesterCommonCloudMessage)previousObj).Attribute.SerialNumber;
+                        // imei
+                        chesterCommonCloudMessage.Network.Imei = ((ChesterCommonCloudMessage)previousObj).Network.Imei;
+                        // imsi
+                        chesterCommonCloudMessage.Network.Imsi = ((ChesterCommonCloudMessage)previousObj).Network.Imsi;
+                    }
+                    else
+                    {
+                        // create serial number if not exists in format of random number with 10 numbers
+                        if (string.IsNullOrEmpty(chesterCommonCloudMessage.Attribute.SerialNumber) ||
+                            chesterCommonCloudMessage.Attribute.SerialNumber == Defaults.UnknownSerialNumber)
+                        {
+                            chesterCommonCloudMessage.Attribute.SerialNumber = new Random().Next(1000000000, 2000000000).ToString();
+                        }
+
+                        // create imei number if not exists in format of random number with 15 numbers
+                        if (chesterCommonCloudMessage.Network.Imei == 0)
+                        {
+                            // get first 5 number of the imei
+                            var firstpart = new Random().Next(10000, 20000);
+                            // get second 5 numbers of the imei
+                            var secondpart = new Random().Next(10000, 20000);
+                            // get third 5 numbers of the imei
+                            var thirdpart = new Random().Next(10000, 20000);
+                            chesterCommonCloudMessage.Network.Imei = long.Parse($"{firstpart}{secondpart}{thirdpart}");
+                        }
+
+                        // create imsi number if not exists in format of random number with 15 numbers
+                        if (chesterCommonCloudMessage.Network.Imsi == 0)
+                        {
+                            // get first 5 number of the imsi
+                            var firstpart = new Random().Next(10000, 20000);
+                            // get second 5 numbers of the imsi
+                            var secondpart = new Random().Next(10000, 20000);
+                            // get third 5 numbers of the imsi
+                            var thirdpart = new Random().Next(10000, 20000);
+                            chesterCommonCloudMessage.Network.Imsi = long.Parse($"{firstpart}{secondpart}{thirdpart}");
+                        }
+                    }
+                    // fill other static network parameters
+                    chesterCommonCloudMessage.Network.Parameter.Plmn = 23003;
+                    chesterCommonCloudMessage.Network.Parameter.Cid = 939040;
+                    chesterCommonCloudMessage.Network.Parameter.Band = 20;
+                    chesterCommonCloudMessage.Network.Parameter.Earfcn = 6557;
+                    chesterCommonCloudMessage.Network.Parameter.Eest = 7;
+                }
             }
         }
     }

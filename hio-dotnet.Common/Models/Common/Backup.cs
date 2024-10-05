@@ -10,7 +10,7 @@ namespace hio_dotnet.Common.Models.Common
 {
     public class Backup
     {
-        [SimulationAttribute(false, 3.7, 4.2, false)]
+        [SimulationAttribute(false, 23.5, 24.5, false)]
         [JsonPropertyName("line_voltage")]
         public double LineVoltage { get; set; } = 0.0;
 
