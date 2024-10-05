@@ -17,18 +17,36 @@ namespace hio_dotnet.Common.Models.DataSimulation
             foreach (var property in properties)
             {
                 var simulationAttr = property.GetCustomAttribute<SimulationAttribute>();
-
-                if (simulationAttr != null && !simulationAttr.IsStatic)
+                
+                if (simulationAttr != null && !simulationAttr.IsStatic &&
+                    property.GetCustomAttribute<SimulationMeasurementAttribute>() == null &&
+                    (property.PropertyType.IsPrimitive || Nullable.GetUnderlyingType(property.PropertyType)?.IsPrimitive == true))
                 {
-                    FillRandomValue(simulationAttr, obj, property, previousObj);
+                    var isList = false;
+                    if (property.PropertyType.IsGenericType &&
+                    property.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                    {
+                        isList = true;
+                    }
+
+                    if (!isList)
+                        FillRandomValue(simulationAttr, obj, property, previousObj);
                 }
 
-                else if (property.PropertyType.IsClass &&
+                else if (simulationAttr != null &&
+                         property.PropertyType.IsClass &&
                          property.PropertyType != typeof(string) &&
                          !property.PropertyType.IsPrimitive &&
-                         property.GetValue(obj) != null)
+                         !simulationAttr.IsStatic)// &&
+                         //property.GetValue(obj) != null)
                 {
+                    
                     var nestedObj = property.GetValue(obj);
+                    if (nestedObj == null)
+                    {
+                        nestedObj = Activator.CreateInstance(property.PropertyType);
+                        //property.SetValue(obj, nestedObj);
+                    }
                     var previousNestedObj = previousObj?.GetType().GetProperty(property.Name)?.GetValue(previousObj);
 
                     //check if the nested object is a MeasurementGroup and if yes use SimulateMeasurementGroup function
@@ -38,6 +56,30 @@ namespace hio_dotnet.Common.Models.DataSimulation
                         if (simulationMeasurementAttr != null)
                         {
                             SimulateMeasurementGroup(nestedObj, simulationMeasurementAttr, previousNestedObj);
+                        }
+                    }
+                    else if (nestedObj.GetType() == typeof(List<W1_Thermometer>))
+                    {
+                        var simulationMeasurementAttr = property.GetCustomAttribute<SimulationMeasurementAttribute>();
+                        if (simulationMeasurementAttr != null)
+                        {
+                            var count = simulationMeasurementAttr.NumberOfInsideItems;
+                            for (int i = 0; i < count; i++)
+                            {
+                                // create a new W1_Thermometer object
+                                
+                                var w1t = new W1_Thermometer();
+                                W1_Thermometer w1tp = null;
+                                if (previousNestedObj != null)
+                                {
+                                    w1tp = ((List<W1_Thermometer>)previousNestedObj)?.FirstOrDefault();
+                                }
+                                Simulate_W1_Thermoemter(w1t, simulationMeasurementAttr, w1tp);
+
+                                ((List<W1_Thermometer>)nestedObj).Add(w1t);
+                            }
+
+                            property.SetValue(obj, nestedObj);
                         }
                     }
                     else
@@ -70,71 +112,108 @@ namespace hio_dotnet.Common.Models.DataSimulation
                 {
                     if (property != null && property.PropertyType == typeof(List<Measurement>))
                     {
-                        // add new item to the list
-                        var list = (List<Measurement>)property.GetValue(obj);
-                        if (list != null)
-                        {
-                            var listitem = new Measurement();
-                            Measurement? previousMeasurementObj = null;
-
-                            // if previousObj is not null check the existence of the List<Measurement> and if it has any item take it as previousMeasurementObj
-                            if (previousObj != null)
-                            {
-                                var previousList = (List<Measurement>)property.GetValue(previousObj);
-                                if (previousList != null && previousList.Count > 0)
-                                {
-                                    previousMeasurementObj = previousList[0];
-                                }
-                            }
-
-                            var propertiesMeasurement = typeof(Measurement).GetProperties();
-
-                            var avgProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Avg");
-                            var mdnProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Mdn");
-                            var minProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Min");
-                            var maxProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Max");
-
-                            var avgPropAttr = avgProp?.GetCustomAttribute<SimulationAttribute>();
-                            if (avgPropAttr != null)
-                            {
-                                avgPropAttr.MinValue = simulationMeasurementAttr.MinValue;
-                                avgPropAttr.MaxValue = simulationMeasurementAttr.MaxValue;
-                                avgPropAttr.NeedsFollowPrevious = simulationMeasurementAttr.NeedsFollowPrevious;
-                                avgPropAttr.ShouldRaise = simulationMeasurementAttr.ShouldRaise;
-                                avgPropAttr.MaximumChange = simulationMeasurementAttr.MaximumChange;
-                                FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj);
-                            }
-
-                            var random = new Random();
-                            //now calculate the min and max values with some random spread out of the avg value min to minus value and max to plus value
-                            var randomSpread = listitem.Avg * random.NextDouble() * 0.1;
-                            listitem.Mdn = listitem.Avg - randomSpread;
-                            listitem.Min = listitem.Avg - (randomSpread * 2);
-                            listitem.Max = listitem.Avg + (randomSpread * 2);
-
-                            if (listitem.Max > simulationMeasurementAttr.MaxValue)
-                            {
-                                listitem.Max = simulationMeasurementAttr.MaxValue;
-                            }
-                            if (listitem.Min < simulationMeasurementAttr.MinValue)
-                            {
-                                listitem.Min = simulationMeasurementAttr.MinValue;
-                            }
-
-                            if (listitem.Mdn > simulationMeasurementAttr.MaxValue) 
-                            {
-                                listitem.Mdn = simulationMeasurementAttr.MaxValue;
-                            }
-                            if (listitem.Mdn < simulationMeasurementAttr.MinValue)
-                            {
-                                listitem.Mdn = simulationMeasurementAttr.MinValue;
-                            }
-
-                            list.Add(listitem);
-                            
-                        }
+                        FillMeasurementList(obj, simulationMeasurementAttr, property, previousObj);
                     }
                 }
+            }
+        }
+
+        public static void Simulate_W1_Thermoemter(object obj, SimulationMeasurementAttribute simulationMeasurementAttr, object? previousObj = null)
+        {
+            if (obj.GetType() != typeof(W1_Thermometer))
+            {
+                return;
+            }
+            if (previousObj != null)
+            {
+                if (previousObj.GetType() != typeof(W1_Thermometer))
+                {
+                    return;
+                }
+            }
+
+            var properties = obj.GetType().GetProperties();
+
+            foreach (var property in properties)
+            {
+                if (property.PropertyType.IsGenericType &&
+                    property.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    if (property != null && property.PropertyType == typeof(List<Measurement>))
+                    {
+                        FillMeasurementList(obj, simulationMeasurementAttr, property, previousObj);
+                    }
+                }
+            }
+        }
+
+        public static void FillMeasurementList(object obj, 
+                                               SimulationMeasurementAttribute simulationMeasurementAttr, 
+                                               PropertyInfo? property = null, 
+                                               object? previousObj = null)
+        {
+            // add new item to the list
+            var list = (List<Measurement>)property.GetValue(obj);
+            if (list != null)
+            {
+                var listitem = new Measurement();
+                Measurement? previousMeasurementObj = null;
+
+                // if previousObj is not null check the existence of the List<Measurement> and if it has any item take it as previousMeasurementObj
+                if (previousObj != null)
+                {
+                    var previousList = (List<Measurement>)property.GetValue(previousObj);
+                    if (previousList != null && previousList.Count > 0)
+                    {
+                        previousMeasurementObj = previousList[0];
+                    }
+                }
+
+                var propertiesMeasurement = typeof(Measurement).GetProperties();
+
+                var avgProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Avg");
+                var mdnProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Mdn");
+                var minProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Min");
+                var maxProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Max");
+
+                var avgPropAttr = avgProp?.GetCustomAttribute<SimulationAttribute>();
+                if (avgPropAttr != null)
+                {
+                    avgPropAttr.MinValue = simulationMeasurementAttr.MinValue;
+                    avgPropAttr.MaxValue = simulationMeasurementAttr.MaxValue;
+                    avgPropAttr.NeedsFollowPrevious = simulationMeasurementAttr.NeedsFollowPrevious;
+                    avgPropAttr.ShouldRaise = simulationMeasurementAttr.ShouldRaise;
+                    avgPropAttr.MaximumChange = simulationMeasurementAttr.MaximumChange;
+                    FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj);
+                }
+
+                var random = new Random();
+                //now calculate the min and max values with some random spread out of the avg value min to minus value and max to plus value
+                var randomSpread = listitem.Avg * random.NextDouble() * 0.1;
+                listitem.Mdn = listitem.Avg - randomSpread;
+                listitem.Min = listitem.Avg - (randomSpread * 2);
+                listitem.Max = listitem.Avg + (randomSpread * 2);
+
+                if (listitem.Max > simulationMeasurementAttr.MaxValue)
+                {
+                    listitem.Max = simulationMeasurementAttr.MaxValue;
+                }
+                if (listitem.Min < simulationMeasurementAttr.MinValue)
+                {
+                    listitem.Min = simulationMeasurementAttr.MinValue;
+                }
+
+                if (listitem.Mdn > simulationMeasurementAttr.MaxValue)
+                {
+                    listitem.Mdn = simulationMeasurementAttr.MaxValue;
+                }
+                if (listitem.Mdn < simulationMeasurementAttr.MinValue)
+                {
+                    listitem.Mdn = simulationMeasurementAttr.MinValue;
+                }
+
+                list.Add(listitem);
+
             }
         }
 
@@ -207,11 +286,47 @@ namespace hio_dotnet.Common.Models.DataSimulation
                 {
                     property.SetValue(obj, (int)initialValue);
                 }
+                else if (property.PropertyType == typeof(int?))
+                {
+                    // if is null init the prop
+                    if (property.GetValue(obj) == null)
+                    {
+                        property.SetValue(obj, 0);
+                    }
+                    property.SetValue(obj, (int)initialValue);
+                }
                 else if (property.PropertyType == typeof(double))
                 {
                     var value = Math.Round(initialValue, 4);
                     property.SetValue(obj, value);
                 }
+                else if (property.PropertyType == typeof(double?))
+                {
+                    // if is null init the prop
+                    if (property.GetValue(obj) == null)
+                    {
+                        property.SetValue(obj, 0.0);
+                    }
+
+                    var value = Math.Round(initialValue, 4);
+                    property.SetValue(obj, value);
+                }
+                else if (property.PropertyType == typeof(long))
+                {
+                    var value = Math.Round(initialValue, 4);
+                    property.SetValue(obj, (long)initialValue);
+                }
+                else if (property.PropertyType == typeof(long?))
+                {
+                    //if is null init the prop
+                    if (property.GetValue(obj) == null)
+                    {
+                        property.SetValue(obj, 0);
+                    }
+                    var value = Math.Round(initialValue, 4);
+                    property.SetValue(obj, (long)initialValue);
+                }
+
             }
         }
     }
