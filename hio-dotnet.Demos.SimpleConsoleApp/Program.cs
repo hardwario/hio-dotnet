@@ -1,7 +1,8 @@
-﻿using hio_dotnet.APIs.Chirpstack;
+using hio_dotnet.APIs.Chirpstack;
 using hio_dotnet.APIs.HioCloudv2;
 using hio_dotnet.APIs.HioCloudv2.Models;
 using hio_dotnet.APIs.ThingsBoard;
+using hio_dotnet.APIs.ThingsBoard.Models.Dashboards;
 using hio_dotnet.Common.Models;
 using hio_dotnet.Common.Models.CatalogApps;
 using hio_dotnet.Common.Models.CatalogApps.Counter;
@@ -10,15 +11,17 @@ using hio_dotnet.HWDrivers.Enums;
 using hio_dotnet.HWDrivers.JLink;
 using hio_dotnet.HWDrivers.MCU;
 using hio_dotnet.HWDrivers.PPK2;
+using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 var JLINK_TEST = false;
 var PPK2_TEST = false;
 var CHIRPSTACK_TEST = false;
-var THINGSBOARD_TEST = false;
+var THINGSBOARD_TEST = true;
 var HIOCLOUDV2_TEST = false;
-var HIOCLOUDV2_TEST_DOWNLINK = true;
+var HIOCLOUDV2_TEST_DOWNLINK = false;
 
 #if WINDOWS
 Console.WriteLine("Running on Windows");
@@ -387,6 +390,7 @@ if (CHIRPSTACK_TEST)
 if (THINGSBOARD_TEST)
 {
     // You need to have ThingsBoard running on localhost to test this example
+    Console.WriteLine("Starting ThingsBoard test...");
 
     // Default localhost ThingsBoard API URL
     var baseUrl = "http://localhost";
@@ -404,6 +408,84 @@ if (THINGSBOARD_TEST)
     Console.WriteLine("Initializing driver and connection...");
     var thingsBoardDriver = new ThingsBoardDriver(baseUrl, username, password, 8080);
     Console.WriteLine("Connection initialized.");
+
+    Console.WriteLine("\nCreating new Customer...");
+    var newCustomer = await thingsBoardDriver.CreateCustomerAsync(new hio_dotnet.APIs.ThingsBoard.Models.CreateCustomerRequest()
+    {
+        Title = "Test Customer",
+    });
+
+    Console.WriteLine($"New Customer created: {newCustomer.Id.Id}");
+
+    Console.WriteLine("\nGetting device profiles...");
+    var deviceProfiles = await thingsBoardDriver.GetDeviceProfilesAsync();
+    Console.WriteLine("Device profiles obtained.");
+    foreach (var profile in deviceProfiles)
+    {
+        Console.WriteLine($"Device Profile: {profile.Name}, Id: {profile.Id.Id}");
+    }
+
+    var defaultProfile = deviceProfiles.Where(p => p.Name == "default").FirstOrDefault();
+    if (defaultProfile != null)
+    {
+        // create new device under this customer and deviceProfile
+        Console.WriteLine("\nCreating new device...");
+        var newDevice = await thingsBoardDriver.CreateDeviceAsync(new hio_dotnet.APIs.ThingsBoard.Models.CreateDeviceRequest()
+        {
+            Name = "Test Device",
+            Label = "Test Device",
+            CustomerId = newCustomer.Id,
+            DeviceProfileId = defaultProfile.Id
+        });
+        if (newDevice != null)
+        {
+            Console.WriteLine($"Device Created. Device Id: {newDevice.Id.Id}");
+            Console.WriteLine("Getting Connection Info...");
+            var connectionInfo = await thingsBoardDriver.GetDeviceConnectionInfoAsync(newDevice.Id.Id.ToString());
+            if (connectionInfo != null)
+            {
+                Console.WriteLine($"\nExample Device Telemetry Request: {connectionInfo.Http.Http}\n");
+                var connectionToken = thingsBoardDriver.ParseConnectionToken(connectionInfo);
+                Console.WriteLine($"Device Connection Token: {connectionToken}");
+            }
+
+            var dashboard_filename = "chester_counter-test-dashboard.json";
+            if (File.Exists(dashboard_filename))
+            {
+                Console.WriteLine("Loading test dashboard...");
+                var test_dashboard = File.ReadAllText(dashboard_filename);
+                var test_dasboard_serialized = JsonSerializer.Deserialize<CreateDashboardRequest>(test_dashboard);
+                Console.WriteLine("test dashboard loaded. Creating dashboard...");
+                test_dasboard_serialized.CustomerId = newCustomer.Id;
+                test_dasboard_serialized.TenantId = newCustomer.TenantId;
+                foreach (var widget in test_dasboard_serialized.Configuration.Widgets)
+                {
+                    foreach(var datasource in widget.Value.Config.Datasources)
+                        datasource.DeviceId = newDevice.Id.Id.ToString();
+                }
+
+                var newDashboard = await thingsBoardDriver.CreateDashboardAsync(test_dasboard_serialized);
+                Console.WriteLine($"Dashboard created: {newDashboard.Id.Id}");
+
+                Console.WriteLine("\n Deleting Dashboard...");
+                var delDashboard = await thingsBoardDriver.DeleteDashboardAsync(newDashboard.Id.Id.ToString());
+                Console.WriteLine($"Dashboard deleted.");
+            }
+
+            Console.WriteLine("\nDeleting Test device...");
+            var delDevice = await thingsBoardDriver.DeleteDeviceAsync(newDevice.Id.Id.ToString());
+            Console.WriteLine($"Device deleted.");
+        }
+    }
+
+    Console.WriteLine("\nDeleting Customer...");
+    var delCustomer = await thingsBoardDriver.DeleteCustomerAsync(newCustomer.Id.Id.ToString());
+    Console.WriteLine($"Customer deleted.");
+
+    Console.WriteLine("\nPress key to quit...");
+    Console.ReadKey();
+    return;
+
 
     Console.WriteLine("Getting actual newest data from API...");
     var data = await thingsBoardDriver.GetTelemetryDataAsync(deviceId, keys);

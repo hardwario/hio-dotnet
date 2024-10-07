@@ -7,11 +7,9 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.APIs.ThingsBoard.Models
 {
-    public class DataValue
+    public class CoapDeviceTypeConfiguration
     {
-        [JsonPropertyName("timestamp")]
-        public DateTime Timestamp { get; set; } = DateTime.MinValue;
-        [JsonPropertyName("value")]
-        public double Value { get; set; } = 0;
+        [JsonPropertyName("coapDeviceType")]
+        public string CoapDeviceType { get; set; } = string.Empty;
     }
 }
