@@ -13,6 +13,12 @@ namespace hio_dotnet.APIs.ThingsBoard.Models.Dashboards
         public int RealtimeType { get; set; } = 0;
 
         [JsonPropertyName("timewindowMs")]
-        public long TimewindowMs { get; set; } = 604800000;
+        public int TimewindowMs { get; set; } = 60000;
+
+        [JsonPropertyName("quickInterval")]
+        public string? QuickInterval { get; set; } = "CURRENT_DAY";
+
+        [JsonPropertyName("interval")]
+        public int Interval { get; set; } = 1000;
     }
 }

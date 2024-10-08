@@ -7,12 +7,14 @@ using hio_dotnet.Common.Models;
 using hio_dotnet.Common.Models.CatalogApps;
 using hio_dotnet.Common.Models.CatalogApps.Counter;
 using hio_dotnet.Common.Models.CatalogApps.Push;
+using hio_dotnet.Common.Models.DataSimulation;
 using hio_dotnet.HWDrivers.Enums;
 using hio_dotnet.HWDrivers.JLink;
 using hio_dotnet.HWDrivers.MCU;
 using hio_dotnet.HWDrivers.PPK2;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -442,14 +444,17 @@ if (THINGSBOARD_TEST)
             Console.WriteLine($"Device Created. Device Id: {newDevice.Id.Id}");
             Console.WriteLine("Getting Connection Info...");
             var connectionInfo = await thingsBoardDriver.GetDeviceConnectionInfoAsync(newDevice.Id.Id.ToString());
+            var connectionToken = string.Empty;
             if (connectionInfo != null)
             {
                 Console.WriteLine($"\nExample Device Telemetry Request: {connectionInfo.Http.Http}\n");
-                var connectionToken = thingsBoardDriver.ParseConnectionToken(connectionInfo);
+                connectionToken = thingsBoardDriver.ParseConnectionToken(connectionInfo);
                 Console.WriteLine($"Device Connection Token: {connectionToken}");
             }
 
-            var dashboard_filename = "chester_counter-test-dashboard.json";
+            // place this file with demo dashboard for CHESTER Counter in the app root folder
+            // otherwise this part will be skipped
+            var dashboard_filename = "chester_counter (5).json";
             if (File.Exists(dashboard_filename))
             {
                 Console.WriteLine("Loading test dashboard...");
@@ -466,6 +471,14 @@ if (THINGSBOARD_TEST)
 
                 var newDashboard = await thingsBoardDriver.CreateDashboardAsync(test_dasboard_serialized);
                 Console.WriteLine($"Dashboard created: {newDashboard.Id.Id}");
+
+
+                Console.WriteLine("\nCreating Sample Data");
+                var counterdevice = new ChesterCounterCloudMessage();
+                BaseSimulator.GetSimulatedData(counterdevice);
+                Console.WriteLine($"Sending simulated data...");
+                var res = await thingsBoardDriver.SendTelemetryData(counterdevice, connectionToken);
+                Console.WriteLine("Sample data sent.");
 
                 Console.WriteLine("\n Deleting Dashboard...");
                 var delDashboard = await thingsBoardDriver.DeleteDashboardAsync(newDashboard.Id.Id.ToString());

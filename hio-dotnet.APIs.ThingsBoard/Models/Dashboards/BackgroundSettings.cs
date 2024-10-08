@@ -7,14 +7,18 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.APIs.ThingsBoard.Models.Dashboards
 {
-    public class Aggregation
+    public class BackgroundSettings
     {
         [JsonPropertyName("type")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Type { get; set; }
 
-        [JsonPropertyName("limit")]
+        [JsonPropertyName("opacity")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public int? Limit { get; set; }
+        public double? Opacity { get; set; }
+
+        [JsonPropertyName("gradient")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public GradientSettings? Gradient { get; set; }
     }
 }

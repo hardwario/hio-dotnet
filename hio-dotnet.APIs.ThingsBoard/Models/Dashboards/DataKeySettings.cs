@@ -7,30 +7,30 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.APIs.ThingsBoard.Models.Dashboards
 {
-    public class Datasource
+    public class DataKeySettings
     {
+        [JsonPropertyName("yAxisId")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? YAxisId { get; set; }
+
+        [JsonPropertyName("showInLegend")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public bool? ShowInLegend { get; set; }
+
+        [JsonPropertyName("dataHiddenByDefault")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public bool? DataHiddenByDefault { get; set; }
+
         [JsonPropertyName("type")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Type { get; set; }
 
-        [JsonPropertyName("name")]
+        [JsonPropertyName("lineSettings")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? Name { get; set; }
+        public LineSettings? LineSettings { get; set; }
 
-        [JsonPropertyName("deviceId")]
+        [JsonPropertyName("barSettings")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? DeviceId { get; set; }
-
-        [JsonPropertyName("dataKeys")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public List<DataKey>? DataKeys { get; set; }
-
-        [JsonPropertyName("alarmFilterConfig")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public AlarmFilterConfig? AlarmFilterConfig { get; set; }
-
-        [JsonPropertyName("latestDataKeys")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public List<object>? LatestDataKeys { get; set; }
+        public BarSettings? BarSettings { get; set; }
     }
 }

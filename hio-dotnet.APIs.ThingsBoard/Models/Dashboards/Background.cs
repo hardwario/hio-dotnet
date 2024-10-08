@@ -7,14 +7,18 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.APIs.ThingsBoard.Models.Dashboards
 {
-    public class Aggregation
+    public class Background
     {
         [JsonPropertyName("type")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Type { get; set; }
 
-        [JsonPropertyName("limit")]
+        [JsonPropertyName("color")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public int? Limit { get; set; }
+        public string? Color { get; set; }
+
+        [JsonPropertyName("overlay")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public Overlay? Overlay { get; set; }
     }
 }

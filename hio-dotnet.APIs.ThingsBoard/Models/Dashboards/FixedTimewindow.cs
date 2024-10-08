@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.APIs.ThingsBoard.Models.Dashboards
 {
-    public class Aggregation
+    public class FixedTimewindow
     {
-        [JsonPropertyName("type")]
+        [JsonPropertyName("startTimeMs")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? Type { get; set; }
+        public long? StartTimeMs { get; set; }
 
-        [JsonPropertyName("limit")]
+        [JsonPropertyName("endTimeMs")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public int? Limit { get; set; }
+        public long? EndTimeMs { get; set; }
     }
 }

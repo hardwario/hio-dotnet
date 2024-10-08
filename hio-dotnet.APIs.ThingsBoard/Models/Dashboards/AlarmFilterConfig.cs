@@ -7,14 +7,10 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.APIs.ThingsBoard.Models.Dashboards
 {
-    public class Aggregation
+    public class AlarmFilterConfig
     {
-        [JsonPropertyName("type")]
+        [JsonPropertyName("statusList")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? Type { get; set; }
-
-        [JsonPropertyName("limit")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public int? Limit { get; set; }
+        public List<string>? StatusList { get; set; }
     }
 }

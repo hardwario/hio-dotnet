@@ -271,6 +271,44 @@ namespace hio_dotnet.APIs.ThingsBoard
             }
         }
 
+        public async Task<string?> SendTelemetryData(object telemetryData, string connectionToken, string jwtToken = "")
+        {
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                jwtToken = _jwtToken;
+            }
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                throw new ArgumentException("JWT token cannot be empty. If you do not know JWT token use constructor with Username and Password to obtain JWT token automatically.");
+            }
+
+            using (var httpClient = new HttpClient())
+            {
+                httpClient.BaseAddress = new System.Uri(_baseUrl);
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var data = JsonSerializer.Serialize(telemetryData);
+
+                var url = $"/api/v1/{connectionToken}/telemetry";
+                var content = new StringContent(data, Encoding.UTF8, "application/json");
+
+                try
+                {
+                    var response = await httpClient.PostAsync(url, content);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    response.EnsureSuccessStatusCode();
+
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    return responseBody;
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while creating a customer.", ex);
+                }
+            }
+        }
+
         #endregion
 
         #region Attributes
@@ -629,7 +667,7 @@ namespace hio_dotnet.APIs.ThingsBoard
                     var split = connectivity.Http.Http.Split("/api/v1/");
                     if (split.Length > 0)
                     {
-                        var token = split[0].Split("/telemetry");
+                        var token = split[1].Split("/telemetry");
                         if (token.Length > 0)
                         {
                             return token[0];
@@ -704,8 +742,10 @@ namespace hio_dotnet.APIs.ThingsBoard
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+                var data = JsonSerializer.Serialize(dashboardRequest);
+
                 var url = "/api/dashboard";
-                var content = new StringContent(JsonSerializer.Serialize(dashboardRequest), Encoding.UTF8, "application/json");
+                var content = new StringContent(data, Encoding.UTF8, "application/json");
 
                 try
                 {
