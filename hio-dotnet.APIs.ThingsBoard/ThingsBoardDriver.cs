@@ -214,7 +214,7 @@ namespace hio_dotnet.APIs.ThingsBoard
                     var cnt = await response.Content.ReadAsStringAsync();
                     if (!response.IsSuccessStatusCode)
                     {
-                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                        throw new Exception($"An error occurred while getting telemetry data. Response: {cnt}");
                     }
                     response.EnsureSuccessStatusCode();
 
@@ -268,7 +268,7 @@ namespace hio_dotnet.APIs.ThingsBoard
                     var cnt = await response.Content.ReadAsStringAsync();
                     if (!response.IsSuccessStatusCode)
                     {
-                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                        throw new Exception($"An error occurred while fetching telemetry data for the specified time range. Response: {cnt}");
                     }
                     response.EnsureSuccessStatusCode();
 
@@ -309,7 +309,7 @@ namespace hio_dotnet.APIs.ThingsBoard
                     var cnt = await response.Content.ReadAsStringAsync();
                     if (!response.IsSuccessStatusCode)
                     {
-                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                        throw new Exception($"An error occurred while creating a customer. Response: {cnt}");
                     }
                     response.EnsureSuccessStatusCode();
 
@@ -360,7 +360,7 @@ namespace hio_dotnet.APIs.ThingsBoard
                     var cnt = await response.Content.ReadAsStringAsync();
                     if (!response.IsSuccessStatusCode)
                     {
-                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                        throw new Exception($"An error occurred while fetching attributes. Response: {cnt}");
                     }
                     response.EnsureSuccessStatusCode();
 
@@ -408,7 +408,7 @@ namespace hio_dotnet.APIs.ThingsBoard
                     var cnt = await response.Content.ReadAsStringAsync();
                     if (!response.IsSuccessStatusCode)
                     {
-                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                        throw new Exception($"An error occurred while setting attributes. Response: {cnt}");
                     }
                     response.EnsureSuccessStatusCode();
 
@@ -459,7 +459,7 @@ namespace hio_dotnet.APIs.ThingsBoard
                     var cnt = await response.Content.ReadAsStringAsync();
                     if (!response.IsSuccessStatusCode)
                     {
-                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                        throw new Exception($"An error occurred while adding customer. Response: {cnt}");
                     }
                     response.EnsureSuccessStatusCode();
 
@@ -499,7 +499,7 @@ namespace hio_dotnet.APIs.ThingsBoard
                     var cnt = await response.Content.ReadAsStringAsync();
                     if (!response.IsSuccessStatusCode)
                     {
-                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                        throw new Exception($"An error occurred while deleting customer. Response: {cnt}");
                     }
                     response.EnsureSuccessStatusCode();
 
@@ -592,6 +592,11 @@ namespace hio_dotnet.APIs.ThingsBoard
                 try
                 {
                     var response = await httpClient.DeleteAsync(url);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while deleting user from customer. Response: {cnt}");
+                    }
                     response.EnsureSuccessStatusCode();
 
                     return await response.Content.ReadAsStringAsync();
@@ -636,7 +641,7 @@ namespace hio_dotnet.APIs.ThingsBoard
                     var cnt = await response.Content.ReadAsStringAsync();
                     if (!response.IsSuccessStatusCode)
                     {
-                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                        throw new Exception($"An error occurred while fetching customer details. Response: {cnt}");
                     }
                     response.EnsureSuccessStatusCode();
 
@@ -686,7 +691,7 @@ namespace hio_dotnet.APIs.ThingsBoard
                     var cnt = await response.Content.ReadAsStringAsync();
                     if (!response.IsSuccessStatusCode)
                     {
-                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                        throw new Exception($"An error occurred while fetching device profiles. Response: {cnt}");
                     }
                     response.EnsureSuccessStatusCode();
 
@@ -738,7 +743,7 @@ namespace hio_dotnet.APIs.ThingsBoard
                     var cnt = await response.Content.ReadAsStringAsync();
                     if (!response.IsSuccessStatusCode)
                     {
-                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                        throw new Exception($"An error occurred while adding device. Response: {cnt}");
                     }
                     response.EnsureSuccessStatusCode();
 
@@ -785,7 +790,7 @@ namespace hio_dotnet.APIs.ThingsBoard
                     var cnt = await response.Content.ReadAsStringAsync();
                     if (!response.IsSuccessStatusCode)
                     {
-                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                        throw new Exception($"An error occurred while fetching device connection info. Response: {cnt}");
                     }
                     response.EnsureSuccessStatusCode();
 
@@ -795,7 +800,7 @@ namespace hio_dotnet.APIs.ThingsBoard
                 }
                 catch (HttpRequestException ex)
                 {
-                    throw new Exception("An error occurred while fetching device profiles.", ex);
+                    throw new Exception("An error occurred while fetching device connection info.", ex);
                 }
             }
         }
@@ -848,7 +853,7 @@ namespace hio_dotnet.APIs.ThingsBoard
                     var cnt = await response.Content.ReadAsStringAsync();
                     if (!response.IsSuccessStatusCode)
                     {
-                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                        throw new Exception($"An error occurred while deleting device. Response: {cnt}");
                     }
                     response.EnsureSuccessStatusCode();
 
@@ -901,7 +906,7 @@ namespace hio_dotnet.APIs.ThingsBoard
                     var cnt = await response.Content.ReadAsStringAsync();
                     if (!response.IsSuccessStatusCode)
                     {
-                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                        throw new Exception($"An error occurred while creating dashboard. Response: {cnt}");
                     }
                     response.EnsureSuccessStatusCode();
 
@@ -910,7 +915,7 @@ namespace hio_dotnet.APIs.ThingsBoard
                 }
                 catch (HttpRequestException ex)
                 {
-                    throw new Exception("An error occurred while creating a customer.", ex);
+                    throw new Exception("An error occurred while creating a dashboard.", ex);
                 }
             }
         }
@@ -941,7 +946,7 @@ namespace hio_dotnet.APIs.ThingsBoard
                     var cnt = await response.Content.ReadAsStringAsync();
                     if (!response.IsSuccessStatusCode)
                     {
-                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                        throw new Exception($"An error occurred while deleting dashboard. Response: {cnt}");
                     }
                     response.EnsureSuccessStatusCode();
 

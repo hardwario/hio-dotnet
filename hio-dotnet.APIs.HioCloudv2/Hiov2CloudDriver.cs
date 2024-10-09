@@ -3,6 +3,7 @@ using System.Data;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 
 namespace hio_dotnet.APIs.HioCloudv2
 {
@@ -210,6 +211,41 @@ namespace hio_dotnet.APIs.HioCloudv2
             }
         }
 
+        /// <summary>
+        /// Create new space
+        /// </summary>
+        /// <param name="space_id"></param>
+        /// <param name="space"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<HioCloudv2Space?> CreateSpace(Guid space_id, HioCloudv2Space space)
+        {
+            using (var httpClient = GetHioClient())
+            {
+                var url = $"/v2/spaces/";
+
+                var content = new StringContent(JsonSerializer.Serialize(space), Encoding.UTF8, "application/json");
+
+                try
+                {
+                    var response = await httpClient.PostAsync(url, content);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                    }
+                    CheckResponse(response);
+
+                    var spaceResponse = System.Text.Json.JsonSerializer.Deserialize<HioCloudv2Space?>(cnt);
+                    return spaceResponse;
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while fetching spaces data.", ex);
+                }
+            }
+        }
+
         #endregion
 
         #region Devices
@@ -333,6 +369,42 @@ namespace hio_dotnet.APIs.HioCloudv2
 
                     var device = System.Text.Json.JsonSerializer.Deserialize<HioCloudv2Device?>(cnt);
                     return device;
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while fetching spaces data.", ex);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Create new device in cloud
+        /// </summary>
+        /// <param name="space_id"></param>
+        /// <param name="device"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<HioCloudv2Device?> CreateDevice(Guid space_id, HioCloudv2Device device)
+        {
+
+            using (var httpClient = GetHioClient())
+            {
+                var url = $"/v2/spaces/{space_id}/devices";
+
+                var content = new StringContent(JsonSerializer.Serialize(device), Encoding.UTF8, "application/json");
+
+                try
+                {
+                    var response = await httpClient.PostAsync(url, content);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding device. Response: {cnt}");
+                    }
+                    CheckResponse(response);
+
+                    var deviceResponse = System.Text.Json.JsonSerializer.Deserialize<HioCloudv2Device?>(cnt);
+                    return deviceResponse;
                 }
                 catch (HttpRequestException ex)
                 {
@@ -512,8 +584,10 @@ namespace hio_dotnet.APIs.HioCloudv2
                         type = message_type
                     };
 
+                    var bodystr = System.Text.Json.JsonSerializer.Serialize(body);
+
                     var response = await httpClient.PostAsync(url, 
-                                                              new StringContent(System.Text.Json.JsonSerializer.Serialize(body), 
+                                                              new StringContent(bodystr, 
                                                               Encoding.UTF8, "application/json"));
 
                     var cnt = response.Content.ReadAsStringAsync().Result;
@@ -532,6 +606,83 @@ namespace hio_dotnet.APIs.HioCloudv2
 
         #endregion
 
+        #region Tags
+
+        /// <summary>
+        /// Create new tag
+        /// </summary>
+        /// <param name="space_id"></param>
+        /// <param name="tag"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<HioCloudv2Tag?> CreateTag(Guid space_id, HioCloudv2Tag tag)
+        {
+            using (var httpClient = GetHioClient())
+            {
+                var url = $"/v2/spaces/{space_id}/tags";
+
+                var content = new StringContent(JsonSerializer.Serialize(tag), Encoding.UTF8, "application/json");
+
+                try
+                {
+                    var response = await httpClient.PostAsync(url, content);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding tag. Response: {cnt}");
+                    }
+                    CheckResponse(response);
+
+                    var tagResponse = System.Text.Json.JsonSerializer.Deserialize<HioCloudv2Tag?>(cnt);
+                    return tagResponse;
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while fetching spaces data.", ex);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Connectors
+
+        /// <summary>
+        /// Add new connector
+        /// </summary>
+        /// <param name="space_id"></param>
+        /// <param name="connector"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<HioCloudv2Connector?> CreateConnector(Guid space_id, HioCloudv2Connector connector)
+        {
+            using (var httpClient = GetHioClient())
+            {
+                var url = $"/v2/spaces/{space_id}/connectors";
+
+                var content = new StringContent(JsonSerializer.Serialize(connector), Encoding.UTF8, "application/json");
+
+                try
+                {
+                    var response = await httpClient.PostAsync(url, content);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding connector. Response: {cnt}");
+                    }
+                    CheckResponse(response);
+
+                    var connectorResponse = System.Text.Json.JsonSerializer.Deserialize<HioCloudv2Connector?>(cnt);
+                    return connectorResponse;
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while fetching spaces data.", ex);
+                }
+            }
+        }
+
+        #endregion
     }
 
 

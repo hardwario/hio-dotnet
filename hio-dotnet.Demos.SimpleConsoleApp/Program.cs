@@ -21,9 +21,10 @@ using System.Text.Json.Nodes;
 var JLINK_TEST = false;
 var PPK2_TEST = false;
 var CHIRPSTACK_TEST = false;
-var THINGSBOARD_TEST = true;
+var THINGSBOARD_TEST = false;
 var HIOCLOUDV2_TEST = false;
 var HIOCLOUDV2_TEST_DOWNLINK = false;
+var HIOCLOUDV2_TEST_ADD_DEVICE_WITH_CONNECTOR = false;
 
 #if WINDOWS
 Console.WriteLine("Running on Windows");
@@ -705,6 +706,50 @@ if (HIOCLOUDV2_TEST_DOWNLINK)
 }
 #endregion
 
+#region HIOCLOUDV2AddDeviceAndConnectorExample
+if (HIOCLOUDV2_TEST_ADD_DEVICE_WITH_CONNECTOR)
+{
+    var apitoken = "HIO_CLOUD_V2_API_TOKEN";
+    var spaceid = new Guid("HIO_CLOUD_V2_SPACE_ID");
+    var devicetoken = "THINGSBOARD_DEVICE_CONNECTION_TOKEN";
 
+    var hiocloudAPI = new Hiov2CloudDriver(Hiov2CloudDriver.DefaultHardwarioThingsboardUrl, apitoken, true);
+
+    var tag = new HioCloudv2Tag()
+                  .WithName("test-tag")
+                  .WithColor("#0000FF");
+
+    Console.WriteLine("Creating new tag...");
+    var newTag = await hiocloudAPI.CreateTag(spaceid, tag);
+    Console.WriteLine($"Tag created: {newTag.Id}");
+
+    var device = new HioCloudv2Device()
+                        .WithName("test-device")
+                        .WithSpaceId(spaceid)
+                        .WithSerialNumber(HioCloudv2Device.GenerateSerialNumberString())
+                        .WithToken(HioCloudv2Device.GenerateClaimToken())
+                        .WithTag(newTag);
+
+    Console.WriteLine("Creating new device...");
+    var newDevice = await hiocloudAPI.CreateDevice(spaceid, device);
+    Console.WriteLine($"Device created: {newDevice.Id}");
+
+    var connector = new HioCloudv2Connector()
+                        .WithName("test-connector")
+                        .WithDirection("up")
+                        .WithTag(newTag)
+                        .WithTrigger("data")
+                        .WithTrigger("session")
+                        .WithThingsBoardConnectionToken(devicetoken);
+
+    Console.WriteLine("Creating new connector...");
+    var newConnector = await hiocloudAPI.CreateConnector(spaceid, connector);
+    Console.WriteLine("Connector created.");
+
+
+    Console.WriteLine("Press key to quit...");
+    Console.ReadKey();
+}
+#endregion
 
 Console.WriteLine("Program ends. Goodbye");
