@@ -417,6 +417,18 @@ if (THINGSBOARD_TEST)
         Title = "Test Customer",
     });
 
+    Console.WriteLine("Adding new user to the customer...");
+    var sendActivationEmail = false;
+    var newUser = await thingsBoardDriver.AddUserToCustomer(new hio_dotnet.APIs.ThingsBoard.Models.User()
+    {
+        Authority = "CUSTOMER_USER",
+        CustomerId = newCustomer.Id,
+        TenantId = newCustomer.TenantId,
+        Email = "testemail@hardwario.com",
+        FirstName = "Test",
+        LastName = "Tester"
+    }, sendActivationEmail);
+    
     Console.WriteLine($"New Customer created: {newCustomer.Id.Id}");
 
     Console.WriteLine("\nGetting device profiles...");
@@ -490,6 +502,10 @@ if (THINGSBOARD_TEST)
             Console.WriteLine($"Device deleted.");
         }
     }
+
+    Console.WriteLine("Deleting User...");
+    var deleteUser = await thingsBoardDriver.DeleteCustomerUserAsync(newUser.Id.Id.ToString());
+    Console.WriteLine($"User deleted.");
 
     Console.WriteLine("\nDeleting Customer...");
     var delCustomer = await thingsBoardDriver.DeleteCustomerAsync(newCustomer.Id.Id.ToString());

@@ -211,6 +211,11 @@ namespace hio_dotnet.APIs.ThingsBoard
                 try
                 {
                     var response = await httpClient.GetAsync(url);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                    }
                     response.EnsureSuccessStatusCode();
 
                     return await response.Content.ReadAsStringAsync();
@@ -260,6 +265,11 @@ namespace hio_dotnet.APIs.ThingsBoard
                 try
                 {
                     var response = await httpClient.GetAsync(url);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                    }
                     response.EnsureSuccessStatusCode();
 
                     return await response.Content.ReadAsStringAsync();
@@ -297,6 +307,10 @@ namespace hio_dotnet.APIs.ThingsBoard
                 {
                     var response = await httpClient.PostAsync(url, content);
                     var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                    }
                     response.EnsureSuccessStatusCode();
 
                     var responseBody = await response.Content.ReadAsStringAsync();
@@ -343,6 +357,11 @@ namespace hio_dotnet.APIs.ThingsBoard
                 try
                 {
                     var response = await httpClient.GetAsync(url);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                    }
                     response.EnsureSuccessStatusCode();
 
                     return await response.Content.ReadAsStringAsync();
@@ -386,6 +405,11 @@ namespace hio_dotnet.APIs.ThingsBoard
                 try
                 {
                     var response = await httpClient.PostAsync(url, content);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                    }
                     response.EnsureSuccessStatusCode();
 
                     return await response.Content.ReadAsStringAsync();
@@ -433,6 +457,10 @@ namespace hio_dotnet.APIs.ThingsBoard
                 {
                     var response = await httpClient.PostAsync(url, content);
                     var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                    }
                     response.EnsureSuccessStatusCode();
 
                     var responseBody = await response.Content.ReadAsStringAsync();
@@ -464,6 +492,102 @@ namespace hio_dotnet.APIs.ThingsBoard
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                 var url = $"/api/customer/{customerId}";
+
+                try
+                {
+                    var response = await httpClient.DeleteAsync(url);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                    }
+                    response.EnsureSuccessStatusCode();
+
+                    return await response.Content.ReadAsStringAsync();
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while deleting customer.", ex);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Add user to the customer and send activation link to the email
+        /// </summary>
+        /// <param name="user"></param>
+        /// <param name="sendActivationLink"></param>
+        /// <param name="jwtToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
+        public async Task<User?> AddUserToCustomer(User user, bool sendActivationLink = true, string jwtToken = "")
+        {
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                jwtToken = _jwtToken;
+            }
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                throw new ArgumentException("JWT token cannot be empty. If you do not know JWT token use constructor with Username and Password to obtain JWT token automatically.");
+            }
+
+            using (var httpClient = new HttpClient())
+            {
+                httpClient.BaseAddress = new System.Uri(_baseUrl);
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var url = $"/api/user?sendActivationMail={sendActivationLink.ToString().ToLower()}";
+                var userdata = JsonSerializer.Serialize(user);
+                var content = new StringContent(userdata, Encoding.UTF8, "application/json");
+
+                try
+                {
+                    var response = await httpClient.PostAsync(url, content);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                    }
+                    response.EnsureSuccessStatusCode();
+
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<User>(responseBody);
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while creating a customer.", ex);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Delete user by ID
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="jwtToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
+        public async Task<string> DeleteCustomerUserAsync(string userId, string jwtToken = "")
+        {
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                jwtToken = _jwtToken;
+            }
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                throw new ArgumentException("JWT token cannot be empty. If you do not know JWT token use constructor with Username and Password to obtain JWT token automatically.");
+            }
+
+            using (var httpClient = new HttpClient())
+            {
+                httpClient.BaseAddress = new System.Uri(_baseUrl);
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var url = $"/api/user/{userId}";
 
                 try
                 {
@@ -509,6 +633,11 @@ namespace hio_dotnet.APIs.ThingsBoard
                 try
                 {
                     var response = await httpClient.GetAsync(url);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                    }
                     response.EnsureSuccessStatusCode();
 
                     var responseBody = await response.Content.ReadAsStringAsync();
@@ -554,6 +683,11 @@ namespace hio_dotnet.APIs.ThingsBoard
                 try
                 {
                     var response = await httpClient.GetAsync(url);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                    }
                     response.EnsureSuccessStatusCode();
 
                     var responseBody = await response.Content.ReadAsStringAsync();
@@ -602,6 +736,10 @@ namespace hio_dotnet.APIs.ThingsBoard
                 {
                     var response = await httpClient.PostAsync(url, content);
                     var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                    }
                     response.EnsureSuccessStatusCode();
 
                     var responseBody = await response.Content.ReadAsStringAsync();
@@ -644,6 +782,11 @@ namespace hio_dotnet.APIs.ThingsBoard
                 try
                 {
                     var response = await httpClient.GetAsync(url);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                    }
                     response.EnsureSuccessStatusCode();
 
                     var responseBody = await response.Content.ReadAsStringAsync();
@@ -702,6 +845,11 @@ namespace hio_dotnet.APIs.ThingsBoard
                 try
                 {
                     var response = await httpClient.DeleteAsync(url);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                    }
                     response.EnsureSuccessStatusCode();
 
                     return await response.Content.ReadAsStringAsync();
@@ -751,6 +899,10 @@ namespace hio_dotnet.APIs.ThingsBoard
                 {
                     var response = await httpClient.PostAsync(url, content);
                     var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                    }
                     response.EnsureSuccessStatusCode();
 
                     var responseBody = await response.Content.ReadAsStringAsync();
@@ -786,6 +938,11 @@ namespace hio_dotnet.APIs.ThingsBoard
                 try
                 {
                     var response = await httpClient.DeleteAsync(url);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding user to customer. Response: {cnt}");
+                    }
                     response.EnsureSuccessStatusCode();
 
                     return await response.Content.ReadAsStringAsync();
