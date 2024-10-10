@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO.Ports;
@@ -28,6 +28,19 @@ namespace hio_dotnet.HWDrivers.PPK2
         private int spikeFilterSamples = 3;
         private int afterSpike = 0;
 
+        // Masks and shifts for extract of the measured values samples
+        private const uint MEAS_ADC_MASK = 0x00003FFF; // Bits 0-13
+        private const int MEAS_ADC_SHIFT = 0;
+
+        private const uint MEAS_RANGE_MASK = 0x0001C000; // Bits 14-16
+        private const int MEAS_RANGE_SHIFT = 14;
+
+        private const uint MEAS_LOGIC_MASK = 0xFF000000; // Bits 24-31
+        private const int MEAS_LOGIC_SHIFT = 24;
+
+        // Buffer for remainder from previous read, if data is not multiple of 4
+        private byte[] remainderBuffer = new byte[0];
+
         public PPK2_Driver(string portName, int baudRate = 9600, Parity parity = Parity.None, int dataBits = 8, StopBits stopBits = StopBits.One)
         {
             _serialPort = new SerialPort(portName)
@@ -39,7 +52,9 @@ namespace hio_dotnet.HWDrivers.PPK2
                 Handshake = Handshake.None, // Ensure no hardware flow control
                 ReadTimeout = 1000, // Increase read timeout if needed
                 WriteTimeout = 1000, // Increase write timeout if needed
-                ReceivedBytesThreshold = 1 // Trigger DataReceived event as soon as data is available
+                ReceivedBytesThreshold = 1, // Trigger DataReceived event as soon as data is available
+                DtrEnable = true,
+                RtsEnable = true
             };
 
             _serialPort.DataReceived += SerialPort_DataReceived; // Attach event handler
@@ -158,7 +173,7 @@ namespace hio_dotnet.HWDrivers.PPK2
                         }
 
                         // Display received data
-                        Console.WriteLine($"Received Data: {BitConverter.ToString(buffer)}");
+                        //Console.WriteLine($"Received Data: {BitConverter.ToString(buffer)}");
                     }
                 }
             }
@@ -216,6 +231,145 @@ namespace hio_dotnet.HWDrivers.PPK2
             Console.WriteLine("Measurement started.");
             isMeasuring = true;
         }
+
+        /// <summary>
+        /// Process acumulated data from the measurement
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public List<double> ProcessData(byte[] data)
+        {
+            List<double> samples = new List<double>();
+            List<int> digitalBits = new List<int>();
+
+            // Connect last data with new data
+            byte[] buffer = remainderBuffer.Concat(data).ToArray();
+
+            int offset = 0;
+            int sampleSize = 4;
+
+            while (offset + sampleSize <= buffer.Length)
+            {
+                byte[] sampleBytes = new byte[sampleSize];
+                Array.Copy(buffer, offset, sampleBytes, 0, sampleSize);
+                offset += sampleSize;
+
+                // Convert to 32bit unsigned integer (little-endian)
+                uint sampleValue = BitConverter.ToUInt32(sampleBytes, 0);
+
+                // Extract ADC result
+                uint adcResult = (sampleValue & MEAS_ADC_MASK) >> MEAS_ADC_SHIFT;
+                adcResult *= 4; // Multiply 4, same as original driver
+
+                // Extract measurement range
+                uint measurementRange = (sampleValue & MEAS_RANGE_MASK) >> MEAS_RANGE_SHIFT;
+                measurementRange = Math.Min(measurementRange, 4); // Max 4
+
+                // Extract logic bits
+                uint bits = (sampleValue & MEAS_LOGIC_MASK) >> MEAS_LOGIC_SHIFT;
+
+                // Recalc to analog value in μA
+                double analogValue = GetADCResult(measurementRange.ToString(), adcResult);
+
+                // Add to the sample list
+                samples.Add(analogValue);
+
+                // save digital bits if necessary
+                digitalBits.Add((int)bits);
+            }
+
+            // Save for next iteration
+            remainderBuffer = buffer.Skip(offset).ToArray();
+
+            return samples;
+        }
+
+        private double GetADCResult(string currentRange, uint adcValue)
+        {
+            // Get Calibration constants
+            double R = modifiers["R"][currentRange];
+            double GS = modifiers["GS"][currentRange];
+            double GI = modifiers["GI"][currentRange];
+            double O = modifiers["O"][currentRange];
+            double S = modifiers["S"][currentRange];
+            double I = modifiers["I"][currentRange];
+            double UG = modifiers["UG"][currentRange];
+
+            // Calculate gain
+            double resultWithoutGain = (adcValue - O) * (adcMult / R);
+
+            // Get Analog value
+            double adc = UG * (resultWithoutGain * (GS * resultWithoutGain + GI) + (S * (currentVdd.Value / 1000.0) + I));
+
+            // Apply filter if necessary
+            adc = ApplySpikeFilter(currentRange, adc);
+
+            // convert to microampers (μA)
+            return adc * 1e6;
+        }
+
+        private double ApplySpikeFilter(string currentRange, double adc)
+        {
+            double prevRollingAvg = rollingAvg ?? adc;
+            double prevRollingAvg4 = rollingAvg4 ?? adc;
+
+            // Spike filtering / rolling average
+            if (rollingAvg == null)
+            {
+                rollingAvg = adc;
+            }
+            else
+            {
+                rollingAvg = spikeFilterAlpha * adc + (1 - spikeFilterAlpha) * rollingAvg;
+            }
+
+            if (rollingAvg4 == null)
+            {
+                rollingAvg4 = adc;
+            }
+            else
+            {
+                rollingAvg4 = spikeFilterAlpha5 * adc + (1 - spikeFilterAlpha5) * rollingAvg4;
+            }
+
+            if (prevRange == null)
+            {
+                prevRange = currentRange;
+            }
+
+            if (prevRange != currentRange || afterSpike > 0)
+            {
+                if (prevRange != currentRange)
+                {
+                    consecutiveRangeSamples = 0;
+                    afterSpike = spikeFilterSamples;
+                }
+                else
+                {
+                    consecutiveRangeSamples += 1;
+                }
+
+                if (currentRange == "4")
+                {
+                    if (consecutiveRangeSamples < 2)
+                    {
+                        rollingAvg = prevRollingAvg;
+                        rollingAvg4 = prevRollingAvg4;
+                    }
+                    adc = rollingAvg4.Value;
+                }
+                else
+                {
+                    adc = rollingAvg.Value;
+                }
+
+                afterSpike -= 1;
+            }
+
+            prevRange = currentRange;
+            return adc;
+        }
+
 
         /// <summary>
         /// Stop measurement

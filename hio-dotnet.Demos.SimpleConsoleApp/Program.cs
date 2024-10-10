@@ -191,8 +191,11 @@ if (PPK2_TEST)
             logger.TraceInformation("Starting measurement...");
             ppk2.StartMeasuring();
 
+            // wait some time for init of the device
+            await Task.Delay(5000);
+
             // Collect data for X seconds
-            var ontime = 10;
+            var ontime = 2;
             Console.WriteLine($"Collecting data for {ontime} seconds...");
             DateTime startTime = DateTime.Now;
             while ((DateTime.Now - startTime).TotalSeconds < ontime)
@@ -201,12 +204,15 @@ if (PPK2_TEST)
 
                 if (data.Length > 0)
                 {
-                    string dataStr = BitConverter.ToString(data);
-                    Console.WriteLine($"Received Data: {dataStr}");
-                    logger.TraceInformation($"Received Data: {dataStr}");
+                    List<double> samples = ppk2.ProcessData(data);
+
+                    foreach (var sample in samples)
+                    {
+                        Console.WriteLine($"Current: {sample} μA");
+                    }
                 }
 
-                await Task.Delay(500); // Adjust the sleep duration as needed
+                await Task.Delay(10);
             }
 
             // Stop measuring
