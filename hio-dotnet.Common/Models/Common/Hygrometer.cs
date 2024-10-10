@@ -10,7 +10,7 @@ namespace hio_dotnet.Common.Models.Common
 {
     public class Hygrometer
     {
-        [SimulationMeasurementAttribute(true)]
+        [SimulationMeasurementAttribute(false, 25.0, 35.0, true, false, 0.02)]
         [JsonPropertyName("temperature")]
         public Temperature Temperature { get; set; } = new Temperature();
 

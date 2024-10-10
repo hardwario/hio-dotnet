@@ -48,7 +48,6 @@ namespace hio_dotnet.Common.Models.DataSimulation
                          !simulationAttr.IsStatic)// &&
                          //property.GetValue(obj) != null)
                 {
-                    
                     var nestedObj = property.GetValue(obj);
                     if (nestedObj == null)
                     {
@@ -64,6 +63,16 @@ namespace hio_dotnet.Common.Models.DataSimulation
                         if (simulationMeasurementAttr != null)
                         {
                             SimulateMeasurementGroup(nestedObj, simulationMeasurementAttr, previousNestedObj);
+                            property.SetValue(obj, nestedObj);
+                        }
+                    }
+                    else if (nestedObj.GetType() == typeof(Temperature))
+                    {
+                        var simulationMeasurementAttr = property.GetCustomAttribute<SimulationMeasurementAttribute>();
+                        if (simulationMeasurementAttr != null)
+                        {
+                            Simulate_Temperature(nestedObj, simulationMeasurementAttr, previousNestedObj);
+                            property.SetValue(obj, nestedObj);
                         }
                     }
                     else if (nestedObj.GetType() == typeof(List<W1_Thermometer>))
@@ -85,6 +94,28 @@ namespace hio_dotnet.Common.Models.DataSimulation
                                 Simulate_W1_Thermoemter(w1t, simulationMeasurementAttr, w1tp);
 
                                 ((List<W1_Thermometer>)nestedObj).Add(w1t);
+                            }
+
+                            property.SetValue(obj, nestedObj);
+                        }
+                    }
+                    else if (nestedObj.GetType() == typeof(List<RTD_Thermometer>))
+                    {
+                        var simulationMeasurementAttr = property.GetCustomAttribute<SimulationMeasurementAttribute>();
+                        if (simulationMeasurementAttr != null)
+                        {
+                            var count = simulationMeasurementAttr.NumberOfInsideItems;
+                            for (int i = 0; i < count; i++)
+                            {
+                                var w1t = new RTD_Thermometer();
+                                RTD_Thermometer w1tp = null;
+                                if (previousNestedObj != null)
+                                {
+                                    w1tp = ((List<RTD_Thermometer>)previousNestedObj)?.FirstOrDefault();
+                                }
+                                Simulate_RTD_Thermoemter(w1t, simulationMeasurementAttr, w1tp, i);
+
+                                ((List<RTD_Thermometer>)nestedObj).Add(w1t);
                             }
 
                             property.SetValue(obj, nestedObj);
@@ -133,6 +164,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                     else
                     {
                         Simulate(nestedObj, previousNestedObj);
+                        property.SetValue(obj, nestedObj);
                     }
                 }
             }
@@ -184,12 +216,109 @@ namespace hio_dotnet.Common.Models.DataSimulation
 
             foreach (var property in properties)
             {
+                if (property.Name == "SerialNumber")
+                {
+                    // if previousObject exists, take serial number from there. If not, use some random
+                    if (previousObj != null)
+                    {
+                        property.SetValue(obj, ((W1_Thermometer)previousObj).SerialNumber);
+                    }
+                    else
+                    {
+                        // create serial number if not exists in format of random number with 10 numbers
+                        property.SetValue(obj, new Random().Next(1000000000, 2000000000));
+                    }
+                }
                 if (property.PropertyType.IsGenericType &&
                     property.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
                 {
                     if (property != null && property.PropertyType == typeof(List<Measurement>))
                     {
                         FillMeasurementList(obj, simulationMeasurementAttr, property, previousObj);
+                    }
+                }
+            }
+        }
+
+        public static void Simulate_RTD_Thermoemter(object obj, SimulationMeasurementAttribute simulationMeasurementAttr, object? previousObj = null, int? channel = null)
+        {
+            if (obj.GetType() != typeof(RTD_Thermometer))
+            {
+                return;
+            }
+            if (previousObj != null)
+            {
+                if (previousObj.GetType() != typeof(RTD_Thermometer))
+                {
+                    return;
+                }
+            }
+
+            var properties = obj.GetType().GetProperties();
+
+            foreach (var property in properties)
+            {
+                if (property.Name == "Channel")
+                {
+                    // if previousObject exists, take channel from there. If not, use some random
+                    if (previousObj != null)
+                    {
+                        property.SetValue(obj, ((RTD_Thermometer)previousObj).Channel);
+                    }
+                    else
+                    {
+                        if (channel != null)
+                        {
+                            property.SetValue(obj, channel);
+                        }
+                        else
+                        {
+                            property.SetValue(obj, new Random().Next(0, 99));
+                        }
+                    }
+                }
+
+                if (property.PropertyType.IsGenericType &&
+                    property.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    if (property != null && property.PropertyType == typeof(List<Measurement>))
+                    {
+                        FillMeasurementList(obj, simulationMeasurementAttr, property, previousObj);
+                    }
+                }
+            }
+        }
+
+        public static void Simulate_Temperature(object obj, SimulationMeasurementAttribute simulationMeasurementAttr, object? previousObj = null)
+        {
+            if (obj.GetType() != typeof(Temperature))
+            {
+                return;
+            }
+            if (previousObj != null)
+            {
+                if (previousObj.GetType() != typeof(Temperature))
+                {
+                    return;
+                }
+            }
+
+            var properties = obj.GetType().GetProperties();
+
+            foreach (var property in properties)
+            {
+
+                if (property.PropertyType.IsGenericType &&
+                    property.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    if (property != null && property.PropertyType == typeof(List<Measurement>))
+                    {
+                        FillMeasurementList(obj, simulationMeasurementAttr, property, previousObj);
+                    }
+                    
+                    if (property != null && property.PropertyType == typeof(List<SimpleTimeDoubleMeasurement>))
+                    {
+                        FillSimpleTimeDoubleList(obj, simulationMeasurementAttr, property, previousObj);
                     }
                 }
             }
@@ -258,6 +387,48 @@ namespace hio_dotnet.Common.Models.DataSimulation
                 if (listitem.Mdn < simulationMeasurementAttr.MinValue)
                 {
                     listitem.Mdn = simulationMeasurementAttr.MinValue;
+                }
+
+                list.Add(listitem);
+
+            }
+        }
+
+        public static void FillSimpleTimeDoubleList(object obj,
+                                       SimulationMeasurementAttribute simulationMeasurementAttr,
+                                       PropertyInfo? property = null,
+                                       object? previousObj = null)
+        {
+            // add new item to the list
+            var list = (List<SimpleTimeDoubleMeasurement>)property.GetValue(obj);
+            if (list != null)
+            {
+                var listitem = new SimpleTimeDoubleMeasurement();
+                SimpleTimeDoubleMeasurement? previousMeasurementObj = null;
+
+                // if previousObj is not null check the existence of the List<Measurement> and if it has any item take it as previousMeasurementObj
+                if (previousObj != null)
+                {
+                    var previousList = (List<SimpleTimeDoubleMeasurement>)property.GetValue(previousObj);
+                    if (previousList != null && previousList.Count > 0)
+                    {
+                        previousMeasurementObj = previousList[0];
+                    }
+                }
+
+                var propertiesMeasurement = typeof(SimpleTimeDoubleMeasurement).GetProperties();
+
+                var avgProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Value");
+
+                var avgPropAttr = avgProp?.GetCustomAttribute<SimulationAttribute>();
+                if (avgPropAttr != null)
+                {
+                    avgPropAttr.MinValue = simulationMeasurementAttr.MinValue;
+                    avgPropAttr.MaxValue = simulationMeasurementAttr.MaxValue;
+                    avgPropAttr.NeedsFollowPrevious = simulationMeasurementAttr.NeedsFollowPrevious;
+                    avgPropAttr.ShouldRaise = simulationMeasurementAttr.ShouldRaise;
+                    avgPropAttr.MaximumChange = simulationMeasurementAttr.MaximumChange;
+                    FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj);
                 }
 
                 list.Add(listitem);
