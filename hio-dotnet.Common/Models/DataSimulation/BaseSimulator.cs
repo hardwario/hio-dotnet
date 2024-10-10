@@ -66,6 +66,15 @@ namespace hio_dotnet.Common.Models.DataSimulation
                             property.SetValue(obj, nestedObj);
                         }
                     }
+                    else if (nestedObj.GetType() == typeof(SimpleDoubleMeasurementGroup))
+                    {
+                        var simulationMeasurementAttr = property.GetCustomAttribute<SimulationMeasurementAttribute>();
+                        if (simulationMeasurementAttr != null)
+                        {
+                            SimulateSimpleDoubleMeasurementGroup(nestedObj, simulationMeasurementAttr, previousNestedObj);
+                            property.SetValue(obj, nestedObj);
+                        }
+                    }
                     else if (nestedObj.GetType() == typeof(Temperature))
                     {
                         var simulationMeasurementAttr = property.GetCustomAttribute<SimulationMeasurementAttribute>();
@@ -193,6 +202,35 @@ namespace hio_dotnet.Common.Models.DataSimulation
                     if (property != null && property.PropertyType == typeof(List<Measurement>))
                     {
                         FillMeasurementList(obj, simulationMeasurementAttr, property, previousObj);
+                    }
+                }
+            }
+        }
+
+        public static void SimulateSimpleDoubleMeasurementGroup(object obj, SimulationMeasurementAttribute simulationMeasurementAttr, object? previousObj = null)
+        {
+            if (obj.GetType() != typeof(SimpleDoubleMeasurementGroup))
+            {
+                return;
+            }
+            if (previousObj != null)
+            {
+                if (previousObj.GetType() != typeof(SimpleDoubleMeasurementGroup))
+                {
+                    return;
+                }
+            }
+
+            var properties = obj.GetType().GetProperties();
+
+            foreach (var property in properties)
+            {
+                if (property.PropertyType.IsGenericType &&
+                    property.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    if (property != null && property.PropertyType == typeof(List<SimpleTimeDoubleMeasurement>))
+                    {
+                        FillSimpleTimeDoubleList(obj, simulationMeasurementAttr, property, previousObj);
                     }
                 }
             }
