@@ -1,10 +1,12 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Timers;
 
 namespace hio_dotnet.HWDrivers.PPK2
 {
@@ -368,6 +370,79 @@ namespace hio_dotnet.HWDrivers.PPK2
 
             prevRange = currentRange;
             return adc;
+        }
+
+        /// <summary>
+        /// Start capturing of the values and save to the file
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="durationMilliseconds"></param>
+        /// <returns></returns>
+        public async Task CaptureMeasurement(string filename, int durationMilliseconds, bool addTimestampPrefix = false, bool useDotForDecimals = true)
+        {
+            if (addTimestampPrefix || File.Exists(filename))
+            {
+                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_");
+                filename = timestamp + filename;
+            }
+
+            Console.WriteLine($"Starting Measurement with file output to {filename}.");
+            StartMeasuring();
+
+            // Set time limit with auto cancel
+            var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.CancelAfter(durationMilliseconds);
+
+            // PPK2 should has 100kHz sampling frequency based on docs
+            double samplingFrequency = 100000; // 100 kHz
+            double samplingInterval = 1.0 / samplingFrequency; // in secodns!!!
+            double currentTime = 0.0;
+
+            var numberFormat = useDotForDecimals ? new CultureInfo("en-US") : new CultureInfo("cs-CZ");
+
+            using (StreamWriter writer = new StreamWriter(filename))
+            {
+                // Create file header
+                writer.WriteLine("Time (s),Current (μA)");
+
+                try
+                {
+                    // Measurement start
+                    DateTime startTime = DateTime.Now;
+
+                    while (!cancellationTokenSource.Token.IsCancellationRequested)
+                    {
+                        byte[] data = GetData();
+
+                        if (data.Length > 0)
+                        {
+                            List<double> newSamples = ProcessData(data);
+
+                            foreach (var sample in newSamples)
+                            {
+                                // culture invariant version. it uses . in double on any culture environment
+                                //writer.WriteLine($"{currentTime.ToString(System.Globalization.CultureInfo.InvariantCulture)};{sample.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+
+                                // this version is based on useDotForDecimals input parameter
+                                string timeStr = currentTime.ToString(numberFormat);
+                                string sampleStr = sample.ToString(numberFormat);
+
+                                writer.WriteLine($"{timeStr};{sampleStr}");
+
+                                currentTime += samplingInterval;
+                            }
+                        }
+
+                        await Task.Delay(10);
+                    }
+                }
+                finally
+                {
+                    StopMeasuring();
+                }
+            }
+
+            Console.WriteLine($"Measurement finished. Data saved in {filename} file.");
         }
 
 

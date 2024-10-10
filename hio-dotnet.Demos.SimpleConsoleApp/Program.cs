@@ -186,39 +186,54 @@ if (PPK2_TEST)
             logger.TraceInformation("Switching to source meter mode...");
             ppk2.UseSourceMeter();
 
-            // Start measuring
-            Console.WriteLine("Starting measurement...");
-            logger.TraceInformation("Starting measurement...");
-            ppk2.StartMeasuring();
+            var measureWithLoop = false;
+            var measureToFile = !measureWithLoop;
 
-            // wait some time for init of the device
-            await Task.Delay(5000);
-
-            // Collect data for X seconds
-            var ontime = 2;
-            Console.WriteLine($"Collecting data for {ontime} seconds...");
-            DateTime startTime = DateTime.Now;
-            while ((DateTime.Now - startTime).TotalSeconds < ontime)
+            if (measureWithLoop)
             {
-                byte[] data = ppk2.GetData();
+                // Start measuring
+                Console.WriteLine("Starting measurement...");
+                logger.TraceInformation("Starting measurement...");
+                ppk2.StartMeasuring();
 
-                if (data.Length > 0)
+                // wait some time for init of the device
+                await Task.Delay(5000);
+
+                // Collect data for X seconds
+                var ontime = 2;
+                Console.WriteLine($"Collecting data for {ontime} seconds...");
+                DateTime startTime = DateTime.Now;
+                while ((DateTime.Now - startTime).TotalSeconds < ontime)
                 {
-                    List<double> samples = ppk2.ProcessData(data);
+                    byte[] data = ppk2.GetData();
 
-                    foreach (var sample in samples)
+                    if (data.Length > 0)
                     {
-                        Console.WriteLine($"Current: {sample} μA");
-                    }
-                }
+                        List<double> samples = ppk2.ProcessData(data);
 
-                await Task.Delay(10);
+                        foreach (var sample in samples)
+                        {
+                            Console.WriteLine($"Current: {sample} μA");
+                        }
+                    }
+
+                    await Task.Delay(10);
+                }
+            }
+            
+            if (measureToFile)
+            {
+                var duration = 2000; // Time of measurement in miliseconds (2 seconds)
+                var filename = "captureddata.csv";
+
+                await ppk2.CaptureMeasurement(filename, duration, addTimestampPrefix: true, useDotForDecimals: false);
             }
 
             // Stop measuring
             Console.WriteLine("Stopping measurement...");
             logger.TraceInformation("Stopping measurement...");
             ppk2.StopMeasuring();
+            
 
             // Turn off the DUT power
             Console.WriteLine("Turning off DUT power...");
