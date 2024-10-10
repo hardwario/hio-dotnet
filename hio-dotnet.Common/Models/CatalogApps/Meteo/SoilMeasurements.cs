@@ -17,6 +17,6 @@ namespace hio_dotnet.Common.Models.CatalogApps.Meteo
         public Temperature Temperature { get; set; } = new Temperature();
 
         [JsonPropertyName("moisture")]
-        public Humidity Moisture { get; set; } = new Humidity();
+        public MeasurementGroup Moisture { get; set; } = new MeasurementGroup();
     }
 }

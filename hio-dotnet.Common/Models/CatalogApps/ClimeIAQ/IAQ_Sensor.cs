@@ -1,4 +1,5 @@
 ﻿using hio_dotnet.Common.Models.Common;
+using hio_dotnet.Common.Models.DataSimulation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,23 +11,29 @@ namespace hio_dotnet.Common.Models.CatalogApps.ClimeIAQ
 {
     public class IAQ_Sensor
     {
+        [SimulationMeasurementAttribute(false, 25.0, 35.0, true, false, 0.02)]
         [JsonPropertyName("temperature")]
         public Temperature Temperature { get; set; } = new Temperature();
 
+        [SimulationMeasurementAttribute(false, 0.0, 100.0, true, false, 0.02)]
         [JsonPropertyName("humidity")]
-        public Humidity Humidity { get; set; } = new Humidity();
+        public MeasurementGroup Humidity { get; set; } = new MeasurementGroup();
 
+        [SimulationMeasurementAttribute(false, 500.0, 1000.0, true, false, 0.02)]
         [JsonPropertyName("illuminance")]
-        public Illuminance Illuminance { get; set; } = new Illuminance();
+        public MeasurementGroup Illuminance { get; set; } = new MeasurementGroup();
 
+        [SimulationMeasurementAttribute(false, 50.0, 250.0, true, false, 0.02)]
         [JsonPropertyName("altitude")]
-        public Altitude Altitude { get; set; } = new Altitude();
+        public MeasurementGroup Altitude { get; set; } = new MeasurementGroup();
 
+        [SimulationMeasurementAttribute(false, 1000.0, 5000.0, true, false, 0.02)]
         [JsonPropertyName("pressure")]
-        public Pressure Pressure { get; set; } = new Pressure();
+        public MeasurementGroup Pressure { get; set; } = new MeasurementGroup();
 
+        [SimulationMeasurementAttribute(false, 100.0, 1000.0, true, false, 0.02)]
         [JsonPropertyName("co2_conc")]
-        public CO2_Concentration CO2_Concentration { get; set; } = new CO2_Concentration();
+        public MeasurementGroup CO2_Concentration { get; set; } = new MeasurementGroup();
 
         [JsonPropertyName("motion_count")]
         public MotionCount MotionCount { get; set; } = new MotionCount();
