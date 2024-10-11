@@ -1,5 +1,88 @@
 ﻿@page "/"
+@using Shiny.BluetoothLE;
+@using Shiny;
+@using hio_dotnet.PhoneDrivers.BLE;
 
-<h1>Hello, world!</h1>
+@inject ChesterBLEService BleService
 
-Welcome to your new app.
+<h1>Find CHESTER</h1>
+
+<button @onclick="StartCommunication">Zahájit komunikaci</button>
+
+@foreach (var per in BleService.PeripherialsDict)
+{
+    <span>Name: @per.Key </span>
+    <button @onclick="() => ConnectToDevice(per.Value)">Connect</button>
+}
+<p></p>
+<p></p>
+@if (IsConnected && peripheral != null)
+{
+    <span>Is Connected to @peripheral.Name</span>
+    <button @onclick="() => GetChesterDescriptionData()">Get CHESTER Info</button>
+    <button @onclick="() => GetConfig()">Get Config</button>
+    <p></p>
+    <p></p>
+    @if (BleService.ConnectedDevice != null)
+    {
+        <p>Vendor Name: @BleService.ConnectedDevice.VendorName</p>
+        <p>Device Name: @BleService.ConnectedDevice.ProductName</p>
+        <p>Serial Number: @BleService.ConnectedDevice.SerialNumber</p>
+        <p>Hardware variant: @BleService.ConnectedDevice.HardwareVariant</p>
+        <p>Hardware Revision: @BleService.ConnectedDevice.HardwareRevision</p>
+        <p>Fimware Name: @BleService.ConnectedDevice.FirmwareName</p>
+        <p>Firmware Version: @BleService.ConnectedDevice.FirmwareVersion</p>
+        <p>Claim Token: @BleService.ConnectedDevice.ClaimToken</p>
+        <p>Bluetooth Address: @BleService.ConnectedDevice.BluetoothAddress</p>
+        <p>Bluetooth Key: @BleService.ConnectedDevice.BluetoothKey</p>
+    }
+}
+else
+{
+    <span>Is not connected yet</span>
+}
+
+@code {
+    private bool IsConnected = false;
+    IPeripheral peripheral = null;
+
+    private async Task StartCommunication()
+    {
+        BleService.PeripherialsDictChanged += refresh;
+        BleService.Connected += connected;
+        BleService.DeviceDetialsLoaded += devicedetailsloaded;
+        await BleService.ScanForDevices();
+    }
+
+    private void refresh(object sender, EventArgs e)
+    {
+        StateHasChanged();
+    }
+
+    private void connected(object sender, EventArgs e)
+    {
+        IsConnected = true;
+        StateHasChanged();
+    }
+
+    private void devicedetailsloaded(object sender, EventArgs e)
+    {
+        StateHasChanged();
+    }
+
+    private async Task ConnectToDevice(IPeripheral per)
+    {
+        peripheral = per;
+        await BleService.ConnectToDevice(per);
+    }
+
+    private async Task GetChesterDescriptionData()
+    {
+        await BleService.GetChesterDescriptionData(peripheral);
+    }
+
+    private async Task GetConfig()
+    {
+        await BleService.GetDeviceConfig(peripheral, "config show\n");
+    }
+}
