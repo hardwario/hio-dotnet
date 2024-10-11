@@ -1,14 +1,13 @@
-﻿using hio_dotnet.Common.Models.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace hio_dotnet.Common.Models.CatalogApps.Meteo
+namespace hio_dotnet.Common.Models.Common
 {
-    public class WindDirectionMeasurements
+    public class SimpleIntMeasurementGroup
     {
         [JsonPropertyName("measurements")]
         public List<SimpleTimeIntMeasurement> Measurements { get; set; } = new List<SimpleTimeIntMeasurement>();

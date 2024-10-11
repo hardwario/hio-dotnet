@@ -1,4 +1,5 @@
 ﻿using hio_dotnet.Common.Models.Common;
+using hio_dotnet.Common.Models.DataSimulation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +11,15 @@ namespace hio_dotnet.Common.Models.CatalogApps.Meteo
 {
     public class SoilMeasurements
     {
+        [SimulationAttribute(false, 1000000, 2000000)]
         [JsonPropertyName("serial_number")]
         public long SerialNumber { get; set; } = 0;
 
+        [SimulationMeasurementAttribute(false, 25.0, 35.0, true, false, 0.02)]
         [JsonPropertyName("temperature")]
         public Temperature Temperature { get; set; } = new Temperature();
 
+        [SimulationMeasurementAttribute(false, 0.0, 100.0, true, false, 0.02, 3)]
         [JsonPropertyName("moisture")]
         public MeasurementGroup Moisture { get; set; } = new MeasurementGroup();
     }

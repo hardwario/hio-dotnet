@@ -1,4 +1,5 @@
-﻿using hio_dotnet.Common.Models.Common;
+﻿using hio_dotnet.Common.Models.CatalogApps.Meteo;
+using hio_dotnet.Common.Models.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -75,6 +76,15 @@ namespace hio_dotnet.Common.Models.DataSimulation
                             property.SetValue(obj, nestedObj);
                         }
                     }
+                    else if (nestedObj.GetType() == typeof(SimpleIntMeasurementGroup))
+                    {
+                        var simulationMeasurementAttr = property.GetCustomAttribute<SimulationMeasurementAttribute>();
+                        if (simulationMeasurementAttr != null)
+                        {
+                            SimulateSimpleIntMeasurementGroup(nestedObj, simulationMeasurementAttr, previousNestedObj);
+                            property.SetValue(obj, nestedObj);
+                        }
+                    }
                     else if (nestedObj.GetType() == typeof(Temperature))
                     {
                         var simulationMeasurementAttr = property.GetCustomAttribute<SimulationMeasurementAttribute>();
@@ -103,6 +113,29 @@ namespace hio_dotnet.Common.Models.DataSimulation
                                 Simulate_W1_Thermoemter(w1t, simulationMeasurementAttr, w1tp);
 
                                 ((List<W1_Thermometer>)nestedObj).Add(w1t);
+                            }
+
+                            property.SetValue(obj, nestedObj);
+                        }
+                    }
+                    else if (nestedObj.GetType() == typeof(List<SoilMeasurements>))
+                    {
+                        var simulationMeasurementAttr = property.GetCustomAttribute<SimulationMeasurementAttribute>();
+                        if (simulationMeasurementAttr != null)
+                        {
+                            var count = simulationMeasurementAttr.NumberOfInsideItems;
+                            for (int i = 0; i < count; i++)
+                            {
+                                var w1t = new SoilMeasurements();
+                                SoilMeasurements w1tp = null;
+                                if (previousNestedObj != null)
+                                {
+                                    w1tp = ((List<SoilMeasurements>)previousNestedObj)?.FirstOrDefault();
+                                }
+
+                                Simulate(w1t, w1tp);
+
+                                ((List<SoilMeasurements>)nestedObj).Add(w1t);
                             }
 
                             property.SetValue(obj, nestedObj);
@@ -253,6 +286,35 @@ namespace hio_dotnet.Common.Models.DataSimulation
                     if (property != null && property.PropertyType == typeof(List<SimpleTimeDoubleMeasurement>))
                     {
                         FillSimpleTimeDoubleList(obj, simulationMeasurementAttr, property, previousObj);
+                    }
+                }
+            }
+        }
+
+        public static void SimulateSimpleIntMeasurementGroup(object obj, SimulationMeasurementAttribute simulationMeasurementAttr, object? previousObj = null)
+        {
+            if (obj.GetType() != typeof(SimpleIntMeasurementGroup))
+            {
+                return;
+            }
+            if (previousObj != null)
+            {
+                if (previousObj.GetType() != typeof(SimpleIntMeasurementGroup))
+                {
+                    return;
+                }
+            }
+
+            var properties = obj.GetType().GetProperties();
+
+            foreach (var property in properties)
+            {
+                if (property.PropertyType.IsGenericType &&
+                    property.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    if (property != null && property.PropertyType == typeof(List<SimpleTimeIntMeasurement>))
+                    {
+                        FillSimpleTimeIntList(obj, simulationMeasurementAttr, property, previousObj);
                     }
                 }
             }
@@ -607,6 +669,48 @@ namespace hio_dotnet.Common.Models.DataSimulation
                 }
 
                 var propertiesMeasurement = typeof(SimpleTimeDoubleMeasurement).GetProperties();
+
+                var avgProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Value");
+
+                var avgPropAttr = avgProp?.GetCustomAttribute<SimulationAttribute>();
+                if (avgPropAttr != null)
+                {
+                    avgPropAttr.MinValue = simulationMeasurementAttr.MinValue;
+                    avgPropAttr.MaxValue = simulationMeasurementAttr.MaxValue;
+                    avgPropAttr.NeedsFollowPrevious = simulationMeasurementAttr.NeedsFollowPrevious;
+                    avgPropAttr.ShouldRaise = simulationMeasurementAttr.ShouldRaise;
+                    avgPropAttr.MaximumChange = simulationMeasurementAttr.MaximumChange;
+                    FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj);
+                }
+
+                list.Add(listitem);
+
+            }
+        }
+
+        public static void FillSimpleTimeIntList(object obj,
+                               SimulationMeasurementAttribute simulationMeasurementAttr,
+                               PropertyInfo? property = null,
+                               object? previousObj = null)
+        {
+            // add new item to the list
+            var list = (List<SimpleTimeIntMeasurement>)property.GetValue(obj);
+            if (list != null)
+            {
+                var listitem = new SimpleTimeIntMeasurement();
+                SimpleTimeIntMeasurement? previousMeasurementObj = null;
+
+                // if previousObj is not null check the existence of the List<Measurement> and if it has any item take it as previousMeasurementObj
+                if (previousObj != null)
+                {
+                    var previousList = (List<SimpleTimeIntMeasurement>)property.GetValue(previousObj);
+                    if (previousList != null && previousList.Count > 0)
+                    {
+                        previousMeasurementObj = previousList[0];
+                    }
+                }
+
+                var propertiesMeasurement = typeof(SimpleTimeIntMeasurement).GetProperties();
 
                 var avgProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Value");
 
