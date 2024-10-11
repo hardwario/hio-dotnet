@@ -25,7 +25,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "APIs", "APIs", "{78968AF0-D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.APIs.ThingsBoard", "hio-dotnet.APIs.ThingsBoard\hio-dotnet.APIs.ThingsBoard.csproj", "{707A0052-0F33-45B0-B76E-C99A59ED517D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.APIs.HioCloudv2", "hio-dotnet.APIs.HioCloudv2\hio-dotnet.APIs.HioCloudv2.csproj", "{52640F97-6FCB-4286-9330-A482DB72EBAB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.APIs.HioCloudv2", "hio-dotnet.APIs.HioCloudv2\hio-dotnet.APIs.HioCloudv2.csproj", "{52640F97-6FCB-4286-9330-A482DB72EBAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.PhoneDrivers", "hio-dotnet.PhoneDrivers\hio-dotnet.PhoneDrivers.csproj", "{4DECBB72-764C-4A7F-953A-E620BB8DB2C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.Demos.HardwarioManager", "hio-dotnet.Demos.HardwarioManager\hio-dotnet.Demos.HardwarioManager.csproj", "{77716B2F-A224-48D7-A4D0-1FCA8677E681}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -91,6 +95,26 @@ Global
 		{52640F97-6FCB-4286-9330-A482DB72EBAB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{52640F97-6FCB-4286-9330-A482DB72EBAB}.Release|x64.ActiveCfg = Release|Any CPU
 		{52640F97-6FCB-4286-9330-A482DB72EBAB}.Release|x64.Build.0 = Release|Any CPU
+		{4DECBB72-764C-4A7F-953A-E620BB8DB2C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DECBB72-764C-4A7F-953A-E620BB8DB2C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DECBB72-764C-4A7F-953A-E620BB8DB2C5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4DECBB72-764C-4A7F-953A-E620BB8DB2C5}.Debug|x64.Build.0 = Debug|Any CPU
+		{4DECBB72-764C-4A7F-953A-E620BB8DB2C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DECBB72-764C-4A7F-953A-E620BB8DB2C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DECBB72-764C-4A7F-953A-E620BB8DB2C5}.Release|x64.ActiveCfg = Release|Any CPU
+		{4DECBB72-764C-4A7F-953A-E620BB8DB2C5}.Release|x64.Build.0 = Release|Any CPU
+		{77716B2F-A224-48D7-A4D0-1FCA8677E681}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77716B2F-A224-48D7-A4D0-1FCA8677E681}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77716B2F-A224-48D7-A4D0-1FCA8677E681}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{77716B2F-A224-48D7-A4D0-1FCA8677E681}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{77716B2F-A224-48D7-A4D0-1FCA8677E681}.Debug|x64.Build.0 = Debug|Any CPU
+		{77716B2F-A224-48D7-A4D0-1FCA8677E681}.Debug|x64.Deploy.0 = Debug|Any CPU
+		{77716B2F-A224-48D7-A4D0-1FCA8677E681}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77716B2F-A224-48D7-A4D0-1FCA8677E681}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77716B2F-A224-48D7-A4D0-1FCA8677E681}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{77716B2F-A224-48D7-A4D0-1FCA8677E681}.Release|x64.ActiveCfg = Release|Any CPU
+		{77716B2F-A224-48D7-A4D0-1FCA8677E681}.Release|x64.Build.0 = Release|Any CPU
+		{77716B2F-A224-48D7-A4D0-1FCA8677E681}.Release|x64.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -104,6 +128,8 @@ Global
 		{78968AF0-D463-4992-9891-424778E2DCF5} = {26E31ECF-53E6-4E5A-B114-38A008891F03}
 		{707A0052-0F33-45B0-B76E-C99A59ED517D} = {78968AF0-D463-4992-9891-424778E2DCF5}
 		{52640F97-6FCB-4286-9330-A482DB72EBAB} = {78968AF0-D463-4992-9891-424778E2DCF5}
+		{4DECBB72-764C-4A7F-953A-E620BB8DB2C5} = {26E31ECF-53E6-4E5A-B114-38A008891F03}
+		{77716B2F-A224-48D7-A4D0-1FCA8677E681} = {C69E4820-C35D-4BAF-94C8-52F738A12EBE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E1FFF9B6-96C5-48A0-98CB-F203A8890083}

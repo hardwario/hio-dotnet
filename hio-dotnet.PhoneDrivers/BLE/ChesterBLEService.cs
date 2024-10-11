@@ -2,6 +2,7 @@
 using Shiny;
 using System.Collections.Concurrent;
 using System.Text;
+using System.Reactive.Linq;
 
 namespace hio_dotnet.PhoneDrivers.BLE
 {

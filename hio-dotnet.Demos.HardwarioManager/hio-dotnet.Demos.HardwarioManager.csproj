@@ -65,4 +65,9 @@
         <PackageReference Include="Shiny.Hosting.Maui" Version="3.3.3" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />
+      <ProjectReference Include="..\hio-dotnet.PhoneDrivers\hio-dotnet.PhoneDrivers.csproj" />
+    </ItemGroup>
+
 </Project>

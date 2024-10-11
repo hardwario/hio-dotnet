@@ -7,4 +7,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Shiny.BluetoothLE" Version="3.3.3" />
+    <PackageReference Include="Shiny.BluetoothLE.Common" Version="3.3.3" />
+  </ItemGroup>
+
 </Project>
