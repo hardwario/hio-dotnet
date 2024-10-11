@@ -13,7 +13,10 @@ namespace hio_dotnet.PhoneDrivers.BLE
         public event EventHandler<EventArgs> PeripherialsDictChanged;
         public event EventHandler<EventArgs> Connected;
         public event EventHandler<EventArgs> DeviceDetialsLoaded;
+        public event EventHandler<string> NewConsoleLineOutputReceived;
         public ConnectedDevice ConnectedDevice { get; set; } = new ConnectedDevice();
+
+        public IPeripheral? ConnectedPeripheral { get; set; }
 
         private bool isSubscribed = false;
         private string vendorName = "6e7e8548-7481-4822-a238-7607ad2f667d";
@@ -27,6 +30,7 @@ namespace hio_dotnet.PhoneDrivers.BLE
         private string bluetoothAddress = "e5c97616-10fe-4f04-988a-8f904a81f974";
         private string bluetoothPassKey = "18c18da9-ddbc-49be-a241-1144aab2b5fa";
 
+        private string uartservices = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E";
         private string uartTxChar = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
         private string uartRxChar = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
 
@@ -66,6 +70,7 @@ namespace hio_dotnet.PhoneDrivers.BLE
             peripheral.WhenConnected().Subscribe(x =>
             {
                 Console.WriteLine("Connected." + x.Name);
+                ConnectedPeripheral = peripheral;
                 Connected?.Invoke(this, new EventArgs());
             });
             peripheral.WhenDisconnected().Subscribe(x => { Console.WriteLine("Disconnected." + x.Name); });
@@ -76,7 +81,7 @@ namespace hio_dotnet.PhoneDrivers.BLE
 
         public async Task RegisterToConsoleOutputs(IPeripheral peripheral)
         {
-            var rxchar = await peripheral.GetCharacteristicAsync("6E400001-B5A3-F393-E0A9-E50E24DCCA9E", uartRxChar);
+            var rxchar = await peripheral.GetCharacteristicAsync(uartservices, uartRxChar);
             if (rxchar != null)
             {
                 if (!rxchar.CanNotify())
@@ -99,7 +104,7 @@ namespace hio_dotnet.PhoneDrivers.BLE
                             if (result.Data != null)
                             {
                                 var receivedChunk = Encoding.UTF8.GetString(result.Data);
-                                Console.WriteLine("Data Received Chunk: " + receivedChunk);
+                                //Console.WriteLine("Data Received Chunk: " + receivedChunk);
 
                                 receivedDataBuilder.Append(receivedChunk);
 
@@ -107,6 +112,12 @@ namespace hio_dotnet.PhoneDrivers.BLE
                                 {
                                     var completeData = receivedDataBuilder.ToString();
                                     Console.WriteLine("Complete Data Received: " + completeData);
+                                    // push each line in completeData through event NewConsoleLineOutputReceived
+                                    foreach (var line in completeData.Split('\n'))
+                                    {
+                                        NewConsoleLineOutputReceived?.Invoke(this, line);
+                                    }
+
                                     receivedDataBuilder.Clear();
                                 }
                             }
@@ -121,9 +132,9 @@ namespace hio_dotnet.PhoneDrivers.BLE
             }
         }
 
-        public async Task GetDeviceConfig(IPeripheral peripheral, string command)
+        public async Task SendCommand(IPeripheral peripheral, string command)
         {
-            var txchar = await peripheral.GetCharacteristicAsync("6E400001-B5A3-F393-E0A9-E50E24DCCA9E", uartTxChar);
+            var txchar = await peripheral.GetCharacteristicAsync(uartservices, uartTxChar);
             if (txchar != null)
             {
                 if (!isSubscribed)
@@ -148,7 +159,7 @@ namespace hio_dotnet.PhoneDrivers.BLE
 
         public async Task GetChesterDescriptionData(IPeripheral peripheral)
         {
-            var chars = await peripheral.GetCharacteristicsAsync("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
+            var chars = await peripheral.GetCharacteristicsAsync(uartservices);
             foreach (var character in chars)
             {
                 Console.WriteLine("Char1: " + character.Uuid);

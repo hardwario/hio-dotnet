@@ -83,6 +83,6 @@ else
 
     private async Task GetConfig()
     {
-        await BleService.GetDeviceConfig(peripheral, "config show\n");
+        await BleService.SendCommand(peripheral, "config show\n");
     }
 }
