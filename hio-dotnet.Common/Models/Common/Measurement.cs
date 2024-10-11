@@ -8,12 +8,8 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.Common.Models.Common
 {
-    public class Measurement
+    public class Measurement : TimestampState
     {
-        [SimulationAttribute(true)]
-        [JsonPropertyName("timestamp")]
-        public long Timestamp { get; set; } = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-
         [SimulationAttribute(false)]
         [JsonPropertyName("min")]
         public double Min { get; set; } = 0.0;
