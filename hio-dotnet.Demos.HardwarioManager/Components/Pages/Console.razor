@@ -1,31 +1,22 @@
 ﻿@page "/console"
-@using Shiny.BluetoothLE;
-@using Shiny;
-@using hio_dotnet.PhoneDrivers.BLE;
+@using hio_dotnet.PhoneDrivers.BLE
 
 @inject ChesterBLEService BleService
 
-<h3>Console</h3>
-<hr />
-<div class="console-output">
-    @foreach (var line in output)
-    {
-        <div>@line</div>
-    }
-</div>
-
-<input type="text" @bind="command" @onkeydown="HandleKeyDown" placeholder="Zadejte příkaz" />
-<button @onclick="SendCommand">Odeslat</button>
+<ConsoleComponent Output="output" OnSendCommand="HandleSendCommand" />
 
 @code {
-    private string command;
     private List<string> output = new List<string>();
-    private List<string> commandHistory = new List<string>();
-    private int historyIndex = -1;
 
     protected override void OnInitialized()
     {
         BleService.NewConsoleLineOutputReceived += OnNewLineReceived;
+    }
+
+    private async Task HandleSendCommand(string command)
+    {
+        output.Add("> " + command);
+        await BleService.SendCommand(BleService.ConnectedPeripheral, command.ToLower().Trim() + "\n");
     }
 
     private void OnNewLineReceived(object sender, string newLine)
@@ -35,42 +26,5 @@
             output.Add(newLine);
             StateHasChanged();
         });
-    }
-
-    private async Task SendCommand()
-    {
-        if (!string.IsNullOrEmpty(command))
-        {
-            output.Add("> " + command);
-            commandHistory.Insert(0, command);
-            historyIndex = -1;
-            await BleService.SendCommand(BleService.ConnectedPeripheral, command + "\n");
-            command = string.Empty;
-        }
-    }
-
-    private async Task HandleKeyDown(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter")
-        {
-            await SendCommand();
-        }
-        else if (e.Key == "ArrowUp")
-        {
-            NavigateHistory(1);
-        }
-        else if (e.Key == "ArrowDown")
-        {
-            NavigateHistory(-1);
-        }
-    }
-
-    private void NavigateHistory(int direction)
-    {
-        if (commandHistory.Count == 0) return;
-
-        historyIndex = Math.Clamp(historyIndex + direction, -1, commandHistory.Count - 1);
-
-        command = historyIndex >= 0 ? commandHistory[historyIndex] : string.Empty;
     }
 }

@@ -5,48 +5,72 @@
 
 @inject ChesterBLEService BleService
 
-<h1>Find CHESTER</h1>
+<SearchForChesters @ref=searchForChesterRef OnStartSearch="onStartSearchHandler" OnConnectToChester="onConnectToChesterHandler"/>
 
-<button @onclick="StartCommunication">Zahájit komunikaci</button>
-
-@foreach (var per in BleService.PeripherialsDict)
-{
-    <span>Name: @per.Key </span>
-    <button @onclick="() => ConnectToDevice(per.Value)">Connect</button>
-}
-<p></p>
-<p></p>
 @if (IsConnected && peripheral != null)
 {
-    <span>Is Connected to @peripheral.Name</span>
-    <button @onclick="() => GetChesterDescriptionData()">Get CHESTER Info</button>
-    <button @onclick="() => GetConfig()">Get Config</button>
-    <p></p>
-    <p></p>
+    <Span>Is Connected to @peripheral.Name</Span>
+    <Button Color="Color.Primary" Clicked="() => GetChesterDescriptionData()">Get CHESTER Info</Button>
+    <Divider />
+
     @if (BleService.ConnectedDevice != null)
     {
-        <p>Vendor Name: @BleService.ConnectedDevice.VendorName</p>
-        <p>Device Name: @BleService.ConnectedDevice.ProductName</p>
-        <p>Serial Number: @BleService.ConnectedDevice.SerialNumber</p>
-        <p>Hardware variant: @BleService.ConnectedDevice.HardwareVariant</p>
-        <p>Hardware Revision: @BleService.ConnectedDevice.HardwareRevision</p>
-        <p>Fimware Name: @BleService.ConnectedDevice.FirmwareName</p>
-        <p>Firmware Version: @BleService.ConnectedDevice.FirmwareVersion</p>
-        <p>Claim Token: @BleService.ConnectedDevice.ClaimToken</p>
-        <p>Bluetooth Address: @BleService.ConnectedDevice.BluetoothAddress</p>
-        <p>Bluetooth Key: @BleService.ConnectedDevice.BluetoothKey</p>
+        <Row>
+            <Column>
+                <Row>
+                    <Column>Vendor Name: @BleService.ConnectedDevice.VendorName</Column>
+                </Row>
+                <Row>
+                    <Column>Device Name: @BleService.ConnectedDevice.ProductName</Column>
+                </Row>
+                <Row>
+                    <Column>Serial Number: @BleService.ConnectedDevice.SerialNumber</Column>
+                </Row>
+                <Row>
+                    <Column>Hardware variant: @BleService.ConnectedDevice.HardwareVariant</Column>
+                </Row>
+                <Row>
+                    <Column>Hardware Revision: @BleService.ConnectedDevice.HardwareRevision</Column>
+                </Row>
+                <Row>
+                    <Column>Fimware Name: @BleService.ConnectedDevice.FirmwareName</Column>
+                </Row>
+                <Row>
+                    <Column>Firmware Version: @BleService.ConnectedDevice.FirmwareVersion</Column>
+                </Row>
+                <Row>
+                    <Column>Claim Token: @BleService.ConnectedDevice.ClaimToken</Column>
+                </Row>
+                <Row>
+                    <Column>Bluetooth Address: @BleService.ConnectedDevice.BluetoothAddress</Column>
+                </Row>
+                <Row>
+                    <Column>Bluetooth Key: @BleService.ConnectedDevice.BluetoothKey</Column>
+                </Row>
+            </Column>
+        </Row>
     }
 }
 else
 {
-    <span>Is not connected yet</span>
+    <Span>Chester is not connected yet</Span>
 }
 
 @code {
     private bool IsConnected = false;
     IPeripheral peripheral = null;
+    private SearchForChesters searchForChesterRef;
 
-    private async Task StartCommunication()
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (BleService != null && BleService.PeripherialsDict != null &&
+            BleService.PeripherialsDict.Count() > 0 && searchForChesterRef != null)
+            searchForChesterRef?.LoadChesters(BleService.PeripherialsDict.Keys.ToList());
+
+        return base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task onStartSearchHandler()
     {
         BleService.PeripherialsDictChanged += refresh;
         BleService.Connected += connected;
@@ -57,6 +81,7 @@ else
     private void refresh(object sender, EventArgs e)
     {
         StateHasChanged();
+        searchForChesterRef?.LoadChesters(BleService.PeripherialsDict.Keys.ToList());
     }
 
     private void connected(object sender, EventArgs e)
@@ -70,6 +95,14 @@ else
         StateHasChanged();
     }
 
+    private async Task onConnectToChesterHandler(string chester)
+    {
+        if (!BleService.PeripherialsDict.ContainsKey(chester))
+            return;
+        var per = BleService.PeripherialsDict[chester];
+        await ConnectToDevice(per);
+    }
+
     private async Task ConnectToDevice(IPeripheral per)
     {
         peripheral = per;
@@ -79,10 +112,5 @@ else
     private async Task GetChesterDescriptionData()
     {
         await BleService.GetChesterDescriptionData(peripheral);
-    }
-
-    private async Task GetConfig()
-    {
-        await BleService.SendCommand(peripheral, "config show\n");
     }
 }
