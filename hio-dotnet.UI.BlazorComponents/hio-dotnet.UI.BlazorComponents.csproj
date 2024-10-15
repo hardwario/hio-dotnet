@@ -17,9 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Basics\Buttons\" />
     <Folder Include="Basics\Edits\" />
-    <Folder Include="Basics\Modals\" />
   </ItemGroup>
 
 </Project>

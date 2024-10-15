@@ -15,3 +15,41 @@
         Third Column
     </Column>
 </Row>
+
+<Row>
+    <Column>
+        <Button OnClick="ShowModal"></Button>
+    </Column>
+</Row>
+
+<Modal IsVisible="@IsModalVisible" OnClose="CloseModal" Size="ModalSize.Large" ShowOKButton="true" ShowCancelButton="true" OnModalCancel="CloseModal">
+    <ModalTitle OnClose="CloseModal">Modal Title</ModalTitle>
+    <ModalBody>
+        <Row Width="RowWidth.Full">
+            <Column>
+                First Column
+            </Column>
+            <Column>
+                Second Column
+            </Column>
+            <Column>
+                Third Column
+            </Column>
+        </Row>
+    </ModalBody>
+    <ModalFooter>Footer content</ModalFooter>
+</Modal>
+
+@code {
+    private bool IsModalVisible = false;
+
+    public void ShowModal()
+    {
+        IsModalVisible = true;
+    }
+
+    public void CloseModal()
+    {
+        IsModalVisible = false;
+    }
+}

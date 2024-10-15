@@ -1,0 +1,50 @@
+﻿@if (IsVisible)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="display: block;" role="dialog">
+        <div class="modal-dialog @GetModalSizeClass() @CssClass" role="document">
+            <div class="modal-content">
+                @ChildContent
+                @if (ShowCancelButton || ShowOKButton)
+                {
+                    <div class="modal-footer">
+                        @if (ShowCancelButton)
+                        {
+                            <hio_dotnet.UI.BlazorComponents.Basics.Buttons.Button Text="Cancel" OnClick="OnModalCancel" Variant="hio_dotnet.UI.BlazorComponents.Basics.Color.Secondary" />
+                        }
+                        @if (ShowOKButton)
+                        {
+                            <hio_dotnet.UI.BlazorComponents.Basics.Buttons.Button Text="OK" OnClick="OnModalOK" Variant="hio_dotnet.UI.BlazorComponents.Basics.Color.Primary" />
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public ModalSize Size { get; set; } = ModalSize.Medium;
+    [Parameter] public bool IsVisible { get; set; } = false;
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnModalOK { get; set; }
+    [Parameter] public EventCallback OnModalCancel { get; set; }
+    [Parameter] public bool ShowOKButton { get; set; } = false;
+    [Parameter] public bool ShowCancelButton { get; set; } = false;
+    [Parameter] public string CssClass { get; set; } = "";
+
+    private string GetModalSizeClass()
+    {
+        return Size switch
+        {
+            ModalSize.Small => "modal-sm",
+            ModalSize.Large => "modal-lg",
+            ModalSize.ExtraLarge => "modal-xl",
+            _ => ""
+        };
+    }
+
+    public void Open() => IsVisible = true;
+    public void Close() => IsVisible = false;
+}

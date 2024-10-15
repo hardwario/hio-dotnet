@@ -6,6 +6,20 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.UI.BlazorComponents.Basics
 {
+    public enum Color
+    {
+        Primary,
+        Secondary,
+        Success,
+        Danger,
+        Warning,
+        Info,
+        Light,
+        Dark,
+        Link
+    }
+
+    #region RowSpecific
     public enum RowWidth 
     { 
         Full = 100, 
@@ -14,7 +28,9 @@ namespace hio_dotnet.UI.BlazorComponents.Basics
         Auto, 
         Custom 
     }
+    #endregion
 
+    #region ColumnSpecific
     public enum ColumnSize 
     { 
         Sm, 
@@ -49,5 +65,16 @@ namespace hio_dotnet.UI.BlazorComponents.Basics
         Auto, 
         Custom 
     }
+    #endregion
 
+    #region ModalSpecific
+    public enum ModalSize
+    {
+        Small,
+        Medium,
+        Large,
+        ExtraLarge
+    }
+
+    #endregion
 }
