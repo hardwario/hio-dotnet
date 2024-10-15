@@ -12,7 +12,7 @@
         Second Column
     </Column>
     <Column>
-        Third Column
+        @text1
     </Column>
 </Row>
 
@@ -22,7 +22,9 @@
     </Column>
 </Row>
 
-<Modal IsVisible="@IsModalVisible" OnClose="CloseModal" Size="ModalSize.Large" ShowOKButton="true" ShowCancelButton="true" OnModalCancel="CloseModal">
+<Modal IsVisible="@IsModalVisible" OnClose="CloseModal" Size="ModalSize.Large" 
+       ShowOKButton="true" OnModalOK="OKModal" ShowCancelButton="true" OnModalCancel="CloseModal">
+
     <ModalTitle OnClose="CloseModal">Modal Title</ModalTitle>
     <ModalBody>
         <Row Width="RowWidth.Full">
@@ -30,7 +32,7 @@
                 First Column
             </Column>
             <Column>
-                Second Column
+                <TextEdit @bind-Value="text"/>
             </Column>
             <Column>
                 Third Column
@@ -38,10 +40,13 @@
         </Row>
     </ModalBody>
     <ModalFooter>Footer content</ModalFooter>
+
 </Modal>
 
 @code {
     private bool IsModalVisible = false;
+    public string text { get; set; } = string.Empty;
+    public string text1 { get; set; } = "Third Column";
 
     public void ShowModal()
     {
@@ -51,5 +56,11 @@
     public void CloseModal()
     {
         IsModalVisible = false;
+    }
+
+    public void OKModal()
+    {
+        IsModalVisible = false;
+        text1 = text;
     }
 }

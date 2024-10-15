@@ -77,4 +77,13 @@ namespace hio_dotnet.UI.BlazorComponents.Basics
     }
 
     #endregion
+
+    public enum TextEditWidthPercentage
+    {
+        Full = 100,
+        Half = 50,
+        Quarter = 25,
+        Auto,
+        Custom
+    }
 }

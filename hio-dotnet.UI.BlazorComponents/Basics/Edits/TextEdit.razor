@@ -1,0 +1,45 @@
+﻿
+<div class="form-group">
+    <label for="@Id">@Label</label>
+    <input type="@(IsPassword ? "password" : "text")"
+           class="form-control @AdditionalCssClasses"
+           id="@Id"
+           placeholder="@Placeholder"
+           value="@Value" @oninput="OnValueChanged"
+           style="width: @(GetWidthStyle());"
+           @attributes="AdditionalAttributes" />
+</div>
+
+@code {
+    [Parameter] public string Id { get; set; } = Guid.NewGuid().ToString();
+    [Parameter] public string Label { get; set; } = string.Empty;
+    [Parameter] public string Placeholder { get; set; } = string.Empty;
+    [Parameter] public bool IsPassword { get; set; } = false;
+    [Parameter] public TextEditWidthPercentage Width { get; set; } = TextEditWidthPercentage.Auto;
+    [Parameter] public string CustomWidth { get; set; } = "";
+    [Parameter] public string AdditionalCssClasses { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public string Value { get; set; }
+
+    private async Task OnValueChanged(ChangeEventArgs e)
+    {
+        Value = e?.Value?.ToString() ?? string.Empty;
+        await ValueChanged.InvokeAsync(Value);
+    }
+
+    private string GetWidthStyle()
+    {
+        return Width switch
+        {
+            TextEditWidthPercentage.Full => "100%",
+            TextEditWidthPercentage.Half => "50%",
+            TextEditWidthPercentage.Quarter => "25%",
+            TextEditWidthPercentage.Auto => "auto",
+            TextEditWidthPercentage.Custom => !string.IsNullOrWhiteSpace(CustomWidth) ? CustomWidth : "100%",
+            _ => "100%"
+        };
+    }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> AdditionalAttributes { get; set; } = new Dictionary<string, object>();
+} 
