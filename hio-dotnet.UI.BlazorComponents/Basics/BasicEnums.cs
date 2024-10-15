@@ -8,6 +8,7 @@ namespace hio_dotnet.UI.BlazorComponents.Basics
 {
     public enum Color
     {
+        Default,
         Primary,
         Secondary,
         Success,
@@ -18,6 +19,15 @@ namespace hio_dotnet.UI.BlazorComponents.Basics
         Dark,
         Link
     }
+
+    public enum TextSize
+    {
+        ExtraSmall,
+        Small,
+        Medium,
+        Large
+    }
+
 
     #region RowSpecific
     public enum RowWidth 

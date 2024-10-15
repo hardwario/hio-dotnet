@@ -1,9 +1,10 @@
 ﻿<button @onclick="OnClick" class="@GetButtonCssClass()" style="width:@Width; height:@Height;" id="@Id" disabled="@IsDisabled">
-    @Text
+    @ChildContent
 </button>
 
 @code {
-    [Parameter] public string Text { get; set; } = "Click Me";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    //[Parameter] public string Text { get; set; } = "Click Me";
     [Parameter] public EventCallback OnClick { get; set; }
     [Parameter] public Color Variant { get; set; } = Color.Primary;
     [Parameter] public string Width { get; set; } = "auto";

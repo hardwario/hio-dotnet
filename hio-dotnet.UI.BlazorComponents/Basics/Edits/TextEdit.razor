@@ -19,7 +19,7 @@
     [Parameter] public string CustomWidth { get; set; } = "";
     [Parameter] public string AdditionalCssClasses { get; set; } = string.Empty;
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
-    [Parameter] public string Value { get; set; }
+    [Parameter] public string Value { get; set; } = string.Empty;
 
     private async Task OnValueChanged(ChangeEventArgs e)
     {

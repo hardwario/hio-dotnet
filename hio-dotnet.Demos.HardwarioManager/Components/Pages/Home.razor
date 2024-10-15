@@ -9,9 +9,9 @@
 
 @if (IsConnected && peripheral != null)
 {
-    <Span>Is Connected to @peripheral.Name</Span>
-    <Button Color="Color.Primary" Clicked="() => GetChesterDescriptionData()">Get CHESTER Info</Button>
-    <Divider />
+    <Div>Is Connected to @peripheral.Name</Div>
+    <Button Variant="Color.Primary" OnClick="() => GetChesterDescriptionData()">Get CHESTER Info</Button>
+    <hr />
 
     @if (BleService.ConnectedDevice != null)
     {
@@ -53,7 +53,7 @@
 }
 else
 {
-    <Span>Chester is not connected yet</Span>
+    <Div>Chester is not connected yet</Div>
 }
 
 @code {

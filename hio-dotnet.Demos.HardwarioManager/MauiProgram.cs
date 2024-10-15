@@ -1,9 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Shiny;
 using hio_dotnet.PhoneDrivers.BLE;
-using Blazorise;
-using Blazorise.Bootstrap5;
-using Blazorise.Icons.FontAwesome;
 
 namespace hio_dotnet.Demos.HardwarioManager
 {
@@ -19,14 +16,6 @@ namespace hio_dotnet.Demos.HardwarioManager
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 });
-
-            builder.Services
-                .AddBlazorise(options =>
-                {
-                    options.Immediate = true;
-                })
-                .AddBootstrap5Providers()
-                .AddFontAwesomeIcons();
 
             builder.Services.AddMauiBlazorWebView();
             builder.Services.AddBluetoothLE();

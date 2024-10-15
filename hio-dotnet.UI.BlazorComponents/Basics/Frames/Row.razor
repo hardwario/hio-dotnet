@@ -1,4 +1,4 @@
-﻿<div class="row" style="width: @(GetWidthStyle())">
+﻿<div class="@ClassString" style="width: @(GetWidthStyle())">
     @ChildContent
 </div>
 
@@ -6,7 +6,9 @@
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public RowWidth Width { get; set; } = RowWidth.Auto;
     [Parameter] public string? CustomWidth { get; set; } // For custom width values, e.g., "75%"
+    [Parameter] public string Class { get; set; } = string.Empty;
 
+    private string ClassString => $"row {Class}";
     private string GetWidthStyle()
     {
         return Width switch

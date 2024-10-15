@@ -5,16 +5,33 @@
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public ColumnSize Size { get; set; } = ColumnSize.Md;
-    [Parameter] public ColumnWidth Width { get; set; } = ColumnWidth.Auto;
+    [Parameter] public ColumnWidth CWidth { get; set; } = ColumnWidth.Auto;
     [Parameter] public ColumnWidthPercentage WidthPercentage { get; set; } = ColumnWidthPercentage.Auto;
     [Parameter] public string? CustomWidthPercentage { get; set; } // For custom width values, e.g., "75%"
+    [Parameter] public string Class { get; set; } = string.Empty;
 
     private string GetColumnClass()
     {
-        if (Width == ColumnWidth.Auto)
-            return "col-{Size.ToString().ToLower()}";
+        var classes = "";
+
+        if (CWidth == ColumnWidth.Auto)
+        {
+            classes = $"col-{Size.ToString().ToLower()}";
+            if (!string.IsNullOrWhiteSpace(Class))
+            {
+                classes += $" {Class}";
+            }
+            return classes;
+        }
         else
-            return $"col-{Size.ToString().ToLower()}-{(int)Width}";
+        {
+            classes = $"col-{Size.ToString().ToLower()}-{(int)CWidth}";
+            if (!string.IsNullOrWhiteSpace(Class))
+            {
+                classes += $" {Class}";
+            }
+            return classes;
+        }
     }
 
     private string GetWidthPercentageStyle()
