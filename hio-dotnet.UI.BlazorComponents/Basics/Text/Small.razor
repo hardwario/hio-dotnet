@@ -1,0 +1,23 @@
+﻿<small class="@CssClass" style="@Style">
+    @ChildContent
+</small>
+
+@code {
+    [Parameter] public Color TextColor { get; set; } = Color.Default;
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Style { get; set; } = string.Empty; 
+
+    private string CssClass => TextColor switch
+    {
+        Color.Primary => "text-primary",
+        Color.Secondary => "text-secondary",
+        Color.Success => "text-success",
+        Color.Danger => "text-danger",
+        Color.Warning => "text-warning",
+        Color.Info => "text-info",
+        Color.Light => "text-light",
+        Color.Dark => "text-dark",
+        _ => string.Empty
+    };
+}

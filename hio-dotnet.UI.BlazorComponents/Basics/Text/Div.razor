@@ -3,14 +3,10 @@
 </div>
 
 @code {
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
-
-    [Parameter]
-    public TextSize Size { get; set; } = TextSize.Medium;
-
-    [Parameter]
-    public Color TextColor { get; set; } = Color.Default;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public TextSize Size { get; set; } = TextSize.Medium;
+    [Parameter] public Color TextColor { get; set; } = Color.Default;
+    [Parameter] public Color BackgroundColor { get; set; } = Color.Default;
 
     private string GetDivClass()
     {
@@ -19,22 +15,27 @@
         switch (Size)
         {
             case TextSize.ExtraSmall:
-                classes += " extra-small-text";
+                classes += " text-xs";
                 break;
             case TextSize.Small:
-                classes += " small-text";
+                classes += " text-sm";
                 break;
             case TextSize.Medium:
-                classes += " medium-text";
+                classes += " text-base";
                 break;
             case TextSize.Large:
-                classes += " large-text";
+                classes += " text-lg";
                 break;
         }
 
         if (TextColor != Color.Default)
         {
             classes += $" text-{TextColor.ToString().ToLower()}";
+        }
+
+        if (BackgroundColor != Color.Default)
+        {
+            classes += $" bg-{BackgroundColor.ToString().ToLower()}";
         }
 
         return classes.Trim();

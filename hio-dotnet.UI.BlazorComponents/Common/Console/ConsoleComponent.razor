@@ -12,12 +12,12 @@
     <Column >
         <Row >
             <Column>
-                <Card Class="console-card">
+                <Card Class="console-card" BackgroundColor="Color.Dark">
                     <CardBody>
-                        <Div>
+                        <Div BackgroundColor="Color.Dark">
                             @foreach (var line in Output)
                             {
-                                <Div Size="TextSize.ExtraSmall" TextColor="Color.Dark">@line</Div>
+                                <Div><Small TextColor="Color.Light" Style="font-size:8px;">@line</Small></Div>
                             }
                         </Div>
                     </CardBody>
