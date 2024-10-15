@@ -35,7 +35,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UI", "UI", "{2CA42D8C-9B79-
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.UI.BlazorComponents.Blazorise", "hio-dotnet.UI.BlazorComponents.Blazorise\hio-dotnet.UI.BlazorComponents.Blazorise.csproj", "{E65BA083-FD4D-4543-B791-5BC959014055}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.APIs.Wmbusmeters", "hio-dotnet.APIs.Wmbusmeters\hio-dotnet.APIs.Wmbusmeters.csproj", "{E20ED6EE-DBFE-4D31-901C-849F1EA64680}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.APIs.Wmbusmeters", "hio-dotnet.APIs.Wmbusmeters\hio-dotnet.APIs.Wmbusmeters.csproj", "{E20ED6EE-DBFE-4D31-901C-849F1EA64680}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.UI.BlazorComponents", "hio-dotnet.UI.BlazorComponents\hio-dotnet.UI.BlazorComponents.csproj", "{0777BEC6-D25A-48F8-AE6C-A81231D020F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.Demos.BlazorComponents.WASM", "hio-dotnet.Demos.BlazorComponents.WASM\hio-dotnet.Demos.BlazorComponents.WASM.csproj", "{BF55255E-8B24-42C7-A7AB-FCA333856FDE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -137,6 +141,22 @@ Global
 		{E20ED6EE-DBFE-4D31-901C-849F1EA64680}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E20ED6EE-DBFE-4D31-901C-849F1EA64680}.Release|x64.ActiveCfg = Release|Any CPU
 		{E20ED6EE-DBFE-4D31-901C-849F1EA64680}.Release|x64.Build.0 = Release|Any CPU
+		{0777BEC6-D25A-48F8-AE6C-A81231D020F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0777BEC6-D25A-48F8-AE6C-A81231D020F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0777BEC6-D25A-48F8-AE6C-A81231D020F2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0777BEC6-D25A-48F8-AE6C-A81231D020F2}.Debug|x64.Build.0 = Debug|Any CPU
+		{0777BEC6-D25A-48F8-AE6C-A81231D020F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0777BEC6-D25A-48F8-AE6C-A81231D020F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0777BEC6-D25A-48F8-AE6C-A81231D020F2}.Release|x64.ActiveCfg = Release|Any CPU
+		{0777BEC6-D25A-48F8-AE6C-A81231D020F2}.Release|x64.Build.0 = Release|Any CPU
+		{BF55255E-8B24-42C7-A7AB-FCA333856FDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF55255E-8B24-42C7-A7AB-FCA333856FDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF55255E-8B24-42C7-A7AB-FCA333856FDE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BF55255E-8B24-42C7-A7AB-FCA333856FDE}.Debug|x64.Build.0 = Debug|Any CPU
+		{BF55255E-8B24-42C7-A7AB-FCA333856FDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF55255E-8B24-42C7-A7AB-FCA333856FDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF55255E-8B24-42C7-A7AB-FCA333856FDE}.Release|x64.ActiveCfg = Release|Any CPU
+		{BF55255E-8B24-42C7-A7AB-FCA333856FDE}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -155,6 +175,8 @@ Global
 		{2CA42D8C-9B79-4C9B-8589-AC93EE09A5E2} = {26E31ECF-53E6-4E5A-B114-38A008891F03}
 		{E65BA083-FD4D-4543-B791-5BC959014055} = {2CA42D8C-9B79-4C9B-8589-AC93EE09A5E2}
 		{E20ED6EE-DBFE-4D31-901C-849F1EA64680} = {78968AF0-D463-4992-9891-424778E2DCF5}
+		{0777BEC6-D25A-48F8-AE6C-A81231D020F2} = {2CA42D8C-9B79-4C9B-8589-AC93EE09A5E2}
+		{BF55255E-8B24-42C7-A7AB-FCA333856FDE} = {C69E4820-C35D-4BAF-94C8-52F738A12EBE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E1FFF9B6-96C5-48A0-98CB-F203A8890083}

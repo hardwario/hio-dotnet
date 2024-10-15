@@ -1,0 +1,22 @@
+﻿<div class="row" style="width: @(GetWidthStyle())">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RowWidth Width { get; set; } = RowWidth.Auto;
+    [Parameter] public string? CustomWidth { get; set; } // For custom width values, e.g., "75%"
+
+    private string GetWidthStyle()
+    {
+        return Width switch
+        {
+            RowWidth.Full => "100%",
+            RowWidth.Half => "50%",
+            RowWidth.Quarter => "25%",
+            RowWidth.Auto => "auto",
+            RowWidth.Custom => CustomWidth ?? "auto",
+            _ => "100%"
+        };
+    }
+}
