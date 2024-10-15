@@ -21,6 +21,7 @@
     <ProjectReference Include="..\hio-dotnet.APIs.Chirpstack\hio-dotnet.APIs.Chirpstack.csproj" />
     <ProjectReference Include="..\hio-dotnet.APIs.HioCloudv2\hio-dotnet.APIs.HioCloudv2.csproj" />
     <ProjectReference Include="..\hio-dotnet.APIs.ThingsBoard\hio-dotnet.APIs.ThingsBoard.csproj" />
+    <ProjectReference Include="..\hio-dotnet.APIs.Wmbusmeters\hio-dotnet.APIs.Wmbusmeters.csproj" />
     <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />
     <ProjectReference Include="..\hio-dotnet.HWDrivers\hio-dotnet.HWDrivers.csproj" />
     <ProjectReference Include="..\hio-dotnet.Tests.Common\hio-dotnet.Tests.Common.csproj" />

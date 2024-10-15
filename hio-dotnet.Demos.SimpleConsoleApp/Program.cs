@@ -3,6 +3,7 @@ using hio_dotnet.APIs.HioCloudv2;
 using hio_dotnet.APIs.HioCloudv2.Models;
 using hio_dotnet.APIs.ThingsBoard;
 using hio_dotnet.APIs.ThingsBoard.Models.Dashboards;
+using hio_dotnet.APIs.Wmbusmeters;
 using hio_dotnet.Common.Models;
 using hio_dotnet.Common.Models.CatalogApps;
 using hio_dotnet.Common.Models.CatalogApps.Counter;
@@ -25,6 +26,7 @@ var THINGSBOARD_TEST = false;
 var HIOCLOUDV2_TEST = false;
 var HIOCLOUDV2_TEST_DOWNLINK = false;
 var HIOCLOUDV2_TEST_ADD_DEVICE_WITH_CONNECTOR = false;
+var HIO_WMBUSMETER_TEST = true;
 
 #if WINDOWS
 Console.WriteLine("Running on Windows");
@@ -770,6 +772,43 @@ if (HIOCLOUDV2_TEST_ADD_DEVICE_WITH_CONNECTOR)
 
     Console.WriteLine("Press key to quit...");
     Console.ReadKey();
+}
+#endregion
+
+#region HIO_WMBUSMETERExample
+if (HIO_WMBUSMETER_TEST)
+{
+    var driver = new WMBusAPIDriver();
+
+    var telegram = "3e4401067075340605077aa90030853b0d89f380b805889c74e194c350b41ed1c59b4ec5565d0aa77fec0d5c5a51be5f8e238df7176a1bca55ca0b8bed8f5e";
+    var pass = "000000000000000000000000000000";
+
+    Console.WriteLine("Analyzing telegram of water meter...");
+    var result = await driver.AnalyzeTelegram(telegram, "auto", pass);
+    Console.WriteLine("Result:");
+    Console.WriteLine(JsonSerializer.Serialize(result.Item2, new JsonSerializerOptions { WriteIndented = true }));
+
+    Console.WriteLine("Analyzing telegram of hca meter...");
+    telegram = "32446850003076816980a0919f2b06007007000061087c08000000000000000000000000010101020100000000000000000000";
+    var resultHca = await driver.AnalyzeTelegram(telegram);
+    Console.WriteLine("Result:");
+    Console.WriteLine(JsonSerializer.Serialize(resultHca.Item2, new JsonSerializerOptions { WriteIndented = true }));
+
+    Console.WriteLine("Analyzing telegram of electricity meter...");
+    telegram = "4E4401061010101002027A00004005_2F2F0E035040691500000B2B300300066D00790C7423400C78371204860BABC8FC100000000E833C8074000000000BAB3C0000000AFDC9FC0136022F2F2F2F2F";
+    var resultElectricity = await driver.AnalyzeTelegram(telegram);
+    Console.WriteLine("Result:");
+    Console.WriteLine(JsonSerializer.Serialize(resultElectricity.Item2, new JsonSerializerOptions { WriteIndented = true }));
+
+    Console.WriteLine("Analyzing telegram of gas meter...");
+    telegram = "2E44A5119870659930037A060020052F2F_0C933E842784060A3B00000A5A5901C4016D3B37DF2CCC01933E24032606";
+    var resultGas = await driver.AnalyzeTelegram(telegram);
+    Console.WriteLine("Result:");
+    Console.WriteLine(JsonSerializer.Serialize(resultGas.Item2, new JsonSerializerOptions { WriteIndented = true }));
+
+
+    Console.WriteLine("Press enter to quit...");
+    Console.ReadLine();
 }
 #endregion
 
