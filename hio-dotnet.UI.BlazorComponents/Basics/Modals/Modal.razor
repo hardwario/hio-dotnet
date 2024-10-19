@@ -9,11 +9,15 @@
                     <div class="modal-footer">
                         @if (ShowCancelButton)
                         {
-                            <hio_dotnet.UI.BlazorComponents.Basics.Buttons.Button Text="Cancel" OnClick="OnModalCancel" Variant="hio_dotnet.UI.BlazorComponents.Basics.Color.Secondary" />
+                            <hio_dotnet.UI.BlazorComponents.Basics.Buttons.Button OnClick="OnModalCancel" Variant="hio_dotnet.UI.BlazorComponents.Basics.Color.Secondary">
+                                Cancel
+                            </hio_dotnet.UI.BlazorComponents.Basics.Buttons.Button>
                         }
                         @if (ShowOKButton)
                         {
-                            <hio_dotnet.UI.BlazorComponents.Basics.Buttons.Button Text="OK" OnClick="OnModalOK" Variant="hio_dotnet.UI.BlazorComponents.Basics.Color.Primary" />
+                            <hio_dotnet.UI.BlazorComponents.Basics.Buttons.Button OnClick="OnModalOK" Variant="hio_dotnet.UI.BlazorComponents.Basics.Color.Primary" >
+                                OK
+                            </hio_dotnet.UI.BlazorComponents.Basics.Buttons.Button>
                         }
                     </div>
                 }

@@ -1,5 +1,6 @@
 ﻿@using hio_dotnet.UI.BlazorComponents.Basics.Frames
 @using hio_dotnet.UI.BlazorComponents.Basics.Buttons
+@using hio_dotnet.UI.BlazorComponents.Basics.Tables
 @using hio_dotnet.UI.BlazorComponents.Basics
 
 <Row>
@@ -14,32 +15,33 @@
 
 @if (Chesters.Count > 0)
 {
-    <Row>
-        <Column>
+    <Row Width="RowWidth.Full">
+        <Column CWidth="ColumnWidth.Twelve" WidthPercentage="ColumnWidthPercentage.Full">
             <h5>Chesters</h5>
             <hr />
 
-            <Row>
-                <Column>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+            <Row Width="RowWidth.Full">
+                <Column CWidth="ColumnWidth.Twelve" WidthPercentage="ColumnWidthPercentage.Full">
+
+                    <Table Width="TableWidth.Full" Variant="TableVariant.Striped">
+                        <TableHeader>
+                            <TableRow>
+                                <TableHeaderColumn>Name</TableHeaderColumn>
+                                <TableHeaderColumn>Action</TableHeaderColumn>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
                             @foreach (var chester in Chesters)
                             {
-                                <tr>
-                                    <td>@chester</td>
-                                    <td>
+                                <TableRow>
+                                    <TableBodyColumn>@chester</TableBodyColumn>
+                                    <TableBodyColumn>
                                         <Button Variant="Color.Primary" OnClick="() => OnConnectToChester.InvokeAsync(chester)">Connect</Button>
-                                    </td>
-                                </tr>
+                                    </TableBodyColumn>
+                                </TableRow>
                             }
-                        </tbody>
-                    </table>
+                        </TableBody>
+                    </Table>
                 </Column>
             </Row>
         </Column>

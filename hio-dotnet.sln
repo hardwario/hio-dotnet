@@ -35,9 +35,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UI", "UI", "{2CA42D8C-9B79-
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.APIs.Wmbusmeters", "hio-dotnet.APIs.Wmbusmeters\hio-dotnet.APIs.Wmbusmeters.csproj", "{E20ED6EE-DBFE-4D31-901C-849F1EA64680}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.UI.BlazorComponents", "hio-dotnet.UI.BlazorComponents\hio-dotnet.UI.BlazorComponents.csproj", "{0777BEC6-D25A-48F8-AE6C-A81231D020F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.UI.BlazorComponents", "hio-dotnet.UI.BlazorComponents\hio-dotnet.UI.BlazorComponents.csproj", "{0777BEC6-D25A-48F8-AE6C-A81231D020F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.Demos.BlazorComponents.WASM", "hio-dotnet.Demos.BlazorComponents.WASM\hio-dotnet.Demos.BlazorComponents.WASM.csproj", "{BF55255E-8B24-42C7-A7AB-FCA333856FDE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.Demos.BlazorComponents.WASM", "hio-dotnet.Demos.BlazorComponents.WASM\hio-dotnet.Demos.BlazorComponents.WASM.csproj", "{BF55255E-8B24-42C7-A7AB-FCA333856FDE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
