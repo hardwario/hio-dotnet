@@ -8,40 +8,55 @@
 <h4>Console</h4>
 <hr />
 
-<Row Width="RowWidth.Full">
-    <Column CWidth="ColumnWidth.Twelve">
-        <Row Width="RowWidth.Full">
-            <Column CWidth="ColumnWidth.Twelve">
-                <Card Class="console-card" BackgroundColor="Color.Dark">
-                    <CardBody>
-                        <Div BackgroundColor="Color.Dark">
-                            @foreach (var line in Output)
-                            {
-                                <Div><Small TextColor="Color.Light" Style="font-size:8px;">@line</Small></Div>
-                            }
-                        </Div>
-                    </CardBody>
-                </Card>
-            </Column>
-        </Row>
-        <Row Width="RowWidth.Full">
-            <Column CWidth="ColumnWidth.Twelve">
-                <Row Width="RowWidth.Full" AlignItems="AlignItems.End" JustifyContent="JustifyContent.Center">
-                    <Column CWidth="ColumnWidth.Ten">
-                        <TextEdit Value="@command" ValueChanged="OnCommandValueChangedHandler" Placeholder="Type command" @onkeydown="HandleKeyDown" />
-                    </Column>
-                    <Column CWidth="ColumnWidth.Two" AlignSelf="AlignSelf.End" TextAlignment="TextAlignment.Center">
-                        <Button OnClick="SendCommand">Send</Button>
-                    </Column>
-                </Row>
-            </Column>
-        </Row>
-    </Column>
-</Row>
+<Div Class="console-container">
+    <Row Width="RowWidth.Full">
+        <Column CWidth="ColumnWidth.Twelve" Style="display: flex; flex-direction: column; flex-grow: 1;">
+            <Card Class="console-card" BackgroundColor="Color.Dark" Style="flex-grow: 1; display: flex; flex-direction: column;">
+                <CardBody Style="flex-grow: 1; display: flex; flex-direction: column;">
+                    <Div class="console-output">
+                        @foreach (var line in Output)
+                        {
+                            <Div><Small TextColor="Color.Light" Style="font-size:8px;">@line</Small></Div>
+                        }
+                    </Div>
+                </CardBody>
+            </Card>
+            <!-- Input area -->
+            <Row Width="RowWidth.Full">
+                <Column CWidth="ColumnWidth.Twelve">
+                    <Row Width="RowWidth.Full" AlignItems="AlignItems.End" JustifyContent="JustifyContent.Center">
+                        <Column CWidth="ColumnWidth.Ten">
+                            <TextEdit Value="@command" ValueChanged="OnCommandValueChangedHandler" Placeholder="Type command" @onkeydown="HandleKeyDown" />
+                        </Column>
+                        <Column CWidth="ColumnWidth.Two" AlignSelf="AlignSelf.End" TextAlignment="TextAlignment.Center">
+                            <Button OnClick="SendCommand">Send</Button>
+                        </Column>
+                    </Row>
+                </Column>
+            </Row>
+        </Column>
+    </Row>
+</Div>
 <style>
+    .console-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh; /* Adjust as needed */
+    }
+
     .console-card {
         color: #d4d4d4;
         font-family: monospace;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .console-output {
+        flex-grow: 1;
+        overflow-y: auto;
+        min-height: @(GetMinHeight());
+        max-height: @(GetMaxHeight());
     }
 </style>
 
@@ -49,6 +64,11 @@
     [Parameter] public EventCallback<string> OnSendCommand { get; set; }
     [Parameter] public EventCallback<string> OnNewLineReceived { get; set; }
     [Parameter] public List<string> Output { get; set; } = new List<string>();
+    [Parameter] public int MinHeight { get; set; } = 500;
+    [Parameter] public int MaxHeight { get; set; } = 500;
+
+    private string GetMinHeight() => $"{MinHeight}px";
+    private string GetMaxHeight() => $"{MaxHeight}px";
 
     private string command = string.Empty;
     private int historyIndex = -1;

@@ -1,4 +1,4 @@
-﻿<div class="@GetDivClass()">
+﻿<div class="@GetDivClass() @Class" style="@Style">
     @ChildContent
 </div>
 
@@ -7,6 +7,8 @@
     [Parameter] public TextSize Size { get; set; } = TextSize.Medium;
     [Parameter] public Color TextColor { get; set; } = Color.Default;
     [Parameter] public Color BackgroundColor { get; set; } = Color.Default;
+    [Parameter] public string? Class { get; set; } = string.Empty;
+    [Parameter] public string? Style { get; set; } = string.Empty;
 
     private string GetDivClass()
     {

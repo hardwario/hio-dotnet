@@ -1,4 +1,4 @@
-﻿<div class="@GetRowClass()" style="width: @(GetWidthStyle())">
+﻿<div class="@GetRowClass()" style="width: @(GetWidthStyle()) @Style">
     @ChildContent
 </div>
 
@@ -7,6 +7,7 @@
     [Parameter] public RowWidth Width { get; set; } = RowWidth.Auto;
     [Parameter] public string? CustomWidth { get; set; } // For custom width values, e.g., "75%"
     [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public string? Style { get; set; } = string.Empty;
 
     // New Parameters for Justification and Alignment
     [Parameter] public JustifyContent JustifyContent { get; set; } = JustifyContent.None;

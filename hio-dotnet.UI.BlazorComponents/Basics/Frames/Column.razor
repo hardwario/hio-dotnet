@@ -1,4 +1,4 @@
-﻿<div class="@GetColumnClass()" style="@GetWidthPercentageStyle()">
+﻿<div class="@GetColumnClass()" style="@GetWidthPercentageStyle() @Style">
     @ChildContent
 </div>
 
@@ -9,6 +9,7 @@
     [Parameter] public ColumnWidthPercentage WidthPercentage { get; set; } = ColumnWidthPercentage.None;
     [Parameter] public string? CustomWidthPercentage { get; set; } // For custom width values, e.g., "75%"
     [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public string? Style { get; set; } = string.Empty;
 
     [Parameter] public bool IsFlex { get; set; } = false;
     [Parameter] public JustifyContent ColumnJustifyContent { get; set; } = JustifyContent.None;
