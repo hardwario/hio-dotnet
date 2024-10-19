@@ -26,11 +26,11 @@
         </Row>
         <Row Width="RowWidth.Full">
             <Column CWidth="ColumnWidth.Twelve">
-                <Row Width="RowWidth.Full">
+                <Row Width="RowWidth.Full" AlignItems="AlignItems.End" JustifyContent="JustifyContent.Center">
                     <Column CWidth="ColumnWidth.Ten">
                         <TextEdit Value="@command" ValueChanged="OnCommandValueChangedHandler" Placeholder="Type command" @onkeydown="HandleKeyDown" />
                     </Column>
-                    <Column CWidth="ColumnWidth.Two">
+                    <Column CWidth="ColumnWidth.Two" AlignSelf="AlignSelf.End" TextAlignment="TextAlignment.Center">
                         <Button OnClick="SendCommand">Send</Button>
                     </Column>
                 </Row>

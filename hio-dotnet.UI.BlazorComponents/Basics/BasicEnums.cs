@@ -35,6 +35,46 @@ namespace hio_dotnet.UI.BlazorComponents.Basics
         Custom      // Allows for a custom container class
     }
 
+    #region AlignmentOfContent
+    public enum JustifyContent
+    {
+        None,
+        Start,
+        End,
+        Center,
+        Between,
+        Around,
+        Evenly
+    }
+
+    public enum AlignItems
+    {
+        None,
+        Start,
+        End,
+        Center,
+        Baseline,
+        Stretch
+    }
+
+    public enum AlignSelf
+    {
+        None,
+        Start,
+        End,
+        Center,
+        Baseline,
+        Stretch
+    }
+
+    public enum TextAlignment
+    {
+        None,
+        Start,
+        Center,
+        End
+    }
+    #endregion
 
     #region RowSpecific
     public enum RowWidth
@@ -48,6 +88,7 @@ namespace hio_dotnet.UI.BlazorComponents.Basics
     #endregion
 
     #region ColumnSpecific
+
     public enum ColumnSize
     {
         Sm,

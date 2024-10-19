@@ -1,15 +1,6 @@
-﻿@if (WidthPercentage != ColumnWidthPercentage.None)
-{
-    <div class="col @(GetColumnClass())" style="width: @(GetWidthPercentageStyle())">
-        @ChildContent
-    </div>
-}
-else
-{
-    <div class="col @(GetColumnClass())">
-        @ChildContent
-    </div>
-}
+﻿<div class="@GetColumnClass()" style="@GetWidthPercentageStyle()">
+    @ChildContent
+</div>
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -19,6 +10,17 @@ else
     [Parameter] public string? CustomWidthPercentage { get; set; } // For custom width values, e.g., "75%"
     [Parameter] public string Class { get; set; } = string.Empty;
 
+    [Parameter] public bool IsFlex { get; set; } = false;
+    [Parameter] public JustifyContent ColumnJustifyContent { get; set; } = JustifyContent.None;
+    [Parameter] public AlignItems ColumnAlignItems { get; set; } = AlignItems.None;
+
+
+    // New Parameter for Text Alignment
+    [Parameter] public TextAlignment TextAlignment { get; set; } = TextAlignment.None;
+
+    // Existing parameter for vertical alignment
+    [Parameter] public AlignSelf AlignSelf { get; set; } = AlignSelf.None;
+
     private string GetColumnClass()
     {
         var classes = "";
@@ -26,24 +28,64 @@ else
         if (CWidth == ColumnWidth.Auto)
         {
             classes = $"col-{Size.ToString().ToLower()}";
-            if (!string.IsNullOrWhiteSpace(Class))
-            {
-                classes += $" {Class}";
-            }
-            return classes;
         }
         else
         {
             classes = $"col-{Size.ToString().ToLower()}-{(int)CWidth}";
-            if (!string.IsNullOrWhiteSpace(Class))
-            {
-                classes += $" {Class}";
-            }
-            return classes;
         }
+
+        // Add Flex class if specified
+        if (IsFlex)
+        {
+            classes += " d-flex";
+
+            // Add Column Justify Content class if specified
+            if (ColumnJustifyContent != JustifyContent.None)
+            {
+                classes += $" justify-content-{GetJustifyContentClass(ColumnJustifyContent)}";
+            }
+
+            // Add Column Align Items class if specified
+            if (ColumnAlignItems != AlignItems.None)
+            {
+                classes += $" align-items-{GetAlignItemsClass(ColumnAlignItems)}";
+            }
+        }
+
+        // Add Align Self class if specified
+        if (AlignSelf != AlignSelf.None)
+        {
+            classes += $" align-self-{GetAlignSelfClass()}";
+        }
+
+        // Add Text Alignment class if specified
+        if (TextAlignment != TextAlignment.None)
+        {
+            classes += $" text-{GetTextAlignmentClass()}";
+        }
+
+        // Add additional classes if provided
+        if (!string.IsNullOrWhiteSpace(Class))
+        {
+            classes += $" {Class}";
+        }
+
+        return classes.Trim();
     }
 
     private string GetWidthPercentageStyle()
+    {
+        if (WidthPercentage != ColumnWidthPercentage.None)
+        {
+            return $"width: {GetWidthPercentage()};";
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private string GetWidthPercentage()
     {
         return WidthPercentage switch
         {
@@ -52,7 +94,58 @@ else
             ColumnWidthPercentage.Quarter => "25%",
             ColumnWidthPercentage.Auto => "auto",
             ColumnWidthPercentage.Custom => CustomWidthPercentage ?? "auto",
-            _ => "100%"
+            _ => "auto"
+        };
+    }
+
+    private string GetAlignSelfClass()
+    {
+        return AlignSelf switch
+        {
+            AlignSelf.Start => "start",
+            AlignSelf.End => "end",
+            AlignSelf.Center => "center",
+            AlignSelf.Baseline => "baseline",
+            AlignSelf.Stretch => "stretch",
+            _ => ""
+        };
+    }
+
+    private string GetTextAlignmentClass()
+    {
+        return TextAlignment switch
+        {
+            TextAlignment.Start => "start",
+            TextAlignment.Center => "center",
+            TextAlignment.End => "end",
+            _ => ""
+        };
+    }
+
+    private string GetJustifyContentClass(JustifyContent justifyContent)
+    {
+        return justifyContent switch
+        {
+            JustifyContent.Start => "start",
+            JustifyContent.End => "end",
+            JustifyContent.Center => "center",
+            JustifyContent.Between => "between",
+            JustifyContent.Around => "around",
+            JustifyContent.Evenly => "evenly",
+            _ => ""
+        };
+    }
+
+    private string GetAlignItemsClass(AlignItems alignItems)
+    {
+        return alignItems switch
+        {
+            AlignItems.Start => "start",
+            AlignItems.End => "end",
+            AlignItems.Center => "center",
+            AlignItems.Baseline => "baseline",
+            AlignItems.Stretch => "stretch",
+            _ => ""
         };
     }
 }
