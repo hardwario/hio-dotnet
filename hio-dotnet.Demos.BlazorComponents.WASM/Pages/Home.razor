@@ -1,4 +1,8 @@
-﻿@page "/"
+﻿@using hio_dotnet.Common.Config;
+@using hio_dotnet.Common.Enums;
+@using hio_dotnet.Common.Enums.LoRaWAN;
+
+@page "/"
 
 <PageTitle>Home</PageTitle>
 
@@ -47,18 +51,26 @@
 
     <hio_dotnet.UI.BlazorComponents.CHESTER.SearchForChesters @ref=sfcRef/>
 
+    <hr />
+
+    <hio_dotnet.UI.BlazorComponents.Common.Console.ConsoleComponent Output="@consoleOutput" OnSendCommand="@HandleSendCommand" />
+
 </Container>
 @code {
     private bool IsModalVisible = false;
     public string text { get; set; } = string.Empty;
     public string text1 { get; set; } = "Third Column";
 
+    private List<string> consoleOutput = new List<string>();
+
     public hio_dotnet.UI.BlazorComponents.CHESTER.SearchForChesters? sfcRef;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
+        {
             await sfcRef?.LoadChesters(new List<string> { "Chester1", "Chester2", "Chester3" });
+        }
 
         await base.OnAfterRenderAsync(firstRender);
     }
@@ -77,5 +89,38 @@
     {
         IsModalVisible = false;
         text1 = text;
+    }
+
+    private async Task HandleSendCommand(string command)
+    {
+        consoleOutput.Add("> " + command);
+        if (command.Trim().ToLower() == "config show")
+        {
+            await Task.Delay(100);
+
+            var config = new LoRaWANConfig()
+                .WithDevAddr("12345678")
+                .WithDevEui("87654321")
+                .WithJoinEui("1111111111")
+                .WithAppKey("2222222222")
+                .WithAppSKey("3333333333")
+                .WithNwkSKey("4444444444")
+                .WithAntenna(AntennaType.External)
+                .WithBand(LoRaWANBand.US915)
+                .WithMode(LoRaWANMode.ABP)
+                .WithNetwork(LoRaWANNetwork.Public)
+                .WithClass(LoRaWANClass.C)
+                .WithDutyCycle(true)
+                .WithTest(true)
+                .WithAdr(true)
+                .WithDataRate(3);
+
+            var cfg = config.GetWholeConfig();
+            // add each line of built cfg to consoleOutput
+            foreach (var line in cfg.Split("\n"))
+            {
+                consoleOutput.Add(line);
+            }
+        }
     }
 }

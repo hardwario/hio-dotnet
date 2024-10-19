@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />
     <ProjectReference Include="..\hio-dotnet.UI.BlazorComponents\hio-dotnet.UI.BlazorComponents.csproj" />
   </ItemGroup>
 

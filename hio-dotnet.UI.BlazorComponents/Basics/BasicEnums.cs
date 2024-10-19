@@ -80,7 +80,8 @@ namespace hio_dotnet.UI.BlazorComponents.Basics
         Half = 50,
         Quarter = 25,
         Auto,
-        Custom
+        Custom,
+        None
     }
     #endregion
 

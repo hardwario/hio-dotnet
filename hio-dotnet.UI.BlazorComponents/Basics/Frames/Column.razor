@@ -1,12 +1,21 @@
-﻿<div class="col @(GetColumnClass())" style="width: @(GetWidthPercentageStyle())">
-    @ChildContent
-</div>
+﻿@if (WidthPercentage != ColumnWidthPercentage.None)
+{
+    <div class="col @(GetColumnClass())" style="width: @(GetWidthPercentageStyle())">
+        @ChildContent
+    </div>
+}
+else
+{
+    <div class="col @(GetColumnClass())">
+        @ChildContent
+    </div>
+}
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public ColumnSize Size { get; set; } = ColumnSize.Md;
     [Parameter] public ColumnWidth CWidth { get; set; } = ColumnWidth.Auto;
-    [Parameter] public ColumnWidthPercentage WidthPercentage { get; set; } = ColumnWidthPercentage.Auto;
+    [Parameter] public ColumnWidthPercentage WidthPercentage { get; set; } = ColumnWidthPercentage.None;
     [Parameter] public string? CustomWidthPercentage { get; set; } // For custom width values, e.g., "75%"
     [Parameter] public string Class { get; set; } = string.Empty;
 

@@ -8,10 +8,10 @@
 <h4>Console</h4>
 <hr />
 
-<Row>
-    <Column >
-        <Row >
-            <Column>
+<Row Width="RowWidth.Full">
+    <Column CWidth="ColumnWidth.Twelve">
+        <Row Width="RowWidth.Full">
+            <Column CWidth="ColumnWidth.Twelve">
                 <Card Class="console-card" BackgroundColor="Color.Dark">
                     <CardBody>
                         <Div BackgroundColor="Color.Dark">
@@ -24,10 +24,10 @@
                 </Card>
             </Column>
         </Row>
-        <Row>
-            <Column>
-                <Row>
-                    <Column CWidth="ColumnWidth.Auto">
+        <Row Width="RowWidth.Full">
+            <Column CWidth="ColumnWidth.Twelve">
+                <Row Width="RowWidth.Full">
+                    <Column CWidth="ColumnWidth.Ten">
                         <TextEdit Value="@command" ValueChanged="OnCommandValueChangedHandler" Placeholder="Type command" @onkeydown="HandleKeyDown" />
                     </Column>
                     <Column CWidth="ColumnWidth.Two">
