@@ -225,8 +225,8 @@ if (JLINK_COMBINED_CONSOLE_TEST)
         // Try to load new firmware to the MCU
 
         // chester current firmware
-        //string url_push = "https://firmware.hardwario.com/chester/a2f47dd13c1f4a94ae68af09aa54e089/hex";
-        string url_current = "https://firmware.hardwario.com/chester/52177a80039543d38725d4d9f57590ea/hex";
+        //string url_push = "a2f47dd13c1f4a94ae68af09aa54e089";
+        string hash_current = "52177a80039543d38725d4d9f57590ea";
 
         string savePath = "firmware.hex";
 
@@ -234,8 +234,18 @@ if (JLINK_COMBINED_CONSOLE_TEST)
         if (File.Exists(savePath))
             File.Delete(savePath);
 
+        // get firmware info
+        var fwinfo = await HioFirmwareDownloader.GetFirmwareInfoAsync(hash_current);
+        if (fwinfo != null)
+        {
+            // print fwinfo intended JSON
+            Console.WriteLine("Firmware info:");
+            Console.WriteLine(JsonSerializer.Serialize(fwinfo, new JsonSerializerOptions() { WriteIndented = true }));
+            Console.WriteLine("\n");
+        }
+
         // Downlaod firmware
-        await HioFirmwareDownloader.DownloadFirmwareAsync(url_current, savePath);
+        await HioFirmwareDownloader.DownloadFirmwareByHashAsync(hash_current, savePath);
 
         // turn off the RTT listening
         cts.Cancel();
