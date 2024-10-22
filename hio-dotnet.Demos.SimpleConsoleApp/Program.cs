@@ -13,6 +13,7 @@ using hio_dotnet.HWDrivers.Enums;
 using hio_dotnet.HWDrivers.JLink;
 using hio_dotnet.HWDrivers.MCU;
 using hio_dotnet.HWDrivers.PPK2;
+using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
@@ -20,13 +21,14 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 
 var JLINK_TEST = false;
+var JLINK_COMBINED_CONSOLE_TEST = true;
 var PPK2_TEST = false;
 var CHIRPSTACK_TEST = false;
 var THINGSBOARD_TEST = false;
 var HIOCLOUDV2_TEST = false;
 var HIOCLOUDV2_TEST_DOWNLINK = false;
 var HIOCLOUDV2_TEST_ADD_DEVICE_WITH_CONNECTOR = false;
-var HIO_WMBUSMETER_TEST = true;
+var HIO_WMBUSMETER_TEST = false;
 
 #if WINDOWS
 Console.WriteLine("Running on Windows");
@@ -133,6 +135,142 @@ if (JLINK_TEST)
     }
 
 }
+#endregion
+
+#region JLinkCombinedConsoleExample
+if (JLINK_COMBINED_CONSOLE_TEST)
+{
+    // Get all available connected JLinks
+    Console.WriteLine("Searching for available JLinks...");
+    var connected_jlinks = JLinkDriver.GetConnectedJLinks();
+    if (connected_jlinks == null)
+    {
+        Console.WriteLine("Cannot find any JLinks.");
+        Console.WriteLine("Program ends. Goodbye. Press any key to quit...");
+        Console.ReadLine();
+        return;
+    }
+
+    var numofjlinks = connected_jlinks?.Where(j => j.SerialNumber != 0).Count();
+    if (numofjlinks == 0)
+    {
+        Console.WriteLine("Cannot find any JLinks.");
+        Console.WriteLine("Program ends. Goodbye. Press any key to quit...");
+        Console.ReadLine();
+        return;
+    }
+
+    Console.WriteLine($"{numofjlinks} JLinks found.");
+
+    for (var i = 0; i < numofjlinks; i++)
+    {
+        Console.WriteLine($"SN: {connected_jlinks[i].SerialNumber}, Product: {connected_jlinks[i].acProduct}, NickName: {connected_jlinks[i].acNickName}");
+    }
+
+    var devices = PPK2_DeviceManager.ListAvailablePPK2Devices();
+
+    if (devices.Count == 0)
+    {
+        Console.WriteLine("No PPK2 devices found. Exiting program...");
+        Console.WriteLine("Program ends. Goodbye. Press any key to quit...");
+        Console.ReadLine();
+        return;
+    }
+
+    var selectedDevice = devices[0];
+    Console.WriteLine($"\nUsing PPK2 device on COM Port: {selectedDevice.PortName} with Serial Number: {selectedDevice.SerialNumber}");
+
+    using (var ppk2 = new PPK2_Driver(selectedDevice.PortName))
+    {
+        // Set a source voltage (e.g., 3300 mV)
+        int voltage = 3300;
+        Console.WriteLine($"Setting source voltage to {voltage} mV...");
+        ppk2.SetSourceVoltage(voltage);
+
+        // Turn on the DUT power
+        Console.WriteLine("Turning on DUT power...");
+        ppk2.ToggleDUTPower(PPK2_OutputState.ON);
+
+        // Take first available JLink
+        var devsn = connected_jlinks[0].SerialNumber.ToString();
+
+        // Create MCUConsole instances for Config and Log RTT channels
+        Console.WriteLine("JLink RTT Console is Starting :)\n\n");
+
+        var multiconsole = new MCUMultiRTTConsole(new List<MultiRTTClientBase>()
+        {
+            new MultiRTTClientBase(){ Channel = 0, DriverType= RTTDriverType.JLinkRTT, Name = "ConfigConsole" },
+            new MultiRTTClientBase(){ Channel = 1, DriverType= RTTDriverType.JLinkRTT, Name = "LogConsole" }
+        }, "nRF52840_xxAA", 4000, "mcumulticonsole", devsn);
+
+        // Subscribe to NewRTTMessageLineReceived event to get RTT messages and set output to console
+        multiconsole.NewRTTMessageLineReceived += (sender, data) =>
+        {
+            if (data?.Item2.Channel == 0)
+                Console.WriteLine($"MCU Config Message: {data.Item1}");
+            else if (data?.Item2.Channel == 1)
+                Console.WriteLine($"MCU Log Message: {data.Item1}");
+        };
+
+        var cts = new CancellationTokenSource();
+        Task listeningTask = multiconsole.StartListening(cts.Token);
+
+        // Try to send some command to the MCU
+        var command = "config show";
+        Console.WriteLine("Sending Command: " + command);
+        await multiconsole.SendCommand(0, command);
+
+        await Task.Delay(1500);
+
+        // Try to load new firmware to the MCU
+
+        // chester current firmware
+        //string url_push = "https://firmware.hardwario.com/chester/a2f47dd13c1f4a94ae68af09aa54e089/hex";
+        string url_current = "https://firmware.hardwario.com/chester/52177a80039543d38725d4d9f57590ea/hex";
+
+        string savePath = "firmware.hex";
+
+        // delete file if already exists
+        if (File.Exists(savePath))
+            File.Delete(savePath);
+
+        // Downlaod firmware
+        await HioFirmwareDownloader.DownloadFirmwareAsync(url_current, savePath);
+
+        // turn off the RTT listening
+        cts.Cancel();
+
+        // Load firmware
+        await multiconsole.LoadFirmware("ConfigConsole", savePath);
+
+        // wait some time after reboot of MCU
+        Console.WriteLine("Waiting 10 seconds after reboot of MCU");
+        await Task.Delay(10000);
+
+        // Reconnect RTT after reset of MCU
+        multiconsole.ReconnectJLink();
+        cts = new CancellationTokenSource();
+        listeningTask = multiconsole.StartListening(cts.Token);
+
+        Console.WriteLine("Sending Command: " + command);
+        await multiconsole.SendCommand(0, command);
+
+        // Quit when key is pressed
+        Console.WriteLine("\nPress any key to stop listening...\n");
+        Console.ReadKey();
+        cts.Cancel();
+
+        await Task.WhenAny(new Task[] { listeningTask });
+
+        multiconsole.Dispose();
+
+        Console.WriteLine("Turning off DUT power...");
+        ppk2.ToggleDUTPower(PPK2_OutputState.OFF);
+
+        Console.WriteLine("Program ends. Goodbye");
+    }
+}
+
 #endregion
 
 #region PPK2Example
