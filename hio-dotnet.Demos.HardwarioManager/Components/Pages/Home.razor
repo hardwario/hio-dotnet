@@ -6,6 +6,18 @@
 @inject ChesterBLEService BleService
 
 <RadzenStack Orientation="Orientation.Vertical" Gap="1rem">
+    <!-- Loading overlay -->
+    @if (isBusy)
+    {
+        <RadzenCard Style="z-index: 3; text-align: center; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, .5)">
+            <div style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%;">
+                <RadzenProgressBarCircular ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+                    <Template>Wait</Template>
+                </RadzenProgressBarCircular>
+            </div>
+        </RadzenCard>
+    }
+
     <SearchForChesters @ref=searchForChesterRef OnStartSearch="onStartSearchHandler" OnConnectToChester="onConnectToChesterHandler" />
 
     @if (IsConnected && BleService.ConnectedPeripheral != null)
@@ -37,6 +49,7 @@
 </RadzenStack>
 
 @code {
+    private bool isBusy = false;
     private SearchForChesters searchForChesterRef;
 
     public bool IsConnected { get => BleService.IsConnected; }
@@ -52,10 +65,21 @@
 
     private async Task onStartSearchHandler()
     {
-        BleService.PeripherialsDictChanged += refresh;
-        BleService.Connected += connected;
-        BleService.DeviceDetialsLoaded += devicedetailsloaded;
-        await BleService.ScanForDevices();
+        try
+        {
+            isBusy = true; // Enable loading indicator during search
+            StateHasChanged();
+
+            BleService.PeripherialsDictChanged += refresh;
+            BleService.Connected += connected;
+            BleService.DeviceDetialsLoaded += devicedetailsloaded;
+            await BleService.ScanForDevices();
+        }
+        finally
+        {
+            isBusy = false; // Disable loading indicator after search
+            StateHasChanged();
+        }
     }
 
     private void refresh(object sender, EventArgs e)
@@ -64,22 +88,24 @@
         searchForChesterRef?.LoadChesters(BleService.PeripherialsDict.Keys.ToList());
     }
 
-    private void connected(object sender, EventArgs e)
-    {
-        StateHasChanged();
-    }
-
-    private void devicedetailsloaded(object sender, EventArgs e)
-    {
-        StateHasChanged();
-    }
-
     private async Task onConnectToChesterHandler(string chester)
     {
         if (!BleService.PeripherialsDict.ContainsKey(chester))
             return;
-        var per = BleService.PeripherialsDict[chester];
-        await ConnectToDevice(per);
+
+        try
+        {
+            isBusy = true; // Enable loading indicator during connection
+            StateHasChanged();
+
+            var per = BleService.PeripherialsDict[chester];
+            await ConnectToDevice(per);
+        }
+        finally
+        {
+            isBusy = false; // Disable loading indicator after connection
+            StateHasChanged();
+        }
     }
 
     private async Task ConnectToDevice(IPeripheral per)
@@ -90,6 +116,31 @@
     private async Task GetChesterDescriptionData()
     {
         if (BleService.ConnectedPeripheral != null)
-            await BleService.GetChesterDescriptionData(BleService.ConnectedPeripheral);
+        {
+            try
+            {
+                isBusy = true; // Enable loading indicator while fetching Chester data
+                StateHasChanged();
+
+                await BleService.GetChesterDescriptionData(BleService.ConnectedPeripheral);
+            }
+            finally
+            {
+                isBusy = false; // Disable loading indicator after fetching Chester data
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void connected(object sender, EventArgs e)
+    {
+        isBusy = false; // Disable loading indicator after connection
+        StateHasChanged();
+    }
+
+    private void devicedetailsloaded(object sender, EventArgs e)
+    {
+        isBusy = false; // Disable loading indicator after data is loaded
+        StateHasChanged();
     }
 }
