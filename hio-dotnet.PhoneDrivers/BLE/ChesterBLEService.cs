@@ -16,6 +16,8 @@ namespace hio_dotnet.PhoneDrivers.BLE
         public event EventHandler<string> NewConsoleLineOutputReceived;
         public ConnectedDevice ConnectedDevice { get; set; } = new ConnectedDevice();
 
+        public bool IsConnected { get; set; } = false;
+
         public IPeripheral? ConnectedPeripheral { get; set; }
 
         private bool isSubscribed = false;
@@ -71,6 +73,7 @@ namespace hio_dotnet.PhoneDrivers.BLE
             {
                 Console.WriteLine("Connected." + x.Name);
                 ConnectedPeripheral = peripheral;
+                IsConnected = true;
                 Connected?.Invoke(this, new EventArgs());
             });
             peripheral.WhenDisconnected().Subscribe(x => { Console.WriteLine("Disconnected." + x.Name); });

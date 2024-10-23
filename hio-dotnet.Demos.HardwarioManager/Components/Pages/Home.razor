@@ -1,65 +1,45 @@
 ﻿@page "/"
-@using Shiny.BluetoothLE;
-@using Shiny;
-@using hio_dotnet.PhoneDrivers.BLE;
+@using Shiny.BluetoothLE
+@using Shiny
+@using hio_dotnet.PhoneDrivers.BLE
 
 @inject ChesterBLEService BleService
 
-<SearchForChesters @ref=searchForChesterRef OnStartSearch="onStartSearchHandler" OnConnectToChester="onConnectToChesterHandler"/>
+<RadzenStack Orientation="Orientation.Vertical" Gap="1rem">
+    <SearchForChesters @ref=searchForChesterRef OnStartSearch="onStartSearchHandler" OnConnectToChester="onConnectToChesterHandler" />
 
-@if (IsConnected && peripheral != null)
-{
-    <Div>Is Connected to @peripheral.Name</Div>
-    <Button Variant="Color.Primary" OnClick="() => GetChesterDescriptionData()">Get CHESTER Info</Button>
-    <hr />
-
-    @if (BleService.ConnectedDevice != null)
+    @if (IsConnected && BleService.ConnectedPeripheral != null)
     {
-        <Row>
-            <Column>
-                <Row>
-                    <Column>Vendor Name: @BleService.ConnectedDevice.VendorName</Column>
-                </Row>
-                <Row>
-                    <Column>Device Name: @BleService.ConnectedDevice.ProductName</Column>
-                </Row>
-                <Row>
-                    <Column>Serial Number: @BleService.ConnectedDevice.SerialNumber</Column>
-                </Row>
-                <Row>
-                    <Column>Hardware variant: @BleService.ConnectedDevice.HardwareVariant</Column>
-                </Row>
-                <Row>
-                    <Column>Hardware Revision: @BleService.ConnectedDevice.HardwareRevision</Column>
-                </Row>
-                <Row>
-                    <Column>Fimware Name: @BleService.ConnectedDevice.FirmwareName</Column>
-                </Row>
-                <Row>
-                    <Column>Firmware Version: @BleService.ConnectedDevice.FirmwareVersion</Column>
-                </Row>
-                <Row>
-                    <Column>Claim Token: @BleService.ConnectedDevice.ClaimToken</Column>
-                </Row>
-                <Row>
-                    <Column>Bluetooth Address: @BleService.ConnectedDevice.BluetoothAddress</Column>
-                </Row>
-                <Row>
-                    <Column>Bluetooth Key: @BleService.ConnectedDevice.BluetoothKey</Column>
-                </Row>
-            </Column>
-        </Row>
+        <RadzenText TextStyle="TextStyle.Body1">Is Connected to @BleService.ConnectedPeripheral.Name</RadzenText>
+        <RadzenButton Text="Get CHESTER Info" ButtonStyle="ButtonStyle.Primary" Click="() => GetChesterDescriptionData()" />
+        <hr />
+
+        @if (BleService.ConnectedDevice != null)
+        {
+            <RadzenStack Orientation="Orientation.Vertical" Gap="1rem">
+                <RadzenText Text="@($"Vendor Name: {BleService.ConnectedDevice.VendorName}")" />
+                <RadzenText Text="@($"Device Name: {BleService.ConnectedDevice.ProductName}")" />
+                <RadzenText Text="@($"Serial Number: {BleService.ConnectedDevice.SerialNumber}")" />
+                <RadzenText Text="@($"Hardware variant: {BleService.ConnectedDevice.HardwareVariant}")" />
+                <RadzenText Text="@($"Hardware Revision: {BleService.ConnectedDevice.HardwareRevision}")" />
+                <RadzenText Text="@($"Firmware Name: {BleService.ConnectedDevice.FirmwareName}")" />
+                <RadzenText Text="@($"Firmware Version: {BleService.ConnectedDevice.FirmwareVersion}")" />
+                <RadzenText Text="@($"Claim Token: {BleService.ConnectedDevice.ClaimToken}")" />
+                <RadzenText Text="@($"Bluetooth Address: {BleService.ConnectedDevice.BluetoothAddress}")" />
+                <RadzenText Text="@($"Bluetooth Key: {BleService.ConnectedDevice.BluetoothKey}")" />
+            </RadzenStack>
+        }
     }
-}
-else
-{
-    <Div>Chester is not connected yet</Div>
-}
+    else
+    {
+        <RadzenText Text="Chester is not connected yet" />
+    }
+</RadzenStack>
 
 @code {
-    private bool IsConnected = false;
-    IPeripheral peripheral = null;
     private SearchForChesters searchForChesterRef;
+
+    public bool IsConnected { get => BleService.IsConnected; }
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {
@@ -86,7 +66,6 @@ else
 
     private void connected(object sender, EventArgs e)
     {
-        IsConnected = true;
         StateHasChanged();
     }
 
@@ -105,12 +84,12 @@ else
 
     private async Task ConnectToDevice(IPeripheral per)
     {
-        peripheral = per;
         await BleService.ConnectToDevice(per);
     }
 
     private async Task GetChesterDescriptionData()
     {
-        await BleService.GetChesterDescriptionData(peripheral);
+        if (BleService.ConnectedPeripheral != null)
+            await BleService.GetChesterDescriptionData(BleService.ConnectedPeripheral);
     }
 }

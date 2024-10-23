@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Shiny;
 using hio_dotnet.PhoneDrivers.BLE;
+using Radzen;
 
 namespace hio_dotnet.Demos.HardwarioManager
 {
@@ -20,6 +21,7 @@ namespace hio_dotnet.Demos.HardwarioManager
             builder.Services.AddMauiBlazorWebView();
             builder.Services.AddBluetoothLE();
             builder.Services.AddSingleton<ChesterBLEService>();
+            builder.Services.AddRadzenComponents();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
