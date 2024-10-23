@@ -1,6 +1,14 @@
 ﻿@using hio_dotnet.Common.Config;
 @using hio_dotnet.Common.Enums;
 @using hio_dotnet.Common.Enums.LoRaWAN;
+@using hio_dotnet.Common.Enums.LTE;
+@using hio_dotnet.UI.BlazorComponents.Radzen.Common.Console
+@using hio_dotnet.UI.BlazorComponents.Radzen.CHESTER
+@using hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.Configs.Common
+@using hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.Configs.LoRa
+@using hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.Configs.LTE
+
+@inject NotificationService NotificationService
 
 @page "/"
 
@@ -10,17 +18,70 @@
 
 Welcome to your new app.
 
-<hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.SearchForChesters @ref=sfcRef/>
+<SearchForChesters @ref=sfcRef/>
 
     <hr />
 
-<hio_dotnet.UI.BlazorComponents.Radzen.Common.Console.ConsoleComponent Output="@consoleOutput" OnSendCommand="@HandleSendCommand" />
+<ConsoleComponent Output="@consoleOutput" OnSendCommand="@HandleSendCommand" />
+
+<hr />
+
+<RadzenCard>
+        
+    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Antenna Type</RadzenText>
+    <AntennaTypeSelector Value="@Antenna" ValueChanged="OnAntennaChangedHandler" Align="left" />
+
+    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">LoRaWAN Band</RadzenText>
+    <LoRaWANBandSelector Value="@LRWBand" ValueChanged="OnLoRaWANBandChangedHandler" Align="left" />
+
+    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">LoRaWAN Mode</RadzenText>
+    <LoRaWANModeSelector Value="@LRWMode" ValueChanged="OnLoRaWANModeChangedHandler" Align="left" />
+
+    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">LoRaWAN Network</RadzenText>
+    <LoRaWANNetworkSelector Value="@LRWNetwork" ValueChanged="OnLoRaWANNetworkChangedHandler" Align="left" />
+
+    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">LoRaWAN Class</RadzenText>
+    <LoRaWANClassSelector Value="@LRWClass" ValueChanged="OnLoRaWANClassChangedHandler" Align="left" />
+
+</RadzenCard>
+
+<RadzenCard>
+    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">LTE Authorization Type</RadzenText>
+    <LTEAuthorizationSelector Value="@LTEAuthorization" ValueChanged="OnLTEAuthChangedHandler" Align="left" />
+
+    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">LTE APN</RadzenText>
+    <RadzenTextBox Placeholder="APN..." @bind-Value="LTEAPN" Style="width: 100%" aria-label="LTE APN" />
+
+    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">LTE Username</RadzenText>
+    <RadzenTextBox Placeholder="Username..." @bind-Value="LTEUsername" Style="width: 100%" aria-label="LTE Username" />
+
+    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">LTE APN</RadzenText>
+    <RadzenPassword @bind-Value="LTEPassword" Style="width: 100%" aria-label="LTE Password" />
+</RadzenCard>
+
+
+<EventConsole @ref=@console />
+
+<RadzenRow>
+    <RadzenColumn Width="12">
+        <RadzenButton Text="Show Modal" Click="@ShowModal" />
+    </RadzenColumn>
+</RadzenRow>
 
 
 @code {
     private bool IsModalVisible = false;
     public string text { get; set; } = string.Empty;
     public string text1 { get; set; } = "Third Column";
+    public AntennaType Antenna { get; set; } = AntennaType.Internal;
+    public LoRaWANBand LRWBand { get; set; } = LoRaWANBand.EU868;
+    public LoRaWANMode LRWMode { get; set; } = LoRaWANMode.ABP;
+    public LoRaWANNetwork LRWNetwork { get; set; } = LoRaWANNetwork.Public;
+    public LoRaWANClass LRWClass { get; set; } = LoRaWANClass.A;
+    public LTEAuthType LTEAuthorization { get; set; } = LTEAuthType.None;
+    public string LTEAPN { get; set; } = "hardwario";
+    public string LTEUsername { get; set; } = "username";
+    public string LTEPassword { get; set; } = "password";
 
     private List<string> consoleOutput = new List<string>();
 
@@ -34,6 +95,98 @@ Welcome to your new app.
         }
 
         await base.OnAfterRenderAsync(firstRender);
+    }
+
+    EventConsole console;
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+
+        //console.Log($"{message.Severity} notification");
+    }
+
+    private void OnAntennaChangedHandler(AntennaType antenna)
+    {
+        Antenna = antenna;
+        ShowNotification(new NotificationMessage 
+            { 
+                Severity = NotificationSeverity.Success, 
+                Summary = "Antenna Type Changed", 
+                Detail = $"New set type of antenna is: {antenna}", 
+                Duration = 4000 
+            });
+
+        console.Log($"Antenna changed to {antenna}");
+    }
+
+    private void OnLoRaWANBandChangedHandler(LoRaWANBand band)
+    {
+        LRWBand = band;
+        ShowNotification(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "LoRaWAN Band Type Changed",
+                Detail = $"New set type of Band is: {band}",
+                Duration = 4000
+            });
+
+        console.Log($"LoRaWAN BAnd changed to {band}");
+    }
+
+    private void OnLoRaWANModeChangedHandler(LoRaWANMode mode)
+    {
+        LRWMode = mode;
+        ShowNotification(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "LoRaWAN Mode Type Changed",
+                Detail = $"New set type of Mode is: {mode}",
+                Duration = 4000
+            });
+
+        console.Log($"LoRaWAN Mode changed to {mode}");
+    }
+
+    private void OnLoRaWANNetworkChangedHandler(LoRaWANNetwork network)
+    {
+        LRWNetwork = network;
+        ShowNotification(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "LoRaWAN Network Type Changed",
+                Detail = $"New set type of Network is: {network}",
+                Duration = 4000
+            });
+
+        console.Log($"LoRaWAN Network changed to {network}");
+    }
+
+    private void OnLoRaWANClassChangedHandler(LoRaWANClass loraClass)
+    {
+        LRWClass = loraClass;
+        ShowNotification(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "LoRaWAN Class Type Changed",
+                Detail = $"New set type of Class is: {loraClass}",
+                Duration = 4000
+            });
+
+        console.Log($"LoRaWAN Class changed to {loraClass}");
+    }
+
+    private void OnLTEAuthChangedHandler(LTEAuthType lteauth)
+    {
+        LTEAuthorization = lteauth;
+        ShowNotification(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "LTE Authorization type  Changed",
+                Detail = $"New set type of LTE Authorization is: {lteauth}",
+                Duration = 4000
+            });
+
+        console.Log($"LTE Authorization type changed to {lteauth}");
     }
 
     public void ShowModal()
@@ -66,19 +219,34 @@ Welcome to your new app.
                 .WithAppKey("2222222222")
                 .WithAppSKey("3333333333")
                 .WithNwkSKey("4444444444")
-                .WithAntenna(AntennaType.External)
-                .WithBand(LoRaWANBand.US915)
-                .WithMode(LoRaWANMode.ABP)
-                .WithNetwork(LoRaWANNetwork.Public)
-                .WithClass(LoRaWANClass.C)
+                .WithAntenna(Antenna)
+                .WithBand(LRWBand)
+                .WithMode(LRWMode)
+                .WithNetwork(LRWNetwork)
+                .WithClass(LRWClass)
                 .WithDutyCycle(true)
                 .WithTest(true)
                 .WithAdr(true)
                 .WithDataRate(3);
 
             var cfg = config.GetWholeConfig();
+
+            var lteconfig = new LTEConfig()
+                        .WithApn(LTEAPN)
+                        .WithUsername(LTEUsername)
+                        .WithPassword(LTEPassword)
+                        .WithAuth(LTEAuthorization)
+                        .WithTest(true);   
+
+            var ltecfg = lteconfig.GetWholeConfig();
+
             // add each line of built cfg to consoleOutput
             foreach (var line in cfg.Split("\n"))
+            {
+                consoleOutput.Add(line);
+            }
+
+            foreach (var line in ltecfg.Split("\n"))
             {
                 consoleOutput.Add(line);
             }

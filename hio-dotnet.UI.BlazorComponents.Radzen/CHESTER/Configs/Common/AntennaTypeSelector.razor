@@ -1,0 +1,32 @@
+﻿@using hio_dotnet.Common.Enums
+
+<div class="rz-p-12 @getAlign()">
+    <RadzenRadioButtonList Value=@Value TValue="AntennaType" ValueChanged="OnValueChangedHandler">
+        <Items>
+            <RadzenRadioButtonListItem Text="Internal" Value="AntennaType.Internal" />
+            <RadzenRadioButtonListItem Text="External" Value="AntennaType.External" />
+        </Items>
+    </RadzenRadioButtonList>
+</div>
+
+@code {
+    [Parameter] public AntennaType Value { get; set; } = AntennaType.Internal;
+    [Parameter] public EventCallback<AntennaType> ValueChanged { get; set; }
+    [Parameter] public string Align { get; set; } = "center";
+
+    private void OnValueChangedHandler(AntennaType value)
+    {
+        Value = value;
+        ValueChanged.InvokeAsync(value);
+    }
+
+    public string getAlign()
+    {
+        if (Align == "left")
+            return "rz-text-align-start";
+        else if (Align == "right")
+            return "rz-text-align-end";
+        else
+            return "rz-text-align-center";
+    }
+}

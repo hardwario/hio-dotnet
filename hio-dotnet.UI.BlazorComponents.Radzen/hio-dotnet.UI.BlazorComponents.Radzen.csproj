@@ -17,4 +17,8 @@
     <PackageReference Include="Radzen.Blazor" Version="5.3.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />
+  </ItemGroup>
+
 </Project>

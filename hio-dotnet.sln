@@ -39,9 +39,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.UI.BlazorCompone
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.Demos.BlazorComponents.WASM", "hio-dotnet.Demos.BlazorComponents.WASM\hio-dotnet.Demos.BlazorComponents.WASM.csproj", "{BF55255E-8B24-42C7-A7AB-FCA333856FDE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.UI.BlazorComponents.Radzen", "hio-dotnet.UI.BlazorComponents.Radzen\hio-dotnet.UI.BlazorComponents.Radzen.csproj", "{189AB1EA-045C-4BFC-B691-541B3F3BA7BF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.UI.BlazorComponents.Radzen", "hio-dotnet.UI.BlazorComponents.Radzen\hio-dotnet.UI.BlazorComponents.Radzen.csproj", "{189AB1EA-045C-4BFC-B691-541B3F3BA7BF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.Demos.BlazorComponents.Radzen.WASM", "hio-dotnet.Demos.BlazorComponents.Radzen.WASM\hio-dotnet.Demos.BlazorComponents.Radzen.WASM.csproj", "{395ACA60-AD81-4F2E-B4EB-74440EE10ABD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.Demos.BlazorComponents.Radzen.WASM", "hio-dotnet.Demos.BlazorComponents.Radzen.WASM\hio-dotnet.Demos.BlazorComponents.Radzen.WASM.csproj", "{395ACA60-AD81-4F2E-B4EB-74440EE10ABD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

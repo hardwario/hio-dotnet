@@ -1,0 +1,33 @@
+﻿@using hio_dotnet.Common.Enums.LoRaWAN
+
+<div class="rz-p-12 @getAlign()">
+    <RadzenRadioButtonList Value=@Value TValue="LoRaWANClass" ValueChanged="OnValueChangedHandler">
+        <Items>
+            <RadzenRadioButtonListItem Text="A" Value="LoRaWANClass.A" />
+            <RadzenRadioButtonListItem Text="B" Value="LoRaWANClass.B" />
+            <RadzenRadioButtonListItem Text="C" Value="LoRaWANClass.C" />
+        </Items>
+    </RadzenRadioButtonList>
+</div>
+
+@code {
+    [Parameter] public LoRaWANClass Value { get; set; } = LoRaWANClass.A;
+    [Parameter] public EventCallback<LoRaWANClass> ValueChanged { get; set; }
+    [Parameter] public string Align { get; set; } = "center";
+
+    private void OnValueChangedHandler(LoRaWANClass value)
+    {
+        Value = value;
+        ValueChanged.InvokeAsync(value);
+    }
+
+    public string getAlign()
+    {
+        if (Align == "left")
+            return "rz-text-align-start";
+        else if (Align == "right")
+            return "rz-text-align-end";
+        else
+            return "rz-text-align-center";
+    }
+}
