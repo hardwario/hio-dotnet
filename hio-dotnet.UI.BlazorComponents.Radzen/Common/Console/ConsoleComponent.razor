@@ -18,7 +18,7 @@
             <!-- Input area -->
             <RadzenRow>
                 <RadzenColumn Width="10">
-                    <RadzenTextBox @bind-Value="@command" Placeholder="Type command" Style="width: 100%;" @onkeydown="HandleKeyDown" />
+                    <RadzenTextBox @bind-Value="@command" Placeholder="Type command" Style="width: 100%;" @onkeydown="HandleKeyDown" @onfocus="() => OnCommandLineGotFocus.InvokeAsync()" @onfocusout="() => OnCommandLineLostFocus.InvokeAsync()" />
                 </RadzenColumn>
                 <RadzenColumn Width="2">
                     <RadzenButton Text="Send" Click="SendCommand" Style="width: 100%;" />
@@ -53,10 +53,16 @@
 
 @code {
     [Parameter] public EventCallback<string> OnSendCommand { get; set; }
+    [Parameter] public EventCallback<string> OnCommandLineGotFocus { get; set; }
+    [Parameter] public EventCallback<string> OnCommandLineLostFocus { get; set; }
     [Parameter] public EventCallback<string> OnNewLineReceived { get; set; }
     [Parameter] public List<string> Output { get; set; } = new List<string>();
-    [Parameter] public int MinHeight { get; set; } = 500;
-    [Parameter] public int MaxHeight { get; set; } = 500;
+
+    public int MinHeight { get; set; } = 500;
+    public int MaxHeight { get; set; } = 500;
+    
+    public int MinHeightDefault { get; } = 500;
+    public int MaxHeightDefault { get; } = 500;
 
     private string GetMinHeight() => $"{MinHeight}px";
     private string GetMaxHeight() => $"{MaxHeight}px";
@@ -79,6 +85,11 @@
         {
             NavigateHistory(-1);
         }
+    }
+
+    public async Task Refresh()
+    {
+        await InvokeAsync(StateHasChanged);
     }
 
     private void OnCommandValueChangedHandler(string text)

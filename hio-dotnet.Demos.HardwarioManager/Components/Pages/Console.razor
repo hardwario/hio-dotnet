@@ -3,10 +3,11 @@
 
 @inject ChesterBLEService BleService
 
-<ConsoleComponent Output="output" OnSendCommand="HandleSendCommand" />
+<ConsoleComponent @ref=consoleComponentRef Output="output" OnSendCommand="HandleSendCommand" OnCommandLineGotFocus="OnCommandLineGotFocusHandler" OnCommandLineLostFocus="OnCommandLineLostFocusHandler" />
 
 @code {
     private List<string> output = new List<string>();
+    ConsoleComponent? consoleComponentRef;
 
     protected override void OnInitialized()
     {
@@ -15,8 +16,34 @@
 
     private async Task HandleSendCommand(string command)
     {
+        if (consoleComponentRef != null)
+        {
+            consoleComponentRef.MinHeight = consoleComponentRef.MinHeightDefault;
+            consoleComponentRef.MaxHeight = consoleComponentRef.MaxHeightDefault;
+            await consoleComponentRef.Refresh();
+        }
         output.Add("> " + command);
         await BleService.SendCommand(BleService.ConnectedPeripheral, command.ToLower().Trim() + "\n");
+    }
+
+    private async Task OnCommandLineGotFocusHandler()
+    {
+        if (consoleComponentRef != null)
+        {
+            consoleComponentRef.MinHeight = 200;
+            consoleComponentRef.MaxHeight = 200;
+            await consoleComponentRef.Refresh();
+        }
+    }    
+    
+    private async Task OnCommandLineLostFocusHandler()
+    {
+        if (consoleComponentRef != null)
+        {
+            consoleComponentRef.MinHeight = consoleComponentRef.MinHeightDefault;
+            consoleComponentRef.MaxHeight = consoleComponentRef.MaxHeightDefault;
+            await consoleComponentRef.Refresh();
+        }
     }
 
     private void OnNewLineReceived(object sender, string newLine)
