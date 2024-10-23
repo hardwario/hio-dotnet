@@ -1,0 +1,39 @@
+﻿@using Radzen
+
+<RadzenStack Orientation="Orientation.Vertical" Gap="1rem">
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem">
+        <RadzenButton Text="Search" ButtonStyle="ButtonStyle.Primary" Click="() => OnStartSearch.InvokeAsync()" />
+    </RadzenStack>
+
+    @if (Chesters.Count > 0)
+    {
+        <RadzenStack Orientation="Orientation.Vertical" Gap="1rem">
+            <h5>Chesters</h5>
+            <hr />
+
+            <RadzenDataGrid Data="@Chesters" TItem="string">
+                <Columns>
+                    <RadzenDataGridColumn TItem="string" Property="this" Title="Name" />
+
+                    <RadzenDataGridColumn TItem="string" Title="Action">
+                        <Template Context="chester">
+                            <RadzenButton Text="Connect" ButtonStyle="ButtonStyle.Primary" Click="() => OnConnectToChester.InvokeAsync(chester)" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenStack>
+    }
+</RadzenStack>
+
+@code {
+    [Parameter] public EventCallback<string> OnStartSearch { get; set; }
+    [Parameter] public EventCallback<string> OnConnectToChester { get; set; }
+    private List<string> Chesters { get; set; } = new List<string>();
+
+    public async Task LoadChesters(List<string> chesters)
+    {
+        Chesters = chesters;
+        await InvokeAsync(StateHasChanged);
+    }
+}

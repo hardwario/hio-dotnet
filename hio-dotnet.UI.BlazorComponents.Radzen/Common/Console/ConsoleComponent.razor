@@ -1,0 +1,108 @@
+﻿@using Radzen
+
+<h4>Console</h4>
+<hr />
+
+<div class="console-container">
+    <RadzenRow>
+        <RadzenColumn Width="12">
+            <RadzenCard Class="console-card" Style="flex-grow: 1; display: flex; flex-direction: column; background-color: #333;">
+                <div class="console-output">
+                    @foreach (var line in Output)
+                    {
+                        <div><small style="color: #d4d4d4; font-size: 8px;">@line</small></div>
+                    }
+                </div>
+            </RadzenCard>
+
+            <!-- Input area -->
+            <RadzenRow>
+                <RadzenColumn Width="10">
+                    <RadzenTextBox @bind-Value="@command" Placeholder="Type command" Style="width: 100%;" @onkeydown="HandleKeyDown" />
+                </RadzenColumn>
+                <RadzenColumn Width="2">
+                    <RadzenButton Text="Send" Click="SendCommand" Style="width: 100%;" />
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenColumn>
+    </RadzenRow>
+</div>
+
+<style>
+    .console-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh; /* Adjust as needed */
+    }
+
+    .console-card {
+        color: #d4d4d4;
+        font-family: monospace;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .console-output {
+        flex-grow: 1;
+        overflow-y: auto;
+        min-height: @(GetMinHeight());
+        max-height: @(GetMaxHeight());
+    }
+</style>
+
+@code {
+    [Parameter] public EventCallback<string> OnSendCommand { get; set; }
+    [Parameter] public EventCallback<string> OnNewLineReceived { get; set; }
+    [Parameter] public List<string> Output { get; set; } = new List<string>();
+    [Parameter] public int MinHeight { get; set; } = 500;
+    [Parameter] public int MaxHeight { get; set; } = 500;
+
+    private string GetMinHeight() => $"{MinHeight}px";
+    private string GetMaxHeight() => $"{MaxHeight}px";
+
+    private string command = string.Empty;
+    private int historyIndex = -1;
+    private List<string> commandHistory = new List<string>();
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SendCommand();
+        }
+        else if (e.Key == "ArrowUp")
+        {
+            NavigateHistory(1);
+        }
+        else if (e.Key == "ArrowDown")
+        {
+            NavigateHistory(-1);
+        }
+    }
+
+    private void OnCommandValueChangedHandler(string text)
+    {
+        command = text;
+    }
+
+    private async Task SendCommand()
+    {
+        if (!string.IsNullOrEmpty(command))
+        {
+            commandHistory.Insert(0, command);
+            historyIndex = -1;
+            await OnSendCommand.InvokeAsync(command);
+            command = string.Empty;
+        }
+    }
+
+    private void NavigateHistory(int direction)
+    {
+        if (commandHistory.Count == 0) return;
+
+        historyIndex = Math.Clamp(historyIndex + direction, -1, commandHistory.Count - 1);
+
+        command = historyIndex >= 0 ? commandHistory[historyIndex] : string.Empty;
+    }
+}
