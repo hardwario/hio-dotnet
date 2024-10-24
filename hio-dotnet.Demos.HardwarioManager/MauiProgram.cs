@@ -2,6 +2,7 @@
 using Shiny;
 using hio_dotnet.PhoneDrivers.BLE;
 using Radzen;
+using ZXing.Net.Maui.Controls;
 
 namespace hio_dotnet.Demos.HardwarioManager
 {
@@ -13,6 +14,7 @@ namespace hio_dotnet.Demos.HardwarioManager
             builder
                 .UseMauiApp<App>()
                 .UseShiny()
+                .UseBarcodeReader()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

@@ -4,6 +4,7 @@
 @using hio_dotnet.PhoneDrivers.BLE
 
 @inject ChesterBLEService BleService
+@inject NotificationService NotificationService
 
 <RadzenStack Orientation="Orientation.Vertical" Gap="1rem">
     <!-- Loading overlay -->
@@ -17,6 +18,9 @@
             </div>
         </RadzenCard>
     }
+
+    <RadzenButton Text="Scan QR Code" Click="@OpenQRScanner" />
+    <hr />
 
     <SearchForChesters @ref=searchForChesterRef OnStartSearch="onStartSearchHandler" OnConnectToChester="onConnectToChesterHandler" />
 
@@ -46,13 +50,19 @@
     {
         <RadzenText Text="Chester is not connected yet" />
     }
+
+    <hr />
+    <EventConsole @ref=@console />
 </RadzenStack>
 
 @code {
     private bool isBusy = false;
     private SearchForChesters searchForChesterRef;
+    private EventConsole console;
 
     public bool IsConnected { get => BleService.IsConnected; }
+
+    public string QRCode { get; set; } = string.Empty;
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {
@@ -60,7 +70,36 @@
             BleService.PeripherialsDict.Count() > 0 && searchForChesterRef != null)
             searchForChesterRef?.LoadChesters(BleService.PeripherialsDict.Keys.ToList());
 
+        if (MainDataContext.ScannedQRCode != QRCode)
+        {
+            QRCode = MainDataContext.ScannedQRCode;
+
+            if (!string.IsNullOrEmpty(QRCode))
+            {
+                ShowNotification(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Summary = "QR Code Readed",
+                        Detail = $"New QR Code Captured: {QRCode}",
+                        Duration = 4000
+                    });
+                console.Log($"New QRCode Captured: {QRCode}");
+            }
+        }
+
         return base.OnAfterRenderAsync(firstRender);
+    }
+
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+
+        //console.Log($"{message.Severity} notification");
+    }
+
+    private async Task OpenQRScanner()
+    {
+        await Application.Current.MainPage.Navigation.PushAsync(new QRScannerPage());
     }
 
     private async Task onStartSearchHandler()

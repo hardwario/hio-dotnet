@@ -6,7 +6,8 @@
         {
             InitializeComponent();
 
-            MainPage = new MainPage();
+            MainPage = new NavigationPage(new MainPage());
+            NavigationPage.SetHasNavigationBar(this, false);
         }
     }
 }
