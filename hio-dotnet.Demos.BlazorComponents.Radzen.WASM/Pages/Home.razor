@@ -42,6 +42,13 @@ Welcome to your new app.
 
     <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">LoRaWAN Class</RadzenText>
     <LoRaWANClassSelector Value="@LRWClass" ValueChanged="OnLoRaWANClassChangedHandler" Align="left" />
+    
+    <LoRaWANDevEUI Value="@DevEUI" ValueChanged="OnDevEUIChangedHandler" Align="left" />
+    <LoRaWANAppKey Value="@AppKey" ValueChanged="OnAppKeyChangedHandler" Align="left" />
+    <LoRaWANJoinEUI Value="@JoinEUI" ValueChanged="OnJoinEUIChangedHandler" Align="left" />
+    <LoRaWANDevAddr Value="@DevAddr" ValueChanged="OnDevAddrChangedHandler" Align="left" />
+    <LoRaWANAppSKey Value="@AppSKey" ValueChanged="OnAppSKeyChangedHandler" Align="left" />
+    <LoRaWANNwkSKey Value="@NwkSKey" ValueChanged="OnNwkSKeyChangedHandler" Align="left" />
 
 </RadzenCard>
 
@@ -78,6 +85,13 @@ Welcome to your new app.
     public LoRaWANMode LRWMode { get; set; } = LoRaWANMode.ABP;
     public LoRaWANNetwork LRWNetwork { get; set; } = LoRaWANNetwork.Public;
     public LoRaWANClass LRWClass { get; set; } = LoRaWANClass.A;
+    public string DevEUI { get; set; } = "1234567890ABCDEF";
+    public string AppKey { get; set; } = "1234567890ABCDEF1234567890ABCDEF";
+    public string JoinEUI { get; set; } = "1234567890ABCDEF";
+    public string DevAddr { get; set; } = "12345678";
+    public string AppSKey { get; set; } = "1234567890ABCDEF1234567890ABCDEF";
+    public string NwkSKey { get; set; } = "1234567890ABCDEF1234567890ABCDEF";
+
     public LTEAuthType LTEAuthorization { get; set; } = LTEAuthType.None;
     public string LTEAPN { get; set; } = "hardwario";
     public string LTEUsername { get; set; } = "username";
@@ -173,6 +187,90 @@ Welcome to your new app.
             });
 
         console.Log($"LoRaWAN Class changed to {loraClass}");
+    } 
+    
+    private void OnDevEUIChangedHandler(string devEUI)
+    {
+        DevEUI = devEUI;
+        ShowNotification(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "DevEUI Changed",
+                Detail = $"New set DevEUI is: {devEUI}",
+                Duration = 4000
+            });
+
+        console.Log($"DevEUI changed to {devEUI}");
+    }
+
+    private void OnAppKeyChangedHandler(string appKey)
+    {
+        AppKey = appKey;
+        ShowNotification(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "AppKey Changed",
+                Detail = $"New set AppKey is: {appKey}",
+                Duration = 4000
+            });
+
+        console.Log($"AppKey changed to {appKey}");
+    }
+
+    private void OnJoinEUIChangedHandler(string joinEUI)
+    {
+        JoinEUI = joinEUI;
+        ShowNotification(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "JoinEUI Changed",
+                Detail = $"New set JoinEUI is: {joinEUI}",
+                Duration = 4000
+            });
+
+        console.Log($"JoinEUI changed to {joinEUI}");
+    }
+
+    private void OnDevAddrChangedHandler(string devAddr)
+    {
+        DevAddr = devAddr;
+        ShowNotification(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "DevAddr Changed",
+                Detail = $"New set DevAddr is: {devAddr}",
+                Duration = 4000
+            });
+
+        console.Log($"DevAddr changed to {devAddr}");
+    }
+
+    private void OnAppSKeyChangedHandler(string appSKey)
+    {
+        AppSKey = appSKey;
+        ShowNotification(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "AppSKey Changed",
+                Detail = $"New set AppSKey is: {appSKey}",
+                Duration = 4000
+            });
+
+        console.Log($"AppSKey changed to {appSKey}");
+    }
+
+    private void OnNwkSKeyChangedHandler(string nwkSKey)
+    {
+        NwkSKey = nwkSKey;
+        ShowNotification(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "NwkSKey Changed",
+                Detail = $"New set NwkSKey is: {nwkSKey}",
+                Duration = 4000
+            });
+
+        console.Log($"NwkSKey changed to {nwkSKey}");
     }
 
     private void OnLTEAuthChangedHandler(LTEAuthType lteauth)
@@ -213,12 +311,12 @@ Welcome to your new app.
             await Task.Delay(100);
 
             var config = new LoRaWANConfig()
-                .WithDevAddr("12345678")
-                .WithDevEui("87654321")
-                .WithJoinEui("1111111111")
-                .WithAppKey("2222222222")
-                .WithAppSKey("3333333333")
-                .WithNwkSKey("4444444444")
+                .WithDevAddr(DevAddr)
+                .WithDevEui(DevEUI)
+                .WithJoinEui(JoinEUI)
+                .WithAppKey(AppKey)
+                .WithAppSKey(AppSKey)
+                .WithNwkSKey(NwkSKey)
                 .WithAntenna(Antenna)
                 .WithBand(LRWBand)
                 .WithMode(LRWMode)
