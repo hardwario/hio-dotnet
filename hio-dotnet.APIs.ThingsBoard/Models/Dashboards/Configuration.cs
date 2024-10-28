@@ -19,7 +19,7 @@ namespace hio_dotnet.APIs.ThingsBoard.Models.Dashboards
         public States States { get; set; } = new States();
 
         [JsonPropertyName("entityAliases")]
-        public Dictionary<string, object>? EntityAliases { get; set; } = new Dictionary<string, object>();
+        public Dictionary<string, EntityAlias>? EntityAliases { get; set; } = new Dictionary<string, EntityAlias>();
 
         [JsonPropertyName("filters")]
         public Dictionary<string, object>? Filters { get; set; } = new Dictionary<string, object>();

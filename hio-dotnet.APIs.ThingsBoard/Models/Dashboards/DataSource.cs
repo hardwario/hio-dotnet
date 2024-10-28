@@ -21,6 +21,10 @@ namespace hio_dotnet.APIs.ThingsBoard.Models.Dashboards
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? DeviceId { get; set; }
 
+        [JsonPropertyName("entityAliasId")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? EntityAliasId { get; set; }
+
         [JsonPropertyName("dataKeys")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public List<DataKey>? DataKeys { get; set; }
