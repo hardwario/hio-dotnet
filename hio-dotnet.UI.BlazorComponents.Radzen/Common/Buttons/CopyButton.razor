@@ -1,0 +1,60 @@
+﻿@using Microsoft.JSInterop
+
+@inject IJSRuntime JSRuntime
+
+@if (!copyTextButtonCoppied)
+{
+    @if (!IsJustIcon)
+    {
+        <RadzenButton Click="copyCodeToClipboard" >@ButtonText</RadzenButton>
+    }
+    else
+    {
+        <RadzenButton Click="copyCodeToClipboard"><RadzenIcon Icon="content_copy" /></RadzenButton>
+    }
+}
+else
+{
+    @if (!IsJustIcon)
+    {
+        <RadzenButton>Copied <RadzenIcon Icon="check" /></RadzenButton>
+    }
+    else
+    {
+        <RadzenButton><RadzenIcon Icon="check" /></RadzenButton>
+    }
+}
+
+@code {
+    [Parameter] public bool IsJustIcon { get; set; } = false;
+
+    [Parameter]
+    public string TextToCopy
+    {
+        get => textToCopy;
+        set => textToCopy = value;
+    }
+    [Parameter]
+    public string ButtonText { get; set; } = "Copy";
+
+    private string textToCopy = string.Empty;
+    private bool copyTextButtonCoppied = false;
+
+    private async Task copyCodeToClipboard(MouseEventArgs e)
+    {
+        if (string.IsNullOrEmpty(textToCopy))
+            return;
+
+        await JSRuntime.InvokeVoidAsync("hiodotnet.copyToClipboard", textToCopy);
+        await copyCodeToClipboardButtonTextEfect();
+    }
+
+    private async Task copyCodeToClipboardButtonTextEfect()
+    {
+        copyTextButtonCoppied = true;
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(1000);
+        copyTextButtonCoppied = false;
+        await InvokeAsync(StateHasChanged);
+    }
+}

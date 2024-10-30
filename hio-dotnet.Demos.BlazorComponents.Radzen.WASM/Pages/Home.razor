@@ -1,4 +1,4 @@
-﻿@using hio_dotnet.Common.Config;
+@using hio_dotnet.Common.Config;
 @using hio_dotnet.Common.Enums;
 @using hio_dotnet.Common.Enums.LoRaWAN;
 @using hio_dotnet.Common.Enums.LTE;
@@ -66,6 +66,12 @@ Welcome to your new app.
     <RadzenPassword @bind-Value="LTEPassword" Style="width: 100%" aria-label="LTE Password" />
 </RadzenCard>
 
+<RadzenCard>
+    <LoRaWANConfigCompleteForm @ref=LRWConfigRef />
+</RadzenCard>
+
+<CopyButton TextToCopy="Hello World :)" ButtonText="Copy Hello World :)" />
+<CopyButton TextToCopy="Hello World Just Icon :)" IsJustIcon="true" />
 
 <EventConsole @ref=@console />
 
@@ -96,6 +102,9 @@ Welcome to your new app.
     public string LTEAPN { get; set; } = "hardwario";
     public string LTEUsername { get; set; } = "username";
     public string LTEPassword { get; set; } = "password";
+
+    public LoRaWANConfigCompleteForm? LRWConfigRef;
+    public LoRaWANConfig LRWConfig { get; set; } = new LoRaWANConfig();
 
     private List<string> consoleOutput = new List<string>();
 
@@ -305,6 +314,11 @@ Welcome to your new app.
 
     private async Task HandleSendCommand(string command)
     {
+        if (LRWConfigRef != null)
+        {
+            LRWConfig = LRWConfigRef.GetConfig();
+            Console.WriteLine($"LoRaWAN Complete>>>>{LRWConfig.DevAddr}");
+        }
         consoleOutput.Add("> " + command);
         if (command.Trim().ToLower() == "config show")
         {
