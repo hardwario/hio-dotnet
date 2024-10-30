@@ -70,6 +70,11 @@ Welcome to your new app.
     <LoRaWANConfigCompleteForm @ref=LRWConfigRef />
 </RadzenCard>
 
+<RadzenCard>
+    <LTEConfigCompleteForm @ref=LTEConfigRef />
+</RadzenCard>
+
+<hr />
 <CopyButton TextToCopy="Hello World :)" ButtonText="Copy Hello World :)" />
 <CopyButton TextToCopy="Hello World Just Icon :)" IsJustIcon="true" />
 
@@ -105,6 +110,9 @@ Welcome to your new app.
 
     public LoRaWANConfigCompleteForm? LRWConfigRef;
     public LoRaWANConfig LRWConfig { get; set; } = new LoRaWANConfig();
+
+    public LTEConfigCompleteForm? LTEConfigRef;
+    public LTEConfig LTEConfigData { get; set; } = new LTEConfig();
 
     private List<string> consoleOutput = new List<string>();
 
@@ -319,6 +327,14 @@ Welcome to your new app.
             LRWConfig = LRWConfigRef.GetConfig();
             Console.WriteLine($"LoRaWAN Complete>>>>{LRWConfig.DevAddr}");
         }
+
+        if (LTEConfigRef != null)
+        {
+            LTEConfigData = LTEConfigRef.GetConfig();
+            Console.WriteLine($"LoRaWAN Complete>>>>{LTEConfigData.Apn}");
+        }
+
+
         consoleOutput.Add("> " + command);
         if (command.Trim().ToLower() == "config show")
         {
