@@ -15,15 +15,18 @@
                 </div>
             </RadzenCard>
 
-            <!-- Input area -->
-            <RadzenRow>
-                <RadzenColumn Width="10">
-                    <RadzenTextBox @bind-Value="@command" Placeholder="Type command" Style="width: 100%;" @onkeydown="HandleKeyDown" @onfocus="() => OnCommandLineGotFocus.InvokeAsync()" @onfocusout="() => OnCommandLineLostFocus.InvokeAsync()" />
-                </RadzenColumn>
-                <RadzenColumn Width="2">
-                    <RadzenButton Text="Send" Click="SendCommand" Style="width: 100%;" />
-                </RadzenColumn>
-            </RadzenRow>
+            @if (!HideCommandLine)
+            {
+                <!-- Input area -->
+                <RadzenRow>
+                    <RadzenColumn Width="10">
+                        <RadzenTextBox @bind-Value="@command" Placeholder="Type command" Style="width: 100%;" @onkeydown="HandleKeyDown" @onfocus="() => OnCommandLineGotFocus.InvokeAsync()" @onfocusout="() => OnCommandLineLostFocus.InvokeAsync()" />
+                    </RadzenColumn>
+                    <RadzenColumn Width="2">
+                        <RadzenButton Text="Send" Click="SendCommand" Style="width: 100%;" />
+                    </RadzenColumn>
+                </RadzenRow>
+            }
         </RadzenColumn>
     </RadzenRow>
 </div>
@@ -57,6 +60,7 @@
     [Parameter] public EventCallback<string> OnCommandLineLostFocus { get; set; }
     [Parameter] public EventCallback<string> OnNewLineReceived { get; set; }
     [Parameter] public List<string> Output { get; set; } = new List<string>();
+    [Parameter] public bool HideCommandLine { get; set; } = false;
 
     public int MinHeight { get; set; } = 500;
     public int MaxHeight { get; set; } = 500;
