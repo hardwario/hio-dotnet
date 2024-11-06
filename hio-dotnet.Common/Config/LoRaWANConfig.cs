@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace hio_dotnet.Common.Config
 {
@@ -155,6 +156,11 @@ namespace hio_dotnet.Common.Config
             }
             else if (line.Contains("antenna "))
             {
+                if (line.Contains("int") && !line.Contains("internal"))
+                    line = line.Replace("int", "internal");
+                if (line.Contains("ext") && !line.Contains("external"))
+                    line = line.Replace("ext", "external");
+
                 Antenna = GetEnumParameter<AntennaType>(line) ?? AntennaType.Internal;
             }
             else if (line.Contains("band "))
@@ -179,7 +185,7 @@ namespace hio_dotnet.Common.Config
             }
             else if (line.Contains("deveui "))
             {
-                DevAddr = GetStringParameter(line) ?? "0000000000000000";
+                DevEui = GetStringParameter(line) ?? "0000000000000000";
             }
             else if (line.Contains("joineui "))
             {
@@ -270,6 +276,14 @@ namespace hio_dotnet.Common.Config
                 else if (Equals(propertyName, nameof(AppKey))) tag = "appkey";
                 else if (Equals(propertyName, nameof(NwkSKey))) tag = "nwkskey";
                 else if (Equals(propertyName, nameof(AppSKey))) tag = "appskey";
+            }
+
+            if (tag == "antenna")
+            {
+                if (paramValue.Contains("internal"))
+                    paramValue = "int";
+                if (paramValue.Contains("external"))
+                    paramValue = "ext";
             }
 
             // Vrací finální konfigurační řádek ve formátu "lrw {tag} {paramValue}"

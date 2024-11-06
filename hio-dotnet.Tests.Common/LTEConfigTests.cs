@@ -27,6 +27,23 @@ namespace hio_dotnet.Tests.Common
             config.ParseLine("lte config antenna external");
 
             Assert.Equal(AntennaType.External, config.Antenna);
+
+            config = new LTEConfig();
+            config.ParseLine("lte config antenna ext");
+
+            Assert.Equal(AntennaType.External, config.Antenna);
+
+            config = new LTEConfig();
+            config.Antenna = AntennaType.External;
+            config.ParseLine("lte config antenna internal");
+
+            Assert.Equal(AntennaType.External, config.Antenna);
+
+            config = new LTEConfig();
+            config.Antenna = AntennaType.External;
+            config.ParseLine("lte config antenna int");
+
+            Assert.Equal(AntennaType.External, config.Antenna);
         }
 
         [Fact]
@@ -101,7 +118,7 @@ namespace hio_dotnet.Tests.Common
                                  "lte config clksync false" + Environment.NewLine +
                                  "lte config plmnid 0" + Environment.NewLine +
                                  "lte config port 0" + Environment.NewLine +
-                                 "lte config antenna internal" + Environment.NewLine +
+                                 "lte config antenna int" + Environment.NewLine +
                                  "lte config auth none" + Environment.NewLine +
                                  "lte config apn default_apn" + Environment.NewLine +
                                  "lte config username " + Environment.NewLine +
@@ -167,7 +184,7 @@ namespace hio_dotnet.Tests.Common
                                  "lte config clksync true" + Environment.NewLine +
                                  "lte config plmnid 23003" + Environment.NewLine +
                                  "lte config port 8080" + Environment.NewLine +
-                                 "lte config antenna external" + Environment.NewLine +
+                                 "lte config antenna ext" + Environment.NewLine +
                                  "lte config auth pap" + Environment.NewLine +
                                  "lte config apn testapn" + Environment.NewLine +
                                  "lte config username user" + Environment.NewLine +

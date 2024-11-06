@@ -129,6 +129,11 @@ namespace hio_dotnet.Common.Config
             }
             else if (line.Contains("antenna "))
             {
+                if (line.Contains("int") && !line.Contains("internal"))
+                    line = line.Replace("int", "internal");
+                if (line.Contains("ext") && !line.Contains("external"))
+                    line = line.Replace("ext", "external");
+
                 Antenna = GetEnumParameter<AntennaType>(line) ?? AntennaType.Internal;
             }
             else if (line.Contains("nb-iot-mode "))
@@ -242,6 +247,14 @@ namespace hio_dotnet.Common.Config
                 else if (Equals(propertyName, nameof(Username))) tag = "username";
                 else if (Equals(propertyName, nameof(Password))) tag = "password";
                 else if (Equals(propertyName, nameof(Address))) tag = "addr";
+            }
+
+            if (tag == "antenna")
+            {
+                if (paramValue.Contains("internal"))
+                    paramValue = "int";
+                if (paramValue.Contains("external"))
+                    paramValue = "ext";
             }
 
             return $"lte config {tag} {paramValue}";

@@ -25,6 +25,32 @@ namespace hio_dotnet.Tests.Common
         }
 
         [Fact]
+        public void ParseLine_ShouldParseValidEnumAntennaConfig()
+        {
+            var config = new LoRaWANConfig();
+            config.ParseLine("lrw config antenna external");
+
+            Assert.Equal(AntennaType.External, config.Antenna);
+
+            config = new LoRaWANConfig();
+            config.ParseLine("lrw config antenna ext");
+
+            Assert.Equal(AntennaType.External, config.Antenna);
+
+            config = new LoRaWANConfig();
+            config.Antenna = AntennaType.External;
+            config.ParseLine("lrw config antenna internal");
+
+            Assert.Equal(AntennaType.Internal, config.Antenna);
+
+            config = new LoRaWANConfig();
+            config.Antenna = AntennaType.External;
+            config.ParseLine("lrw config antenna int");
+
+            Assert.Equal(AntennaType.Internal, config.Antenna);
+        }
+
+        [Fact]
         public void ParseLine_ShouldParseValidStringDevAddrConfig()
         {
             var config = new LoRaWANConfig();
@@ -107,7 +133,7 @@ namespace hio_dotnet.Tests.Common
                                  "lrw config appkey 00000000000000000000000000000000" + Environment.NewLine +
                                  "lrw config appskey 00000000000000000000000000000000" + Environment.NewLine +
                                  "lrw config nwkskey 00000000000000000000000000000000" + Environment.NewLine +
-                                 "lrw config antenna internal" + Environment.NewLine +
+                                 "lrw config antenna int" + Environment.NewLine +
                                  "lrw config band eu868" + Environment.NewLine +
                                  "lrw config mode otaa" + Environment.NewLine +
                                  "lrw config nwk private" + Environment.NewLine +
@@ -146,7 +172,7 @@ namespace hio_dotnet.Tests.Common
                                  "lrw config appkey 2222222222" + Environment.NewLine +
                                  "lrw config appskey 3333333333" + Environment.NewLine +
                                  "lrw config nwkskey 4444444444" + Environment.NewLine +
-                                 "lrw config antenna external" + Environment.NewLine +
+                                 "lrw config antenna ext" + Environment.NewLine +
                                  "lrw config band us915" + Environment.NewLine +
                                  "lrw config mode abp" + Environment.NewLine +
                                  "lrw config nwk public" + Environment.NewLine +
