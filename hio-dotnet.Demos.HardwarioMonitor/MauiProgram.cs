@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using hio_dotnet.Demos.HardwarioMonitor.Services;
+using Microsoft.Extensions.Logging;
+using Radzen;
 
 namespace hio_dotnet.Demos.HardwarioMonitor
 {
@@ -15,9 +17,11 @@ namespace hio_dotnet.Demos.HardwarioMonitor
                 });
 
             builder.Services.AddMauiBlazorWebView();
+            builder.Services.AddRadzenComponents();
+            builder.Services.AddScoped<ConsoleService>();
 
 #if DEBUG
-    		builder.Services.AddBlazorWebViewDeveloperTools();
+            builder.Services.AddBlazorWebViewDeveloperTools();
     		builder.Logging.AddDebug();
 #endif
 

@@ -38,12 +38,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="JLink\Driver\JLinkARM.dll">
+    <Content Include="JLink\Driver\JLinkARM.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="JLink\Driver\JLink_x64.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
+    </Content>
+    <Content Include="JLink\Driver\JLink_x64.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

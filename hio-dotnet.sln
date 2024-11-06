@@ -43,6 +43,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.UI.BlazorCompone
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.Demos.BlazorComponents.Radzen.WASM", "hio-dotnet.Demos.BlazorComponents.Radzen.WASM\hio-dotnet.Demos.BlazorComponents.Radzen.WASM.csproj", "{395ACA60-AD81-4F2E-B4EB-74440EE10ABD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.Demos.HardwarioMonitor", "hio-dotnet.Demos.HardwarioMonitor\hio-dotnet.Demos.HardwarioMonitor.csproj", "{576AF76C-8F76-42E4-89B5-6FF16FAD3D70}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -167,6 +169,18 @@ Global
 		{395ACA60-AD81-4F2E-B4EB-74440EE10ABD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{395ACA60-AD81-4F2E-B4EB-74440EE10ABD}.Release|x64.ActiveCfg = Release|Any CPU
 		{395ACA60-AD81-4F2E-B4EB-74440EE10ABD}.Release|x64.Build.0 = Release|Any CPU
+		{576AF76C-8F76-42E4-89B5-6FF16FAD3D70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{576AF76C-8F76-42E4-89B5-6FF16FAD3D70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{576AF76C-8F76-42E4-89B5-6FF16FAD3D70}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{576AF76C-8F76-42E4-89B5-6FF16FAD3D70}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{576AF76C-8F76-42E4-89B5-6FF16FAD3D70}.Debug|x64.Build.0 = Debug|Any CPU
+		{576AF76C-8F76-42E4-89B5-6FF16FAD3D70}.Debug|x64.Deploy.0 = Debug|Any CPU
+		{576AF76C-8F76-42E4-89B5-6FF16FAD3D70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{576AF76C-8F76-42E4-89B5-6FF16FAD3D70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{576AF76C-8F76-42E4-89B5-6FF16FAD3D70}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{576AF76C-8F76-42E4-89B5-6FF16FAD3D70}.Release|x64.ActiveCfg = Release|Any CPU
+		{576AF76C-8F76-42E4-89B5-6FF16FAD3D70}.Release|x64.Build.0 = Release|Any CPU
+		{576AF76C-8F76-42E4-89B5-6FF16FAD3D70}.Release|x64.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -188,6 +202,7 @@ Global
 		{BF55255E-8B24-42C7-A7AB-FCA333856FDE} = {C69E4820-C35D-4BAF-94C8-52F738A12EBE}
 		{189AB1EA-045C-4BFC-B691-541B3F3BA7BF} = {2CA42D8C-9B79-4C9B-8589-AC93EE09A5E2}
 		{395ACA60-AD81-4F2E-B4EB-74440EE10ABD} = {C69E4820-C35D-4BAF-94C8-52F738A12EBE}
+		{576AF76C-8F76-42E4-89B5-6FF16FAD3D70} = {C69E4820-C35D-4BAF-94C8-52F738A12EBE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E1FFF9B6-96C5-48A0-98CB-F203A8890083}
