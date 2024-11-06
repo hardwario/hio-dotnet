@@ -8,6 +8,14 @@
 <RadzenTemplateForm TItem="LoRaWANConfig" Data="@Config">
     <RadzenFieldset Text="LoRaWAN Settings">
 
+        <RadzenFieldset Text="Network">
+            <RadzenRadioButtonList @bind-Value=@Config.Network TValue="LoRaWANNetwork">
+                <Items>
+                    <RadzenRadioButtonListItem Text="Private" Value="LoRaWANNetwork.Private" />
+                    <RadzenRadioButtonListItem Text="Public" Value="LoRaWANNetwork.Public" />
+                </Items>
+            </RadzenRadioButtonList>
+        </RadzenFieldset>
         <RadzenFieldset Text="Band">
             <RadzenRadioButtonList @bind-Value=@Config.Band TValue="LoRaWANBand">
                 <Items>
@@ -21,7 +29,6 @@
             <RadzenRadioButtonList @bind-Value=@Config.Class TValue="LoRaWANClass">
                 <Items>
                     <RadzenRadioButtonListItem Text="A" Value="LoRaWANClass.A" />
-                    <RadzenRadioButtonListItem Text="B" Value="LoRaWANClass.B" />
                     <RadzenRadioButtonListItem Text="C" Value="LoRaWANClass.C" />
                 </Items>
             </RadzenRadioButtonList>
@@ -88,6 +95,12 @@
     public LoRaWANConfig GetConfig()
     {
         return Config;
+    }
+
+    public async Task ParseLine(string line)
+    {
+        Config.ParseLine(line);
+        await InvokeAsync(StateHasChanged);
     }
 
     public bool ValidateDevAddr()
