@@ -8,6 +8,7 @@ using hio_dotnet.Common.Models;
 using hio_dotnet.Common.Models.CatalogApps;
 using hio_dotnet.Common.Models.CatalogApps.Counter;
 using hio_dotnet.Common.Models.CatalogApps.Push;
+using hio_dotnet.Common.Models.CatalogApps.Radon;
 using hio_dotnet.Common.Models.DataSimulation;
 using hio_dotnet.HWDrivers.Enums;
 using hio_dotnet.HWDrivers.JLink;
@@ -21,7 +22,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 
 var JLINK_TEST = false;
-var JLINK_COMBINED_CONSOLE_TEST = true;
+var JLINK_COMBINED_CONSOLE_TEST = false;
 var PPK2_TEST = false;
 var CHIRPSTACK_TEST = false;
 var THINGSBOARD_TEST = false;
@@ -29,6 +30,7 @@ var HIOCLOUDV2_TEST = false;
 var HIOCLOUDV2_TEST_DOWNLINK = false;
 var HIOCLOUDV2_TEST_ADD_DEVICE_WITH_CONNECTOR = false;
 var HIO_WMBUSMETER_TEST = false;
+var HIO_SIMULATOR_HANDLER_TEST = true;
 
 #if WINDOWS
 Console.WriteLine("Running on Windows");
@@ -958,6 +960,36 @@ if (HIO_WMBUSMETER_TEST)
     Console.WriteLine("Press enter to quit...");
     Console.ReadLine();
 }
+#endregion
+
+#region HIOSimulatorHandlerExample
+
+if (HIO_SIMULATOR_HANDLER_TEST)
+{
+    var simulator = new StandardContinuousSimulator<ChesterRadonCloudMessage>()
+                            .WithName("RadonSimulator")
+                            .WithInterval(1000);
+
+    simulator.OnDataGenerated += (sender, args) =>
+    {
+        Console.WriteLine("______________________________________________________________________");
+        Console.WriteLine($"Simulator Name: {args.SimulatorName}, Message Id: {args.MessageId}, Timestamp: {args.Timestamp}");
+        Console.WriteLine($"\n\tMessage\n\t: {args.Message}\n\n");
+        Console.WriteLine("______________________________________________________________________");
+    };
+    
+    var simTask = simulator.Start();
+    // Quit when key is pressed
+    Console.WriteLine("\nPress any key to stop simulation...\n");
+    Console.ReadKey();
+    simulator.Stop();
+
+    await Task.WhenAny(new Task[] { simTask });
+
+    Console.WriteLine("Press enter to quit...");
+    Console.ReadLine();
+}
+
 #endregion
 
 Console.WriteLine("Program ends. Goodbye");

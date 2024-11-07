@@ -14,5 +14,10 @@ namespace hio_dotnet.Common.Models.CatalogApps.Dust
         [SimulationAttribute(false)]
         [JsonPropertyName("sps30")]
         public DustSensorData DustSensor { get; set; } = new DustSensorData();
+
+        [SimulationMeasurementAttribute(false, 25, 35, true, false, 0, 2)]
+        [JsonPropertyName("w1_thermometers")]
+        public List<W1_Thermometer> W1Thermometers { get; set; } = new List<W1_Thermometer>();
+
     }
 }
