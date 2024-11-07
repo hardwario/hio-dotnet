@@ -1,6 +1,7 @@
 ﻿using hio_dotnet.Common.Models.CatalogApps.Clime;
 using hio_dotnet.Common.Models.CatalogApps.ClimeIAQ;
 using hio_dotnet.Common.Models.CatalogApps.Current;
+using hio_dotnet.Common.Models.CatalogApps.Dust;
 using hio_dotnet.Common.Models.CatalogApps.Input;
 using hio_dotnet.Common.Models.CatalogApps.Meteo;
 using hio_dotnet.Common.Models.CatalogApps.Push;
@@ -61,6 +62,11 @@ namespace hio_dotnet.Common.Models.CatalogApps
                      message.Contains("wmbus"))
             {
                 return typeof(ChesterWMBusCloudMessage);
+            }
+            else if (message.Contains("CHESTER Dust") ||
+                     message.Contains("sps30"))
+            {
+                return typeof(ChesterDustCloudMessage);
             }
 
             return typeof(ChesterCommonCloudMessage);
