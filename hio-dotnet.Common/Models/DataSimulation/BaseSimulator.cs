@@ -504,64 +504,66 @@ namespace hio_dotnet.Common.Models.DataSimulation
             var list = (List<Measurement>)property.GetValue(obj);
             if (list != null)
             {
-                var listitem = new Measurement();
-                Measurement? previousMeasurementObj = null;
-
-                // if previousObj is not null check the existence of the List<Measurement> and if it has any item take it as previousMeasurementObj
-                if (previousObj != null)
+                for (int i = 0; i < simulationMeasurementAttr.NumberOfInsideItems; i++)
                 {
-                    var previousList = (List<Measurement>)property.GetValue(previousObj);
-                    if (previousList != null && previousList.Count > 0)
+                    var listitem = new Measurement();
+                    Measurement? previousMeasurementObj = null;
+
+                    // if previousObj is not null check the existence of the List<Measurement> and if it has any item take it as previousMeasurementObj
+                    if (previousObj != null)
                     {
-                        previousMeasurementObj = previousList[0];
+                        var previousList = (List<Measurement>)property.GetValue(previousObj);
+                        if (previousList != null && previousList.Count >= simulationMeasurementAttr.NumberOfInsideItems)
+                        {
+                            previousMeasurementObj = previousList[i];
+                        }
                     }
+
+                    var propertiesMeasurement = typeof(Measurement).GetProperties();
+
+                    var avgProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Avg");
+                    var mdnProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Mdn");
+                    var minProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Min");
+                    var maxProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Max");
+
+                    var avgPropAttr = avgProp?.GetCustomAttribute<SimulationAttribute>();
+                    if (avgPropAttr != null)
+                    {
+                        avgPropAttr.MinValue = simulationMeasurementAttr.MinValue;
+                        avgPropAttr.MaxValue = simulationMeasurementAttr.MaxValue;
+                        avgPropAttr.NeedsFollowPrevious = simulationMeasurementAttr.NeedsFollowPrevious;
+                        avgPropAttr.ShouldRaise = simulationMeasurementAttr.ShouldRaise;
+                        avgPropAttr.MaximumChange = simulationMeasurementAttr.MaximumChange;
+                        FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj);
+                    }
+
+                    var random = new Random();
+                    //now calculate the min and max values with some random spread out of the avg value min to minus value and max to plus value
+                    var randomSpread = listitem.Avg * random.NextDouble() * 0.1;
+                    listitem.Mdn = listitem.Avg - randomSpread;
+                    listitem.Min = listitem.Avg - (randomSpread * 2);
+                    listitem.Max = listitem.Avg + (randomSpread * 2);
+
+                    if (listitem.Max > simulationMeasurementAttr.MaxValue)
+                    {
+                        listitem.Max = simulationMeasurementAttr.MaxValue;
+                    }
+                    if (listitem.Min < simulationMeasurementAttr.MinValue)
+                    {
+                        listitem.Min = simulationMeasurementAttr.MinValue;
+                    }
+
+                    if (listitem.Mdn > simulationMeasurementAttr.MaxValue)
+                    {
+                        listitem.Mdn = simulationMeasurementAttr.MaxValue;
+                    }
+                    if (listitem.Mdn < simulationMeasurementAttr.MinValue)
+                    {
+                        listitem.Mdn = simulationMeasurementAttr.MinValue;
+                    }
+
+                    list.Add(listitem);
                 }
-
-                var propertiesMeasurement = typeof(Measurement).GetProperties();
-
-                var avgProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Avg");
-                var mdnProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Mdn");
-                var minProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Min");
-                var maxProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Max");
-
-                var avgPropAttr = avgProp?.GetCustomAttribute<SimulationAttribute>();
-                if (avgPropAttr != null)
-                {
-                    avgPropAttr.MinValue = simulationMeasurementAttr.MinValue;
-                    avgPropAttr.MaxValue = simulationMeasurementAttr.MaxValue;
-                    avgPropAttr.NeedsFollowPrevious = simulationMeasurementAttr.NeedsFollowPrevious;
-                    avgPropAttr.ShouldRaise = simulationMeasurementAttr.ShouldRaise;
-                    avgPropAttr.MaximumChange = simulationMeasurementAttr.MaximumChange;
-                    FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj);
-                }
-
-                var random = new Random();
-                //now calculate the min and max values with some random spread out of the avg value min to minus value and max to plus value
-                var randomSpread = listitem.Avg * random.NextDouble() * 0.1;
-                listitem.Mdn = listitem.Avg - randomSpread;
-                listitem.Min = listitem.Avg - (randomSpread * 2);
-                listitem.Max = listitem.Avg + (randomSpread * 2);
-
-                if (listitem.Max > simulationMeasurementAttr.MaxValue)
-                {
-                    listitem.Max = simulationMeasurementAttr.MaxValue;
-                }
-                if (listitem.Min < simulationMeasurementAttr.MinValue)
-                {
-                    listitem.Min = simulationMeasurementAttr.MinValue;
-                }
-
-                if (listitem.Mdn > simulationMeasurementAttr.MaxValue)
-                {
-                    listitem.Mdn = simulationMeasurementAttr.MaxValue;
-                }
-                if (listitem.Mdn < simulationMeasurementAttr.MinValue)
-                {
-                    listitem.Mdn = simulationMeasurementAttr.MinValue;
-                }
-
-                list.Add(listitem);
-
             }
         }
 
@@ -574,75 +576,77 @@ namespace hio_dotnet.Common.Models.DataSimulation
             var list = (List<MeanRMSMeasurement>)property.GetValue(obj);
             if (list != null)
             {
-                var listitem = new MeanRMSMeasurement();
-                MeanRMSMeasurement? previousMeasurementObj = null;
-
-                // if previousObj is not null check the existence of the List<Measurement> and if it has any item take it as previousMeasurementObj
-                if (previousObj != null)
+                for (int i = 0; i < simulationMeasurementAttr.NumberOfInsideItems; i++)
                 {
-                    var previousList = (List<MeanRMSMeasurement>)property.GetValue(previousObj);
-                    if (previousList != null && previousList.Count > 0)
+                    var listitem = new MeanRMSMeasurement();
+                    MeanRMSMeasurement? previousMeasurementObj = null;
+
+                    // if previousObj is not null check the existence of the List<Measurement> and if it has any item take it as previousMeasurementObj
+                    if (previousObj != null)
                     {
-                        previousMeasurementObj = previousList[0];
+                        var previousList = (List<MeanRMSMeasurement>)property.GetValue(previousObj);
+                        if (previousList != null && previousList.Count >= simulationMeasurementAttr.NumberOfInsideItems)
+                        {
+                            previousMeasurementObj = previousList[i];
+                        }
                     }
+
+                    var propertiesMeasurement = typeof(MeanRMSMeasurement).GetProperties();
+
+                    var avgProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "MeanAvg");
+                    var mdnProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "MeanMdn");
+                    var minProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "MeanMin");
+                    var maxProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "MeanMax");
+
+                    var avgPropAttr = avgProp?.GetCustomAttribute<SimulationAttribute>();
+                    if (avgPropAttr != null)
+                    {
+                        avgPropAttr.MinValue = simulationMeasurementAttr.MinValue;
+                        avgPropAttr.MaxValue = simulationMeasurementAttr.MaxValue;
+                        avgPropAttr.NeedsFollowPrevious = simulationMeasurementAttr.NeedsFollowPrevious;
+                        avgPropAttr.ShouldRaise = simulationMeasurementAttr.ShouldRaise;
+                        avgPropAttr.MaximumChange = simulationMeasurementAttr.MaximumChange;
+                        FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj);
+                    }
+
+                    var random = new Random();
+                    //now calculate the min and max values with some random spread out of the avg value min to minus value and max to plus value
+                    var randomSpread = listitem.MeanAvg * random.NextDouble() * 0.1;
+                    listitem.MeanMdn = listitem.MeanAvg - randomSpread;
+                    listitem.MeanMin = listitem.MeanAvg - (randomSpread * 2);
+                    listitem.MeanMax = listitem.MeanAvg + (randomSpread * 2);
+
+                    if (listitem.MeanMax > simulationMeasurementAttr.MaxValue)
+                    {
+                        listitem.MeanMax = simulationMeasurementAttr.MaxValue;
+                    }
+                    if (listitem.MeanMin < simulationMeasurementAttr.MinValue)
+                    {
+                        listitem.MeanMin = simulationMeasurementAttr.MinValue;
+                    }
+
+                    if (listitem.MeanMdn > simulationMeasurementAttr.MaxValue)
+                    {
+                        listitem.MeanMdn = simulationMeasurementAttr.MaxValue;
+                    }
+                    if (listitem.MeanMdn < simulationMeasurementAttr.MinValue)
+                    {
+                        listitem.MeanMdn = simulationMeasurementAttr.MinValue;
+                    }
+
+                    listitem.RmsAvg = listitem.MeanAvg * 2;
+                    var randomSpreadRMS = listitem.RmsAvg * random.NextDouble() * 0.1;
+                    listitem.RmsMdn = listitem.RmsAvg - randomSpreadRMS;
+                    listitem.RmsMin = listitem.RmsAvg - (randomSpreadRMS * 2);
+                    listitem.RmsMax = listitem.RmsAvg + (randomSpreadRMS * 2);
+
+                    listitem.RmsMax = listitem.RmsMax > (simulationMeasurementAttr.MaxValue * 2) ? simulationMeasurementAttr.MaxValue * 2 : listitem.RmsMax;
+                    listitem.RmsMin = listitem.RmsMin < (simulationMeasurementAttr.MinValue * 2) ? simulationMeasurementAttr.MinValue * 2 : listitem.RmsMin;
+                    listitem.RmsMdn = listitem.RmsMdn > (simulationMeasurementAttr.MaxValue * 2) ? simulationMeasurementAttr.MaxValue * 2 : listitem.RmsMdn;
+                    listitem.RmsMdn = listitem.RmsMdn < (simulationMeasurementAttr.MinValue * 2) ? simulationMeasurementAttr.MinValue * 2 : listitem.RmsMdn;
+
+                    list.Add(listitem);
                 }
-
-                var propertiesMeasurement = typeof(MeanRMSMeasurement).GetProperties();
-
-                var avgProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "MeanAvg");
-                var mdnProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "MeanMdn");
-                var minProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "MeanMin");
-                var maxProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "MeanMax");
-
-                var avgPropAttr = avgProp?.GetCustomAttribute<SimulationAttribute>();
-                if (avgPropAttr != null)
-                {
-                    avgPropAttr.MinValue = simulationMeasurementAttr.MinValue;
-                    avgPropAttr.MaxValue = simulationMeasurementAttr.MaxValue;
-                    avgPropAttr.NeedsFollowPrevious = simulationMeasurementAttr.NeedsFollowPrevious;
-                    avgPropAttr.ShouldRaise = simulationMeasurementAttr.ShouldRaise;
-                    avgPropAttr.MaximumChange = simulationMeasurementAttr.MaximumChange;
-                    FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj);
-                }
-
-                var random = new Random();
-                //now calculate the min and max values with some random spread out of the avg value min to minus value and max to plus value
-                var randomSpread = listitem.MeanAvg * random.NextDouble() * 0.1;
-                listitem.MeanMdn = listitem.MeanAvg - randomSpread;
-                listitem.MeanMin = listitem.MeanAvg - (randomSpread * 2);
-                listitem.MeanMax = listitem.MeanAvg + (randomSpread * 2);
-
-                if (listitem.MeanMax > simulationMeasurementAttr.MaxValue)
-                {
-                    listitem.MeanMax = simulationMeasurementAttr.MaxValue;
-                }
-                if (listitem.MeanMin < simulationMeasurementAttr.MinValue)
-                {
-                    listitem.MeanMin = simulationMeasurementAttr.MinValue;
-                }
-
-                if (listitem.MeanMdn > simulationMeasurementAttr.MaxValue)
-                {
-                    listitem.MeanMdn = simulationMeasurementAttr.MaxValue;
-                }
-                if (listitem.MeanMdn < simulationMeasurementAttr.MinValue)
-                {
-                    listitem.MeanMdn = simulationMeasurementAttr.MinValue;
-                }
-
-                listitem.RmsAvg = listitem.MeanAvg * 2;
-                var randomSpreadRMS = listitem.RmsAvg * random.NextDouble() * 0.1;
-                listitem.RmsMdn = listitem.RmsAvg - randomSpreadRMS;
-                listitem.RmsMin = listitem.RmsAvg - (randomSpreadRMS * 2);
-                listitem.RmsMax = listitem.RmsAvg + (randomSpreadRMS * 2);
-
-                listitem.RmsMax = listitem.RmsMax > (simulationMeasurementAttr.MaxValue * 2) ? simulationMeasurementAttr.MaxValue * 2 : listitem.RmsMax;
-                listitem.RmsMin = listitem.RmsMin < (simulationMeasurementAttr.MinValue * 2) ? simulationMeasurementAttr.MinValue * 2 : listitem.RmsMin;
-                listitem.RmsMdn = listitem.RmsMdn > (simulationMeasurementAttr.MaxValue * 2) ? simulationMeasurementAttr.MaxValue * 2 : listitem.RmsMdn;
-                listitem.RmsMdn = listitem.RmsMdn < (simulationMeasurementAttr.MinValue * 2) ? simulationMeasurementAttr.MinValue * 2 : listitem.RmsMdn;
-                
-                list.Add(listitem);
-
             }
         }
 
@@ -655,36 +659,38 @@ namespace hio_dotnet.Common.Models.DataSimulation
             var list = (List<SimpleTimeDoubleMeasurement>)property.GetValue(obj);
             if (list != null)
             {
-                var listitem = new SimpleTimeDoubleMeasurement();
-                SimpleTimeDoubleMeasurement? previousMeasurementObj = null;
-
-                // if previousObj is not null check the existence of the List<Measurement> and if it has any item take it as previousMeasurementObj
-                if (previousObj != null)
+                for (int i = 0; i < simulationMeasurementAttr.NumberOfInsideItems; i++)
                 {
-                    var previousList = (List<SimpleTimeDoubleMeasurement>)property.GetValue(previousObj);
-                    if (previousList != null && previousList.Count > 0)
+                    var listitem = new SimpleTimeDoubleMeasurement();
+                    SimpleTimeDoubleMeasurement? previousMeasurementObj = null;
+
+                    // if previousObj is not null check the existence of the List<Measurement> and if it has any item take it as previousMeasurementObj
+                    if (previousObj != null)
                     {
-                        previousMeasurementObj = previousList[0];
+                        var previousList = (List<SimpleTimeDoubleMeasurement>)property.GetValue(previousObj);
+                        if (previousList != null && previousList.Count >= simulationMeasurementAttr.NumberOfInsideItems)
+                        {
+                            previousMeasurementObj = previousList[i];
+                        }
                     }
+
+                    var propertiesMeasurement = typeof(SimpleTimeDoubleMeasurement).GetProperties();
+
+                    var avgProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Value");
+
+                    var avgPropAttr = avgProp?.GetCustomAttribute<SimulationAttribute>();
+                    if (avgPropAttr != null)
+                    {
+                        avgPropAttr.MinValue = simulationMeasurementAttr.MinValue;
+                        avgPropAttr.MaxValue = simulationMeasurementAttr.MaxValue;
+                        avgPropAttr.NeedsFollowPrevious = simulationMeasurementAttr.NeedsFollowPrevious;
+                        avgPropAttr.ShouldRaise = simulationMeasurementAttr.ShouldRaise;
+                        avgPropAttr.MaximumChange = simulationMeasurementAttr.MaximumChange;
+                        FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj);
+                    }
+
+                    list.Add(listitem);
                 }
-
-                var propertiesMeasurement = typeof(SimpleTimeDoubleMeasurement).GetProperties();
-
-                var avgProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Value");
-
-                var avgPropAttr = avgProp?.GetCustomAttribute<SimulationAttribute>();
-                if (avgPropAttr != null)
-                {
-                    avgPropAttr.MinValue = simulationMeasurementAttr.MinValue;
-                    avgPropAttr.MaxValue = simulationMeasurementAttr.MaxValue;
-                    avgPropAttr.NeedsFollowPrevious = simulationMeasurementAttr.NeedsFollowPrevious;
-                    avgPropAttr.ShouldRaise = simulationMeasurementAttr.ShouldRaise;
-                    avgPropAttr.MaximumChange = simulationMeasurementAttr.MaximumChange;
-                    FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj);
-                }
-
-                list.Add(listitem);
-
             }
         }
 
@@ -697,36 +703,38 @@ namespace hio_dotnet.Common.Models.DataSimulation
             var list = (List<SimpleTimeIntMeasurement>)property.GetValue(obj);
             if (list != null)
             {
-                var listitem = new SimpleTimeIntMeasurement();
-                SimpleTimeIntMeasurement? previousMeasurementObj = null;
-
-                // if previousObj is not null check the existence of the List<Measurement> and if it has any item take it as previousMeasurementObj
-                if (previousObj != null)
+                for (int i = 0; i < simulationMeasurementAttr.NumberOfInsideItems; i++)
                 {
-                    var previousList = (List<SimpleTimeIntMeasurement>)property.GetValue(previousObj);
-                    if (previousList != null && previousList.Count > 0)
+                    var listitem = new SimpleTimeIntMeasurement();
+                    SimpleTimeIntMeasurement? previousMeasurementObj = null;
+
+                    // if previousObj is not null check the existence of the List<Measurement> and if it has any item take it as previousMeasurementObj
+                    if (previousObj != null)
                     {
-                        previousMeasurementObj = previousList[0];
+                        var previousList = (List<SimpleTimeIntMeasurement>)property.GetValue(previousObj);
+                        if (previousList != null && previousList.Count >= simulationMeasurementAttr.NumberOfInsideItems)
+                        {
+                            previousMeasurementObj = previousList[i];
+                        }
                     }
+
+                    var propertiesMeasurement = typeof(SimpleTimeIntMeasurement).GetProperties();
+
+                    var avgProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Value");
+
+                    var avgPropAttr = avgProp?.GetCustomAttribute<SimulationAttribute>();
+                    if (avgPropAttr != null)
+                    {
+                        avgPropAttr.MinValue = simulationMeasurementAttr.MinValue;
+                        avgPropAttr.MaxValue = simulationMeasurementAttr.MaxValue;
+                        avgPropAttr.NeedsFollowPrevious = simulationMeasurementAttr.NeedsFollowPrevious;
+                        avgPropAttr.ShouldRaise = simulationMeasurementAttr.ShouldRaise;
+                        avgPropAttr.MaximumChange = simulationMeasurementAttr.MaximumChange;
+                        FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj);
+                    }
+
+                    list.Add(listitem);
                 }
-
-                var propertiesMeasurement = typeof(SimpleTimeIntMeasurement).GetProperties();
-
-                var avgProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Value");
-
-                var avgPropAttr = avgProp?.GetCustomAttribute<SimulationAttribute>();
-                if (avgPropAttr != null)
-                {
-                    avgPropAttr.MinValue = simulationMeasurementAttr.MinValue;
-                    avgPropAttr.MaxValue = simulationMeasurementAttr.MaxValue;
-                    avgPropAttr.NeedsFollowPrevious = simulationMeasurementAttr.NeedsFollowPrevious;
-                    avgPropAttr.ShouldRaise = simulationMeasurementAttr.ShouldRaise;
-                    avgPropAttr.MaximumChange = simulationMeasurementAttr.MaximumChange;
-                    FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj);
-                }
-
-                list.Add(listitem);
-
             }
         }
 
