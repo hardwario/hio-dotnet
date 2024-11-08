@@ -54,7 +54,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
         /// Event raised when a new message is generated
         /// </summary>
 
-        public override event EventHandler<ContinuousSimulatorEventArgs<T>> OnDataGenerated;
+        public override event EventHandler<ContinuousSimulatorEventArgs> OnDataGenerated;
 
         private CancellationTokenSource _cancellationTokenSource;
 
@@ -190,11 +190,10 @@ namespace hio_dotnet.Common.Models.DataSimulation
 
                         var msg = JsonSerializer.Serialize(msgobj);
 
-                        OnDataGenerated?.Invoke(this, new ContinuousSimulatorEventArgs<T>()
+                        OnDataGenerated?.Invoke(this, new ContinuousSimulatorEventArgs()
                         {
                             MessageId = msgid,
-                            Message = msgobj as T,
-                            MessageString = msg,
+                            Message = msg,
                             SimulatorId = Id,
                             SimulatorName = Name,
                             Timestamp = timestamp
@@ -204,12 +203,11 @@ namespace hio_dotnet.Common.Models.DataSimulation
                     {
                         Console.WriteLine($"\n\nERROR>>>>>Exception in Simulator: {Name}, ID: {Id}, Exception Message: {ex.Message}\n\n");
                     }
-                    finally
-                    {
-                        _isRunning = false;
-                    }
                 }
-                
+
+                _isRunning = false;
+                _cancellationTokenSource.Dispose(); 
+
             }, cancellationToken);
         }
     }

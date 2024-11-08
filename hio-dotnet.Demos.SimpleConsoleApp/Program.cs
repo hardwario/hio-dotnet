@@ -6,7 +6,9 @@ using hio_dotnet.APIs.ThingsBoard.Models.Dashboards;
 using hio_dotnet.APIs.Wmbusmeters;
 using hio_dotnet.Common.Models;
 using hio_dotnet.Common.Models.CatalogApps;
+using hio_dotnet.Common.Models.CatalogApps.Clime;
 using hio_dotnet.Common.Models.CatalogApps.Counter;
+using hio_dotnet.Common.Models.CatalogApps.Dust;
 using hio_dotnet.Common.Models.CatalogApps.Push;
 using hio_dotnet.Common.Models.CatalogApps.Radon;
 using hio_dotnet.Common.Models.DataSimulation;
@@ -31,6 +33,7 @@ var HIOCLOUDV2_TEST_DOWNLINK = false;
 var HIOCLOUDV2_TEST_ADD_DEVICE_WITH_CONNECTOR = false;
 var HIO_WMBUSMETER_TEST = false;
 var HIO_SIMULATOR_TEST = false;
+var HIO_SIMULATOR_HANDLER_TEST = true;
 
 #if WINDOWS
 Console.WriteLine("Running on Windows");
@@ -974,7 +977,7 @@ if (HIO_SIMULATOR_TEST)
     {
         Console.WriteLine("______________________________________________________________________");
         Console.WriteLine($"Simulator Name: {args.SimulatorName}, Message Id: {args.MessageId}, Timestamp: {args.Timestamp}");
-        Console.WriteLine($"\n\tMessage\n\t: {args.MessageString}\n\n");
+        Console.WriteLine($"\n\tMessage\n\t: {args.Message}\n\n");
         Console.WriteLine("______________________________________________________________________");
     };
     
@@ -985,6 +988,41 @@ if (HIO_SIMULATOR_TEST)
     simulator.Stop();
 
     await Task.WhenAny(new Task[] { simTask });
+
+    Console.WriteLine("Press enter to quit...");
+    Console.ReadLine();
+}
+
+#endregion
+
+#region HIOSimulatorHandlerExample
+
+if (HIO_SIMULATOR_HANDLER_TEST)
+{
+    var simulatorHandler = new SimulatorHandler();
+
+
+    simulatorHandler.OnDataGenerated += (sender, args) =>
+    {
+        Console.WriteLine("______________________________________________________________________");
+        Console.WriteLine($"Simulator Name: {args.SimulatorName}, Message Id: {args.MessageId}, Timestamp: {args.Timestamp}");
+        Console.WriteLine($"\n\tMessage\n\t: {args.Message}\n\n");
+        Console.WriteLine("______________________________________________________________________");
+    };
+
+    var simulatorId1 = simulatorHandler.AddNewSimulator(typeof(ChesterRadonCloudMessage), 5000, "RadonSimulator", "Radon measurement simulation");
+    var simulatorId2 = simulatorHandler.AddNewSimulator(typeof(ChesterClimeCloudMessage), 7000, "ClimeSimulator", "Temperature measurement simulation");
+
+    var keyPressTask = Task.Run(async () =>
+    {
+        Console.WriteLine("\nPress key to stop all simulators...");
+        Console.ReadKey();
+        Console.WriteLine("\nStopping simulators...");
+        await simulatorHandler.StopAllSimulators();
+    });
+
+    // await handler since all simulators are still running
+    await simulatorHandler.MonitorSimulations();
 
     Console.WriteLine("Press enter to quit...");
     Console.ReadLine();
