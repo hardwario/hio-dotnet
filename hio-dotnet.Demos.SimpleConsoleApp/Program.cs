@@ -30,7 +30,7 @@ var HIOCLOUDV2_TEST = false;
 var HIOCLOUDV2_TEST_DOWNLINK = false;
 var HIOCLOUDV2_TEST_ADD_DEVICE_WITH_CONNECTOR = false;
 var HIO_WMBUSMETER_TEST = false;
-var HIO_SIMULATOR_HANDLER_TEST = true;
+var HIO_SIMULATOR_TEST = false;
 
 #if WINDOWS
 Console.WriteLine("Running on Windows");
@@ -962,9 +962,9 @@ if (HIO_WMBUSMETER_TEST)
 }
 #endregion
 
-#region HIOSimulatorHandlerExample
+#region HIOSimulatorExample
 
-if (HIO_SIMULATOR_HANDLER_TEST)
+if (HIO_SIMULATOR_TEST)
 {
     var simulator = new StandardContinuousSimulator<ChesterRadonCloudMessage>()
                             .WithName("RadonSimulator")
@@ -974,7 +974,7 @@ if (HIO_SIMULATOR_HANDLER_TEST)
     {
         Console.WriteLine("______________________________________________________________________");
         Console.WriteLine($"Simulator Name: {args.SimulatorName}, Message Id: {args.MessageId}, Timestamp: {args.Timestamp}");
-        Console.WriteLine($"\n\tMessage\n\t: {args.Message}\n\n");
+        Console.WriteLine($"\n\tMessage\n\t: {args.MessageString}\n\n");
         Console.WriteLine("______________________________________________________________________");
     };
     
