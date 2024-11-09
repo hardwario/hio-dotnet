@@ -47,6 +47,9 @@ namespace hio_dotnet.Common.Models.DataSimulation
 
         event EventHandler<ContinuousSimulatorEventArgs> OnDataGenerated;
 
+        event EventHandler<Guid> OnSimulatorStarted;
+        event EventHandler<Guid> OnSimulatorEnded;
+
         /// <summary>
         /// Load the initial message of the simulator
         /// This can be helpful to renew the simulator message from file or database

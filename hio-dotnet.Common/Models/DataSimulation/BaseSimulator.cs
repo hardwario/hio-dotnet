@@ -764,11 +764,27 @@ namespace hio_dotnet.Common.Models.DataSimulation
                     {
                         minValue = previousDoubleValue;
                         maxValue = previousDoubleValue + maxChange;
+
+                        // in the case that value has already reached the maximum value, set the min value to the maximum value - maxChange
+                        // this will keep the cycle still going in the ramp up style
+                        if (maxValue > simulationAttr.MaxValue)
+                        {
+                            maxValue = simulationAttr.MinValue + maxChange;
+                            minValue = simulationAttr.MinValue;
+                        }
                     }
                     else
                     {
                         minValue = previousDoubleValue - maxChange;
                         maxValue = previousDoubleValue;
+
+                        // in the case that value has already reached the minimum value, set the max value to the minimum value + maxChange
+                        // this will keep the cycle still going in the ramp down style
+                        if (minValue < simulationAttr.MinValue)
+                        {
+                            minValue = simulationAttr.MaxValue - maxChange;
+                            maxValue = simulationAttr.MaxValue;
+                        }
                     }
 
                     minValue = Math.Max(minValue, simulationAttr.MinValue);

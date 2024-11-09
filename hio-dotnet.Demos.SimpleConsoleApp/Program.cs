@@ -1001,17 +1001,43 @@ if (HIO_SIMULATOR_HANDLER_TEST)
 {
     var simulatorHandler = new SimulatorHandler();
 
+    var receivedMessagesCount = 0;
+    var receivedMessagesCountLock = new object();
+    var numOfSimulators = 1000;
+    var receivedMessagesPrintCycle = numOfSimulators * 10;
+    var receivedMessagesPrintCycleCounter = 0;
+    var lastPrintTime = DateTime.Now;
 
     simulatorHandler.OnDataGenerated += (sender, args) =>
     {
+        /*
         Console.WriteLine("______________________________________________________________________");
         Console.WriteLine($"Simulator Name: {args.SimulatorName}, Message Id: {args.MessageId}, Timestamp: {args.Timestamp}");
         Console.WriteLine($"\n\tMessage\n\t: {args.Message}\n\n");
         Console.WriteLine("______________________________________________________________________");
+        */
+        lock(receivedMessagesCountLock)
+        {
+            receivedMessagesPrintCycleCounter++;
+            receivedMessagesCount++;
+            if (receivedMessagesPrintCycleCounter >= receivedMessagesPrintCycle)
+            {
+                Console.WriteLine($"Received Messages Count: {receivedMessagesCount}");
+                Console.WriteLine($"Messages per second: {receivedMessagesPrintCycle / (DateTime.Now - lastPrintTime).TotalSeconds}");
+                lastPrintTime = DateTime.Now;
+                Console.WriteLine($"Number of running simulators: {simulatorHandler.NumberOfRunningSimulators}");
+                receivedMessagesPrintCycleCounter = 0;
+            }
+        }
     };
 
     var simulatorId1 = simulatorHandler.AddNewSimulator(typeof(ChesterRadonCloudMessage), 5000, "RadonSimulator", "Radon measurement simulation");
     var simulatorId2 = simulatorHandler.AddNewSimulator(typeof(ChesterClimeCloudMessage), 7000, "ClimeSimulator", "Temperature measurement simulation");
+
+    for(var i = 0; i < numOfSimulators; i++)
+    {
+        var sim = simulatorHandler.AddNewSimulator(typeof(ChesterRadonCloudMessage), 1000, $"RadonSimulator{i}", $"Radon measurement simulation {i}");
+    }
 
     var keyPressTask = Task.Run(async () =>
     {

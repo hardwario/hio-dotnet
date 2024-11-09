@@ -55,6 +55,8 @@ namespace hio_dotnet.Common.Models.DataSimulation
         /// </summary>
 
         public override event EventHandler<ContinuousSimulatorEventArgs> OnDataGenerated;
+        public override event EventHandler<Guid> OnSimulatorStarted;
+        public override event EventHandler<Guid> OnSimulatorEnded;
 
         private CancellationTokenSource _cancellationTokenSource;
 
@@ -161,6 +163,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
             return Task.Run(async () =>
             {
                 _isRunning = true;
+                OnSimulatorStarted?.Invoke(this, Id);
 
                 while (!cancellationToken.IsCancellationRequested)
                 {
@@ -188,6 +191,21 @@ namespace hio_dotnet.Common.Models.DataSimulation
                         if (_messages.TryGetValue(msgid, out var msgstored))
                             LastMessage = msgstored;
 
+                        // if the _messages count is greater than 15, remove 5 oldest messages
+                        // this will decrease load to CPU because it will not happen in each cycle
+                        if (_messages.Count > 15)
+                        {
+                            var oldestMessages = _messages.OrderBy(x => x.Value.Timestamp)
+                                                          .Take(5)
+                                                          .Select(x => x.Key)
+                                                          .ToList();
+
+                            foreach (var key in oldestMessages)
+                            {
+                                _messages.TryRemove(key, out var _);
+                            }
+                        }
+
                         var msg = JsonSerializer.Serialize(msgobj);
 
                         OnDataGenerated?.Invoke(this, new ContinuousSimulatorEventArgs()
@@ -199,13 +217,15 @@ namespace hio_dotnet.Common.Models.DataSimulation
                             Timestamp = timestamp
                         });
                     }
-                    catch (Exception ex)
+                    catch(Exception ex)
                     {
                         Console.WriteLine($"\n\nERROR>>>>>Exception in Simulator: {Name}, ID: {Id}, Exception Message: {ex.Message}\n\n");
                     }
+                    
                 }
 
                 _isRunning = false;
+                OnSimulatorEnded?.Invoke(this, Id);
                 _cancellationTokenSource.Dispose(); 
 
             }, cancellationToken);
