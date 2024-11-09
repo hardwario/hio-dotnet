@@ -50,6 +50,29 @@ namespace hio_dotnet.Common.Models.DataSimulation
         /// Latest generated message
         /// </summary>
         public SimulatedMessage<T>? LastMessage { get; set; }
+
+        #region STaticsVariablesOfTheDevice
+        /// <summary>
+        /// Static Simulator Value of Firmware Version
+        /// </summary>
+        public override string? FwVersion { get; set; }
+        /// <summary>
+        /// Static Simulator Value of Hardware Version
+        /// </summary>
+        public override string? HwRevision { get; set; }
+        /// <summary>
+        /// Static Simulator Value of Serial Number
+        /// </summary>
+        public override string? SerialNumber { get; set; }
+        /// <summary>
+        /// Static Simulator Value of IMEI
+        /// </summary>
+        public override long? IMEI { get; set; }
+        /// <summary>
+        /// Static Simulator Value of IMSI
+        /// </summary>
+        public override long? IMSI { get; set; }
+        #endregion
         /// <summary>
         /// Event raised when a new message is generated
         /// </summary>
@@ -92,6 +115,37 @@ namespace hio_dotnet.Common.Models.DataSimulation
             ExternalSoftwareAccessToken = externalSoftwareAccessToken;
             return this;
         }
+
+        public StandardContinuousSimulator<T> WithFwVersion(string fwVersion)
+        {
+            FwVersion = fwVersion;
+            return this;
+        }
+
+        public StandardContinuousSimulator<T> WithHwVersion(string hwVersion)
+        {
+            HwRevision = hwVersion;
+            return this;
+        }
+
+        public StandardContinuousSimulator<T> WithSerialNumber(string serialNumber)
+        {
+            SerialNumber = serialNumber;
+            return this;
+        }
+
+        public StandardContinuousSimulator<T> WithIMEI(long imei)
+        {
+            IMEI = imei;
+            return this;
+        }
+
+        public StandardContinuousSimulator<T> WithIMSI(long imsi)
+        {
+            IMSI = imsi;
+            return this;
+        }
+
         #endregion
 
         /// <summary>
@@ -178,6 +232,20 @@ namespace hio_dotnet.Common.Models.DataSimulation
                         var lastmsg = LastMessage?.Message ?? null;
 
                         BaseSimulator.GetSimulatedData(msgobj, lastmsg);
+
+                        if (msgobj is ChesterCommonCloudMessage chesterCommonCloudMessage)
+                        {
+                            if (FwVersion != null)
+                                chesterCommonCloudMessage.Attribute.FwVersion = FwVersion;
+                            if (HwRevision != null)
+                                chesterCommonCloudMessage.Attribute.HwRevision = HwRevision;
+                            if (SerialNumber != null)
+                                chesterCommonCloudMessage.Attribute.SerialNumber = SerialNumber;
+                            if (IMEI != null)
+                                chesterCommonCloudMessage.Network.Imei = (long)IMEI;
+                            if (IMSI != null)
+                                chesterCommonCloudMessage.Network.Imsi = (long)IMSI;
+                        }
 
                         var msgid = Guid.NewGuid();
                         var timestamp = TimeHelpers.DateTimeToUnixTimestamp(DateTime.UtcNow);

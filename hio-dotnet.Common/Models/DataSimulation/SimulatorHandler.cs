@@ -33,6 +33,11 @@ namespace hio_dotnet.Common.Models.DataSimulation
         /// <param name="externalSoftwareId">If you use external software to forward the messages you can fill the external Id of this simulated device</param>
         /// <param name="externalSoftwareAccessToken">If you use external software to forward the messages you can fill the external access token of this simulated device</param>
         /// <param name="start">Start simulator automatically during the adding it</param>
+        /// <param name="FwVersion">Static value of Firmware Version</param>
+        /// <param name="HwRevision">Static value of Hardware Revision</param>
+        /// <param name="SerialNumber">Static value of Serial Number</param>
+        /// <param name="Imei">Static value of IMEI</param>
+        /// <param name="Imsi">Static value of IMSI</param>
         /// <returns></returns>
         public Guid AddNewSimulator(Type typeOfMessage,
                                     long interval,
@@ -40,7 +45,12 @@ namespace hio_dotnet.Common.Models.DataSimulation
                                     string description = "",
                                     string externalSoftwareId = "",
                                     string externalSoftwareAccessToken = "",
-                                    bool start = true)
+                                    bool start = true, 
+                                    string? FwVersion = null,
+                                    string? HwRevision = null,
+                                    string? SerialNumber = null,
+                                    long? Imei = null,
+                                    long? Imsi = null)
         {
             if (typeOfMessage == null)
                 return Guid.Empty;
@@ -52,6 +62,18 @@ namespace hio_dotnet.Common.Models.DataSimulation
                 return Guid.Empty;
             sim.Interval = interval;
             sim.Name = name;
+
+            // load statics if exists
+            if (!string.IsNullOrEmpty(FwVersion))
+                sim.FwVersion = FwVersion;
+            if (!string.IsNullOrEmpty(HwRevision))
+                sim.HwRevision = HwRevision;
+            if (!string.IsNullOrEmpty(SerialNumber))
+                sim.SerialNumber = SerialNumber;
+            if (Imei != null)
+                sim.IMEI = Imei;
+            if (Imsi != null)
+                sim.IMSI = Imsi;
 
             sim.OnDataGenerated += OnDataGeneratedHandler;
 

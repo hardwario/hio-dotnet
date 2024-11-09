@@ -902,7 +902,7 @@ if (HIOCLOUDV2_TEST_ADD_DEVICE_WITH_CONNECTOR)
     var device = new HioCloudv2Device()
                         .WithName("test-device")
                         .WithSpaceId(spaceid)
-                        .WithSerialNumber(HioCloudv2Device.GenerateSerialNumberString())
+                        .WithSerialNumber(BaseSimulator.GenerateSerialNumberString())
                         .WithToken(HioCloudv2Device.GenerateClaimToken())
                         .WithTag(newTag);
 
@@ -1031,8 +1031,17 @@ if (HIO_SIMULATOR_HANDLER_TEST)
         }
     };
 
-    var simulatorId1 = simulatorHandler.AddNewSimulator(typeof(ChesterRadonCloudMessage), 5000, "RadonSimulator", "Radon measurement simulation");
-    var simulatorId2 = simulatorHandler.AddNewSimulator(typeof(ChesterClimeCloudMessage), 7000, "ClimeSimulator", "Temperature measurement simulation");
+    var simulatorId1 = simulatorHandler.AddNewSimulator(typeof(ChesterRadonCloudMessage), 
+                                                        5000, 
+                                                        "RadonSimulator", 
+                                                        "Radon measurement simulation",
+                                                        SerialNumber:BaseSimulator.GenerateSerialNumberString());
+
+    var simulatorId2 = simulatorHandler.AddNewSimulator(typeof(ChesterClimeCloudMessage), 
+                                                        7000, 
+                                                        "ClimeSimulator", 
+                                                        "Temperature measurement simulation",
+                                                        SerialNumber:BaseSimulator.GenerateSerialNumberString());
 
     for(var i = 0; i < numOfSimulators; i++)
     {

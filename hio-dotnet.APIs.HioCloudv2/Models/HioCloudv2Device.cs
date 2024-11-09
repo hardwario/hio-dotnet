@@ -116,28 +116,5 @@ namespace hio_dotnet.APIs.HioCloudv2.Models
             return BitConverter.ToString(randomNumber).Replace("-", string.Empty).ToLower();
         }
 
-        public static uint GenerateSerialNumber(uint productFamily = 0)
-        {
-            if (productFamily == 0)
-                productFamily = 0x00b; // default for CHESTER-M
-
-            if (productFamily > 0x3FF)
-            {
-                throw new ArgumentOutOfRangeException(nameof(productFamily), "Product Family must be in range of 10 bits (0 up to 0x3FF).");
-            }
-
-            // Create serial number (20 bits)
-            uint serialPart = (uint)RandomNumberGenerator.GetInt32(0x100000);
-
-            // Assembly: Bit 31 = 1, Bit 30 = 0, bits 29-20 = Product Family, bits 19-0 = Serial Number
-            uint serialNumber = (1u << 31) | (productFamily << 20) | serialPart;
-
-            return serialNumber;
-        }
-
-        public static string GenerateSerialNumberString(uint productFamily = 0)
-        {
-            return GenerateSerialNumber(productFamily).ToString();
-        }
     }
 }

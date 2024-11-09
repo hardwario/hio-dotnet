@@ -46,6 +46,29 @@ namespace hio_dotnet.Common.Models.DataSimulation
         /// </summary>
         public SimulatedMessage<T>? LastMessage { get; set; }
 
+        #region STaticsVariablesOfTheDevice
+        /// <summary>
+        /// Static Simulator Value of Firmware Version
+        /// </summary>
+        public abstract string? FwVersion { get; set; }
+        /// <summary>
+        /// Static Simulator Value of Hardware Version
+        /// </summary>
+        public abstract string? HwRevision { get; set; }
+        /// <summary>
+        /// Static Simulator Value of Serial Number
+        /// </summary>
+        public abstract string? SerialNumber { get; set; }
+        /// <summary>
+        /// Static Simulator Value of IMEI
+        /// </summary>
+        public abstract long? IMEI { get; set; }
+        /// <summary>
+        /// Static Simulator Value of IMSI
+        /// </summary>
+        public abstract long? IMSI { get; set; }
+        #endregion
+
         /// <summary>
         /// Event raised when a new message is generated
         /// </summary>
