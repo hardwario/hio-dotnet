@@ -186,7 +186,7 @@ namespace hio_dotnet.APIs.HioCloudv2
                         // get the last message from the cloud
                         try
                         {
-                            Console.WriteLine("Checking the new messages on cloud...");
+                            Console.WriteLine($"Grabber: {Name} >>> checking the new messages on cloud...");
                             receivedMessage = CloudDriver?.GetAllDeviceMessages(SpaceId, DeviceId)?.Result?.FirstOrDefault();
                         }
                         catch (Exception ex) 
@@ -201,7 +201,7 @@ namespace hio_dotnet.APIs.HioCloudv2
                                 receivedMessage.Id == LastMessage?.Id ||
                                 _messages.ContainsKey(receivedMessage.Id))
                             {
-                                Console.WriteLine($"No new messages on cloud for the device: {DeviceId}.");
+                                Console.WriteLine($"Grabber: {Name} >>> No new messages on cloud for the device: {DeviceId}.");
                                 continue;
                             }
 

@@ -31,7 +31,8 @@ var THINGSBOARD_TEST = false;
 var HIOCLOUDV2_TEST = false;
 var HIOCLOUDV2_TEST_DOWNLINK = false;
 var HIOCLOUDV2_TEST_ADD_DEVICE_WITH_CONNECTOR = false;
-var HIOCLOUDV2_TEST_SIMPLEGRABBER = true;
+var HIOCLOUDV2_TEST_SIMPLEGRABBER = false;
+var HIOCLOUDV2_TEST_SIMPLEGRABBER_HANDLER = true;
 var HIO_WMBUSMETER_TEST = false;
 var HIO_SIMULATOR_TEST = false;
 var HIO_SIMULATOR_HANDLER_TEST = false;
@@ -964,6 +965,55 @@ if (HIOCLOUDV2_TEST_SIMPLEGRABBER)
     Console.WriteLine("Press enter to quit...");
     Console.ReadLine();
 
+}
+#endregion
+
+#region HIOCLOUDV2SimpleGrabberHandlerExample
+if (HIOCLOUDV2_TEST_SIMPLEGRABBER_HANDLER)
+{
+    var apitoken = "YOUR_API_TOKEN";
+    var spaceid = "YOUR_SPACE_ID";
+    var deviceid = "YOUR_DEVICE_ID";
+    var deviceid2 = "YOUR_DEVICE_ID";
+
+    var grabberHandler = new CloudMessagesGrabbersHandler();
+
+    grabberHandler.AddNewGrabber(new Guid(spaceid), 
+                                 new Guid(deviceid), 
+                                 Hiov2CloudDriver.DefaultHardwarioCloudUrl, 
+                                 60000, 
+                                 "Meteo1MessagesGrabber",
+                                 apitoken: apitoken);
+
+    grabberHandler.AddNewGrabber(new Guid(spaceid),
+                                 new Guid(deviceid2),
+                                 Hiov2CloudDriver.DefaultHardwarioCloudUrl,
+                                 60000,
+                                 "Meteo2MessagesGrabber",
+                                 apitoken: apitoken);
+
+    grabberHandler.OnNewDataReceived += (sender, data) =>
+    {
+        if (data.Message != null)
+        {
+            Console.WriteLine($"Grabber: {(sender as SimpleCloudMessageGrabber)?.Name} received new message:\n"); 
+            Console.WriteLine($"Device {data.Message.DeviceName} created new message at time: {data.Message.CreatedAt}, \nMessage: \n\n{data.Message.Body}\n\n");
+        }
+    };
+
+    var keyPressTask = Task.Run(async () =>
+    {
+        Console.WriteLine("\nPress key to stop all grabbers...");
+        Console.ReadKey();
+        Console.WriteLine("\nStopping grabbers...");
+        await grabberHandler.StopAllGrabbers();
+    });
+
+    // await handler since all grabbers are still running
+    await grabberHandler.MonitorGrabbers();
+
+    Console.WriteLine("Press enter to quit...");
+    Console.ReadLine();
 }
 #endregion
 
