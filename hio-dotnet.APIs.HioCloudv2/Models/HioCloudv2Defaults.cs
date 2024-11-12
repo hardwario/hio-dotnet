@@ -8,7 +8,7 @@ namespace hio_dotnet.APIs.HioCloudv2.Models
 {
     public static class HioCloudv2Defaults
     {
-        public static string DefaultHardwarioThingsboardUrl = "https://api.hardwario.cloud";
+        public static string DefaultHardwarioCloudUrl = "https://api.hardwario.cloud";
 
 
         public static string DefaultSpaceType = "default";

@@ -31,9 +31,10 @@ var THINGSBOARD_TEST = false;
 var HIOCLOUDV2_TEST = false;
 var HIOCLOUDV2_TEST_DOWNLINK = false;
 var HIOCLOUDV2_TEST_ADD_DEVICE_WITH_CONNECTOR = false;
+var HIOCLOUDV2_TEST_SIMPLEGRABBER = true;
 var HIO_WMBUSMETER_TEST = false;
 var HIO_SIMULATOR_TEST = false;
-var HIO_SIMULATOR_HANDLER_TEST = true;
+var HIO_SIMULATOR_HANDLER_TEST = false;
 
 #if WINDOWS
 Console.WriteLine("Running on Windows");
@@ -751,7 +752,7 @@ if(HIOCLOUDV2_TEST)
     // you need to use this if you want to list all available spaces because api tokens are just for specific space
     Hiov2CloudDriver hiocloudJWT = null; 
     if (email != "YOUR EMAIL" && password != "YOUR PASSWORD")
-        hiocloudJWT = new Hiov2CloudDriver(Hiov2CloudDriver.DefaultHardwarioThingsboardUrl, email, password);
+        hiocloudJWT = new Hiov2CloudDriver(Hiov2CloudDriver.DefaultHardwarioCloudUrl, email, password);
 
     if (hiocloudJWT == null && apitoken == "YOUR API TOKEN IF YOU HAVE CREATED IT IN HIO CLOUD SPACE")
     {
@@ -760,7 +761,7 @@ if(HIOCLOUDV2_TEST)
     }
 
     // or if you have already created the API token in HIO Cloud space you can use it
-    var hiocloudAPI = new Hiov2CloudDriver(Hiov2CloudDriver.DefaultHardwarioThingsboardUrl, apitoken, true);
+    var hiocloudAPI = new Hiov2CloudDriver(Hiov2CloudDriver.DefaultHardwarioCloudUrl, apitoken, true);
 
     if (hiocloudJWT != null)
     {
@@ -858,20 +859,18 @@ if(HIOCLOUDV2_TEST)
 
 #endregion
 
-
 #region HIOCLOUDV2DownlinkExample
 if (HIOCLOUDV2_TEST_DOWNLINK)
 {
     var apitoken = "YOUR_API_TOKEN";
-    var spaceid = "018ab6bb-ae9e-73ca-8917-aaae0ab1c691";
-    var deviceid = "0192579f-35a8-7b29-9fd5-cdd8ac08d13a"; // nove device
-    //var deviceid = "0189df80-834e-7df4-98a0-25030f81076d"; // andon-34
+    var spaceid = "YOUR_SPACE_ID";
+    var deviceid = "YOUR_DEVICE_ID";
 
-    var hiocloudAPI = new Hiov2CloudDriver(Hiov2CloudDriver.DefaultHardwarioThingsboardUrl, apitoken, true);
+    var hiocloudAPI = new Hiov2CloudDriver(Hiov2CloudDriver.DefaultHardwarioCloudUrl, apitoken, true);
 
     var data = new
     {
-        button_1_state = 1,
+        button_1_state = 2,
         buzzer = 5
     };
 
@@ -889,7 +888,7 @@ if (HIOCLOUDV2_TEST_ADD_DEVICE_WITH_CONNECTOR)
     var spaceid = new Guid("HIO_CLOUD_V2_SPACE_ID");
     var devicetoken = "THINGSBOARD_DEVICE_CONNECTION_TOKEN";
 
-    var hiocloudAPI = new Hiov2CloudDriver(Hiov2CloudDriver.DefaultHardwarioThingsboardUrl, apitoken, true);
+    var hiocloudAPI = new Hiov2CloudDriver(Hiov2CloudDriver.DefaultHardwarioCloudUrl, apitoken, true);
 
     var tag = new HioCloudv2Tag()
                   .WithName("test-tag")
@@ -925,6 +924,46 @@ if (HIOCLOUDV2_TEST_ADD_DEVICE_WITH_CONNECTOR)
 
     Console.WriteLine("Press key to quit...");
     Console.ReadKey();
+}
+#endregion
+
+#region HIOCLOUDV2SimpleGrabberExample
+if (HIOCLOUDV2_TEST_SIMPLEGRABBER)
+{
+    var apitoken = "YOUR_API_TOKEN";
+    var spaceid = "YOUR_SPACE_ID";
+    var deviceid = "YOUR_DEVICE_ID";
+
+    Console.WriteLine("Creating Grabber instance...");
+    var grabber = new SimpleCloudMessageGrabber(new Guid(spaceid), 
+                                                new Guid(deviceid), 
+                                                Hiov2CloudDriver.DefaultHardwarioCloudUrl, 
+                                                apitoken, 
+                                                useapitoken:true)
+                      .WithName("Meteo2MessagesGrabber")  
+                      .WithInterval(60000);
+
+    grabber.OnNewDataReceived += (sender, data) =>
+    {
+        if (data.Message != null)
+        {
+            Console.WriteLine($"Grabber: {(sender as SimpleCloudMessageGrabber)?.Name} received new message:\n");
+            Console.WriteLine($"Device {data.Message.DeviceName} created new message at time: {data.Message.CreatedAt}, \nMessage: \n\n{data.Message.Body}\n\n");
+        }
+    };
+
+    Console.WriteLine("Start grabbing the data from the HARDWARIO Cloud....");
+    var simTask = grabber.Start();
+    // Quit when key is pressed
+    Console.WriteLine("\nPress any key to stop grabber...\n");
+    Console.ReadKey();
+    await grabber.Stop();
+
+    await Task.WhenAny(new Task[] { simTask });
+
+    Console.WriteLine("Press enter to quit...");
+    Console.ReadLine();
+
 }
 #endregion
 

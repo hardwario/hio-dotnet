@@ -9,7 +9,7 @@ namespace hio_dotnet.APIs.HioCloudv2
 {
     public class Hiov2CloudDriver
     {
-        public static string DefaultHardwarioThingsboardUrl = HioCloudv2Defaults.DefaultHardwarioThingsboardUrl;
+        public static string DefaultHardwarioCloudUrl = HioCloudv2Defaults.DefaultHardwarioCloudUrl;
 
         /// <summary>
         /// Use this constructor to authenticate with ThingsBoard using username and password.
