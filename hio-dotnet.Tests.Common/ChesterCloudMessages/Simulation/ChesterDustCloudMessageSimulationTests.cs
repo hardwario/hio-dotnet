@@ -17,6 +17,11 @@ namespace hio_dotnet.Tests.Common.ChesterCloudMessages.Simulation
             var message = new ChesterDustCloudMessage();
             BaseSimulator.GetSimulatedData(message);
             Assert.NotEqual(message.DustSensor.Num_PM1.Measurements.Count, 0);
+
+            var message1 = new ChesterDustCloudMessage();
+            BaseSimulator.GetSimulatedData(message1, message);
+            Assert.NotEqual(message1.DustSensor.Num_PM1.Measurements.Count, 0);
+            Assert.True(message1.DustSensor.Num_PM1.Measurements[0].Avg != message.DustSensor.Num_PM1.Measurements[0].Avg);
         }
     }
 }

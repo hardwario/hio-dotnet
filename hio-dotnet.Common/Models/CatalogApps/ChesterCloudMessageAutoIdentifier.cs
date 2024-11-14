@@ -7,6 +7,7 @@ using hio_dotnet.Common.Models.CatalogApps.Meteo;
 using hio_dotnet.Common.Models.CatalogApps.Push;
 using hio_dotnet.Common.Models.CatalogApps.Radon;
 using hio_dotnet.Common.Models.CatalogApps.Range;
+using hio_dotnet.Common.Models.CatalogApps.Scale;
 using hio_dotnet.Common.Models.CatalogApps.wMBus;
 using System;
 using System.Collections.Generic;
@@ -67,6 +68,11 @@ namespace hio_dotnet.Common.Models.CatalogApps
                      message.Contains("sps30"))
             {
                 return typeof(ChesterDustCloudMessage);
+            }
+            else if (message.Contains("CHESTER Scale") ||
+                     message.Contains("weight"))
+            {
+                return typeof(ChesterScaleCloudMessage);
             }
 
             return typeof(ChesterCommonCloudMessage);

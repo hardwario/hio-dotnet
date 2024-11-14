@@ -1,4 +1,5 @@
 ﻿using hio_dotnet.Common.Models.CatalogApps.Meteo;
+using hio_dotnet.Common.Models.CatalogApps.Scale;
 using hio_dotnet.Common.Models.Common;
 using System;
 using System.Collections.Generic;
@@ -95,6 +96,33 @@ namespace hio_dotnet.Common.Models.DataSimulation
                             property.SetValue(obj, nestedObj);
                         }
                     }
+                    else if (nestedObj.GetType() == typeof(List<WeightMeasurement>))
+                    {
+                        var simulationMeasurementAttr = property.GetCustomAttribute<SimulationMeasurementAttribute>();
+                        if (simulationMeasurementAttr != null)
+                        {
+                            var count = simulationMeasurementAttr.NumberOfInsideItems;
+                            for (int i = 0; i < count; i++)
+                            {
+                                // create a new Weight object
+
+                                var w1t = new WeightMeasurement();
+                                WeightMeasurement w1tp = null;
+                                if (previousNestedObj != null)
+                                {
+                                    if (((List<WeightMeasurement>)previousNestedObj).Count > i)
+                                        w1tp = ((List<WeightMeasurement>)previousNestedObj)[i];
+                                    else
+                                        w1tp = ((List<WeightMeasurement>)previousNestedObj)?.FirstOrDefault();
+                                }
+                                Simulate(w1t, w1tp);
+
+                                ((List<WeightMeasurement>)nestedObj).Add(w1t);
+                            }
+
+                            property.SetValue(obj, nestedObj);
+                        }
+                    }
                     else if (nestedObj.GetType() == typeof(List<W1_Thermometer>))
                     {
                         var simulationMeasurementAttr = property.GetCustomAttribute<SimulationMeasurementAttribute>();
@@ -109,7 +137,10 @@ namespace hio_dotnet.Common.Models.DataSimulation
                                 W1_Thermometer w1tp = null;
                                 if (previousNestedObj != null)
                                 {
-                                    w1tp = ((List<W1_Thermometer>)previousNestedObj)?.FirstOrDefault();
+                                    if (((List<W1_Thermometer>)previousNestedObj).Count > i)
+                                        w1tp = ((List<W1_Thermometer>)previousNestedObj)[i];
+                                    else
+                                        w1tp = ((List<W1_Thermometer>)previousNestedObj)?.FirstOrDefault();
                                 }
                                 Simulate_W1_Thermoemter(w1t, simulationMeasurementAttr, w1tp);
 
@@ -131,7 +162,10 @@ namespace hio_dotnet.Common.Models.DataSimulation
                                 SoilMeasurements w1tp = null;
                                 if (previousNestedObj != null)
                                 {
-                                    w1tp = ((List<SoilMeasurements>)previousNestedObj)?.FirstOrDefault();
+                                    if (((List<SoilMeasurements>)previousNestedObj).Count > i)
+                                        w1tp = ((List<SoilMeasurements>)previousNestedObj)[i];
+                                    else
+                                        w1tp = ((List<SoilMeasurements>)previousNestedObj)?.FirstOrDefault();
                                 }
 
                                 Simulate(w1t, w1tp);
@@ -154,7 +188,10 @@ namespace hio_dotnet.Common.Models.DataSimulation
                                 RTD_Thermometer w1tp = null;
                                 if (previousNestedObj != null)
                                 {
-                                    w1tp = ((List<RTD_Thermometer>)previousNestedObj)?.FirstOrDefault();
+                                    if (((List<RTD_Thermometer>)previousNestedObj).Count > i)
+                                        w1tp = ((List<RTD_Thermometer>)previousNestedObj)[i];
+                                    else
+                                        w1tp = ((List<RTD_Thermometer>)previousNestedObj)?.FirstOrDefault();
                                 }
                                 Simulate_RTD_Thermoemter(w1t, simulationMeasurementAttr, w1tp, i);
 
@@ -176,7 +213,10 @@ namespace hio_dotnet.Common.Models.DataSimulation
                                 AnalogChannel w1tp = null;
                                 if (previousNestedObj != null)
                                 {
-                                    w1tp = ((List<AnalogChannel>)previousNestedObj)?.FirstOrDefault();
+                                    if (((List<AnalogChannel>)previousNestedObj).Count > i)
+                                        w1tp = ((List<AnalogChannel>)previousNestedObj)[i];
+                                    else
+                                        w1tp = ((List<AnalogChannel>)previousNestedObj)?.FirstOrDefault();
                                 }
                                 Simulate_AnalogChannel(w1t, simulationMeasurementAttr, w1tp, i);
 
@@ -199,7 +239,10 @@ namespace hio_dotnet.Common.Models.DataSimulation
                                 BLE_Tag bltp = null;
                                 if (previousNestedObj != null)
                                 {
-                                    bltp = ((List<BLE_Tag>)previousNestedObj)?.FirstOrDefault();
+                                    if (((List<BLE_Tag>)previousNestedObj).Count > i)
+                                        bltp = ((List<BLE_Tag>)previousNestedObj)[i];
+                                    else
+                                        bltp = ((List<BLE_Tag>)previousNestedObj)?.FirstOrDefault();
                                 }
                                 Simulate(blt, bltp);
 
@@ -758,7 +801,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                 if (previousValue != null)
                 {
                     var previousDoubleValue = Convert.ToDouble(previousValue);
-                    double maxChange = previousDoubleValue * simulationAttr.MaximumChange;
+                    double maxChange = Math.Abs(previousDoubleValue * simulationAttr.MaximumChange);
                     double minValue, maxValue;
 
                     if (simulationAttr.ShouldRaise)
@@ -795,9 +838,34 @@ namespace hio_dotnet.Common.Models.DataSimulation
                     {
                         property.SetValue(obj, minValue + random.NextDouble() * (maxValue - minValue));
                     }
+                    else if (property.PropertyType == typeof(double?))
+                    {
+                        if (property.GetValue(obj) == null)
+                        {
+                            property.SetValue(obj, 0.0);
+                        }
+
+                        property.SetValue(obj, minValue + random.NextDouble() * (maxValue - minValue));
+                    }
                     else if (property.PropertyType == typeof(int))
                     {
                         property.SetValue(obj, random.Next((int)minValue, (int)maxValue));
+                    }
+                    else if (property.PropertyType == typeof(int?))
+                    {
+                        if (property.GetValue(obj) == null)
+                        {
+                            property.SetValue(obj, 0);
+                        }
+
+                        if (minValue < maxValue)
+                        {
+                            property.SetValue(obj, random.Next((int)minValue, (int)maxValue));
+                        }
+                        else
+                        {
+                            property.SetValue(obj, random.Next((int)maxValue, (int)minValue));
+                        }
                     }
                 }
             }
