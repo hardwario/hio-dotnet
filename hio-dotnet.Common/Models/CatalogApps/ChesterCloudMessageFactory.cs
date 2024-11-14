@@ -34,25 +34,47 @@ namespace hio_dotnet.Common.Models.CatalogApps
                     return new ChesterCommonCloudMessage();
                 case DeviceType.CHESTER_CLIME:
                     return new ChesterClimeCloudMessage();
+                case DeviceType.FAKE_CHESTER_CLIME:
+                    return new ChesterClimeCloudMessage();
                 case DeviceType.CHESTER_CLIME_IAQ:
+                    return new ChesterClimeIAQCloudMessage();
+                case DeviceType.FAKE_CHESTER_CLIME_IAQ:
                     return new ChesterClimeIAQCloudMessage();
                 case DeviceType.CHESTER_CONTROL:
                     return new ChesterControlCloudMessage();
+                case DeviceType.FAKE_CHESTER_CONTROL:
+                    return new ChesterControlCloudMessage();
                 case DeviceType.CHESTER_COUNTER:
+                    return new ChesterCounterCloudMessage();
+                case DeviceType.FAKE_CHESTER_COUNTER:
                     return new ChesterCounterCloudMessage();
                 case DeviceType.CHESTER_CURRENT:
                     return new ChesterCurrentCloudMessage();
+                case DeviceType.FAKE_CHESTER_CURRENT:
+                    return new ChesterCurrentCloudMessage();
                 case DeviceType.CHESTER_INPUT:
+                    return new ChesterInputCloudMessage();
+                case DeviceType.FAKE_CHESTER_INPUT:
                     return new ChesterInputCloudMessage();
                 case DeviceType.CHESTER_METEO:
                     return new ChesterMeteoCloudMessage();
+                case DeviceType.FAKE_CHESTER_METEO:
+                    return new ChesterMeteoCloudMessage();
                 case DeviceType.CHESTER_RADON:
+                    return new ChesterRadonCloudMessage();
+                case DeviceType.FAKE_CHESTER_RADON:
                     return new ChesterRadonCloudMessage();
                 case DeviceType.CHESTER_RANGE:
                     return new ChesterRangeCloudMessage();
+                case DeviceType.FAKE_CHESTER_RANGE:
+                    return new ChesterRangeCloudMessage();
                 case DeviceType.CHESTER_SCALE:
                     return new ChesterScaleCloudMessage();
+                case DeviceType.FAKE_CHESTER_SCALE:
+                    return new ChesterScaleCloudMessage();
                 case DeviceType.CHESTER_WMBUS:
+                    return new ChesterWMBusCloudMessage();
+                case DeviceType.FAKE_CHESTER_WMBUS:
                     return new ChesterWMBusCloudMessage();
                 default:
                     return null;
