@@ -823,6 +823,15 @@ namespace hio_dotnet.Common.Models.DataSimulation
 
             var random = new Random();
 
+            var simAttrMin = simulationAttr.MinValue;
+            var simAttrMax = simulationAttr.MaxValue;
+
+            if (simAttrMax < simAttrMin)
+            {
+                simAttrMin = simulationAttr.MaxValue;
+                simAttrMax = simulationAttr.MinValue;
+            }
+
             if (simulationAttr.NeedsFollowPrevious && previousObj != null)
             {
                 var previousValue = property.GetValue(previousObj);
@@ -839,10 +848,10 @@ namespace hio_dotnet.Common.Models.DataSimulation
 
                         // in the case that value has already reached the maximum value, set the min value to the maximum value - maxChange
                         // this will keep the cycle still going in the ramp up style
-                        if (maxValue > simulationAttr.MaxValue)
+                        if (maxValue > simAttrMax)
                         {
-                            maxValue = simulationAttr.MinValue + maxChange;
-                            minValue = simulationAttr.MinValue;
+                            maxValue = simAttrMin + maxChange;
+                            minValue = simAttrMin;
                         }
                     }
                     else
@@ -852,15 +861,15 @@ namespace hio_dotnet.Common.Models.DataSimulation
 
                         // in the case that value has already reached the minimum value, set the max value to the minimum value + maxChange
                         // this will keep the cycle still going in the ramp down style
-                        if (minValue < simulationAttr.MinValue)
+                        if (minValue < simAttrMin)
                         {
-                            minValue = simulationAttr.MaxValue - maxChange;
-                            maxValue = simulationAttr.MaxValue;
+                            minValue = simAttrMax - maxChange;
+                            maxValue = simAttrMax;
                         }
                     }
 
-                    minValue = Math.Max(minValue, simulationAttr.MinValue);
-                    maxValue = Math.Min(maxValue, simulationAttr.MaxValue);
+                    minValue = Math.Max(minValue, simAttrMin);
+                    maxValue = Math.Min(maxValue, simAttrMax);
 
                     if (property.PropertyType == typeof(double))
                     {
@@ -904,16 +913,16 @@ namespace hio_dotnet.Common.Models.DataSimulation
                 {
                     if (simulationAttr.ShouldRaise)
                     {
-                        initialValue = simulationAttr.MinValue;
+                        initialValue = simAttrMin;
                     }
                     else
                     {
-                        initialValue = simulationAttr.MaxValue;
+                        initialValue = simAttrMax;
                     }
                 }
                 else
                 {
-                    initialValue = simulationAttr.MinValue + random.NextDouble() * (simulationAttr.MaxValue - simulationAttr.MinValue);
+                    initialValue = simAttrMin + random.NextDouble() * (simAttrMax - simAttrMin);
                 }
 
                 if (property.PropertyType == typeof(int))

@@ -37,13 +37,13 @@ namespace hio_dotnet.Tests.Common
             config.Antenna = AntennaType.External;
             config.ParseLine("lte config antenna internal");
 
-            Assert.Equal(AntennaType.External, config.Antenna);
+            Assert.Equal(AntennaType.Internal, config.Antenna);
 
             config = new LTEConfig();
             config.Antenna = AntennaType.External;
             config.ParseLine("lte config antenna int");
 
-            Assert.Equal(AntennaType.External, config.Antenna);
+            Assert.Equal(AntennaType.Internal, config.Antenna);
         }
 
         [Fact]
