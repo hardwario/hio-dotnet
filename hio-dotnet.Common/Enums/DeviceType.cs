@@ -24,6 +24,7 @@ namespace hio_dotnet.Common.Enums
         CHESTER_WMBUS,
         CHESTER_RANGE,
         CHESTER_RADON,
+        CHESTER_DUST,
 
         FAKE_CHESTER_M = 2000,
         FAKE_CHESTER_DEVKIT = 2001,
@@ -39,6 +40,7 @@ namespace hio_dotnet.Common.Enums
         FAKE_CHESTER_WMBUS = 2011,
         FAKE_CHESTER_RANGE = 2012,
         FAKE_CHESTER_RADON = 2013,
+        FAKE_CHESTER_DUST = 2014,
 
         STICKER_INPUT = 4000,
         STICKER_CLIME = 4001,

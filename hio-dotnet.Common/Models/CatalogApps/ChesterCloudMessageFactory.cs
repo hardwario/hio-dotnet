@@ -4,6 +4,7 @@ using hio_dotnet.Common.Models.CatalogApps.ClimeIAQ;
 using hio_dotnet.Common.Models.CatalogApps.Control;
 using hio_dotnet.Common.Models.CatalogApps.Counter;
 using hio_dotnet.Common.Models.CatalogApps.Current;
+using hio_dotnet.Common.Models.CatalogApps.Dust;
 using hio_dotnet.Common.Models.CatalogApps.Input;
 using hio_dotnet.Common.Models.CatalogApps.Meteo;
 using hio_dotnet.Common.Models.CatalogApps.Motion;
@@ -81,6 +82,10 @@ namespace hio_dotnet.Common.Models.CatalogApps
                     return new ChesterMotionCloudMessage();
                 case DeviceType.FAKE_CHESTER_MOTION:
                     return new ChesterMotionCloudMessage();
+                case DeviceType.CHESTER_DUST:
+                    return new ChesterDustCloudMessage();
+                case DeviceType.FAKE_CHESTER_DUST:
+                    return new ChesterDustCloudMessage();
                 default:
                     return null;
             }
