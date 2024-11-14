@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.Common.Models
 {
-    public class ChesterCommonCloudMessage
+    public class ChesterCommonCloudMessage : IChesterCommonCloudMessage
     {
         [SimulationAttribute(true)]
         [JsonPropertyName("message")]
