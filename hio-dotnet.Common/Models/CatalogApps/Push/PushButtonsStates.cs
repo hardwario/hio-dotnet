@@ -1,4 +1,5 @@
 ﻿using hio_dotnet.Common.Models.Common;
+using hio_dotnet.Common.Models.DataSimulation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +11,15 @@ namespace hio_dotnet.Common.Models.CatalogApps.Push
 {
     public class PushButtonsStates
     {
+        [SimulationAttribute(true)]
         [JsonPropertyName("button")]
         public string? Button { get; set; }
 
+        [SimulationAttribute(false, 0.0, 10000.0, true, true, 0.005)]
         [JsonPropertyName("count_click")]
         public int CountClick { get; set; } = 0;
-        
+
+        [SimulationAttribute(false, 0.0, 10000.0, true, true, 0.005)]
         [JsonPropertyName("count_hold")]
         public int CountHold { get; set; } = 0;
 

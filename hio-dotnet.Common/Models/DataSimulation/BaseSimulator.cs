@@ -1,4 +1,5 @@
 ﻿using hio_dotnet.Common.Models.CatalogApps.Meteo;
+using hio_dotnet.Common.Models.CatalogApps.Push;
 using hio_dotnet.Common.Models.CatalogApps.Scale;
 using hio_dotnet.Common.Models.Common;
 using System;
@@ -118,6 +119,33 @@ namespace hio_dotnet.Common.Models.DataSimulation
                                 Simulate(w1t, w1tp);
 
                                 ((List<WeightMeasurement>)nestedObj).Add(w1t);
+                            }
+
+                            property.SetValue(obj, nestedObj);
+                        }
+                    }
+                    else if (nestedObj.GetType() == typeof(List<PushButtonsStates>))
+                    {
+                        var simulationMeasurementAttr = property.GetCustomAttribute<SimulationMeasurementAttribute>();
+                        if (simulationMeasurementAttr != null)
+                        {
+                            var count = simulationMeasurementAttr.NumberOfInsideItems;
+                            for (int i = 0; i < count; i++)
+                            {
+                                var w1t = new PushButtonsStates();
+                                PushButtonsStates w1tp = null;
+                                if (previousNestedObj != null)
+                                {
+                                    if (((List<PushButtonsStates>)previousNestedObj).Count > i)
+                                        w1tp = ((List<PushButtonsStates>)previousNestedObj)[i];
+                                    else
+                                        w1tp = ((List<PushButtonsStates>)previousNestedObj)?.FirstOrDefault();
+                                }
+                                Simulate(w1t, w1tp);
+
+                                w1t.Button = $"Button_{i}";
+
+                                ((List<PushButtonsStates>)nestedObj).Add(w1t);
                             }
 
                             property.SetValue(obj, nestedObj);
@@ -801,7 +829,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                 if (previousValue != null)
                 {
                     var previousDoubleValue = Convert.ToDouble(previousValue);
-                    double maxChange = Math.Abs(previousDoubleValue * simulationAttr.MaximumChange);
+                    double maxChange = Math.Abs((Math.Abs(simulationAttr.MaxValue - simulationAttr.MinValue)) * simulationAttr.MaximumChange);
                     double minValue, maxValue;
 
                     if (simulationAttr.ShouldRaise)
