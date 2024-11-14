@@ -6,6 +6,7 @@ using hio_dotnet.Common.Models.CatalogApps.Counter;
 using hio_dotnet.Common.Models.CatalogApps.Current;
 using hio_dotnet.Common.Models.CatalogApps.Input;
 using hio_dotnet.Common.Models.CatalogApps.Meteo;
+using hio_dotnet.Common.Models.CatalogApps.Motion;
 using hio_dotnet.Common.Models.CatalogApps.Radon;
 using hio_dotnet.Common.Models.CatalogApps.Range;
 using hio_dotnet.Common.Models.CatalogApps.Scale;
@@ -76,6 +77,10 @@ namespace hio_dotnet.Common.Models.CatalogApps
                     return new ChesterWMBusCloudMessage();
                 case DeviceType.FAKE_CHESTER_WMBUS:
                     return new ChesterWMBusCloudMessage();
+                case DeviceType.CHESTER_MOTION:
+                    return new ChesterMotionCloudMessage();
+                case DeviceType.FAKE_CHESTER_MOTION:
+                    return new ChesterMotionCloudMessage();
                 default:
                     return null;
             }

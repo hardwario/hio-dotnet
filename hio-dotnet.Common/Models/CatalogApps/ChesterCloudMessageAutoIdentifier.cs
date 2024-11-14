@@ -4,6 +4,7 @@ using hio_dotnet.Common.Models.CatalogApps.Current;
 using hio_dotnet.Common.Models.CatalogApps.Dust;
 using hio_dotnet.Common.Models.CatalogApps.Input;
 using hio_dotnet.Common.Models.CatalogApps.Meteo;
+using hio_dotnet.Common.Models.CatalogApps.Motion;
 using hio_dotnet.Common.Models.CatalogApps.Push;
 using hio_dotnet.Common.Models.CatalogApps.Radon;
 using hio_dotnet.Common.Models.CatalogApps.Range;
@@ -73,6 +74,11 @@ namespace hio_dotnet.Common.Models.CatalogApps
                      message.Contains("weight"))
             {
                 return typeof(ChesterScaleCloudMessage);
+            }
+            else if (message.Contains("CHESTER Motion") ||
+                     message.Contains("motion"))
+            {
+                return typeof(ChesterMotionCloudMessage);
             }
 
             return typeof(ChesterCommonCloudMessage);
