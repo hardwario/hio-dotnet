@@ -1,0 +1,46 @@
+﻿@using hio_dotnet.UI.BlazorComponents.Radzen.Common.Graphs
+@page "/heatmap"
+
+<PageTitle>Heatmap Example</PageTitle>
+
+<h1>Heatmap Example</h1>
+
+<Heatmap ImageSource="@imageSource"
+         Points="@points"
+         Width="800"
+         Height="600"
+         Zoom="1.0" 
+         PointsChanged="OnPointsChanged" />   
+
+@code {
+    string imageSource = "map.jpg";
+    List<PointData> points = new List<PointData>()
+    {
+        new PointData { X = 100, Y = 100, Value = 0.5, Name = "Wind 1", Unit="m/s" },
+        new PointData { X = 200, Y = 100, Value = 0.7, Name = "Wind 2", Unit="m/s" },
+        new PointData { X = 160, Y = 200, Value = 0.9, Name = "Wind 3", Unit="m/s" },
+        new PointData { X = 200, Y = 140, Value = 0.3, Name = "Wind 4", Unit="m/s" },
+        new PointData { X = 180, Y = 140, Value = 0.5, Name = "Wind 5", Unit="m/s" },
+        new PointData { X = 190, Y = 170, Value = 0.7, Name = "Wind 6", Unit="m/s" },
+        new PointData { X = 210, Y = 210, Value = 0.5, Name = "Wind 7", Unit="m/s" },
+        new PointData { X = 220, Y = 270, Value = 0.4, Name = "Wind 8", Unit="m/s" },
+        new PointData { X = 230, Y = 250, Value = 0.8, Name = "Wind 9", Unit="m/s" },
+        new PointData { X = 250, Y = 250, Value = 0.1, Name = "Wind 10", Unit="m/s" },
+        new PointData { X = 250, Y = 220, Value = 0.5, Name = "Wind 11", Unit="m/s" },
+        new PointData { X = 300, Y = 300, Value = 0.7, Name = "Wind 12", Unit="m/s" },
+        new PointData { X = 350, Y = 350, Value = 0.9, Name = "Wind 13", Unit="m/s" },
+        new PointData { X = 400, Y = 400, Value = 0.3, Name = "Wind 14", Unit="m/s" },
+        new PointData { X = 420, Y = 400, Value = 0.1, Name = "Wind 15", Unit="m/s" },
+        new PointData { X = 450, Y = 300, Value = 0.5, Name = "Wind 16", Unit="m/s" },
+        new PointData { X = 500, Y = 380, Value = 0.7, Name = "Wind 17", Unit="m/s" },
+        new PointData { X = 480, Y = 350, Value = 0.2, Name = "Wind 18", Unit="m/s" },
+        new PointData { X = 430, Y = 260, Value = 0.9, Name = "Wind 19", Unit="m/s" },
+
+    };
+
+    private void OnPointsChanged(List<PointData> updatedPoints)
+    {
+        points = updatedPoints;
+        StateHasChanged();
+    }
+}
