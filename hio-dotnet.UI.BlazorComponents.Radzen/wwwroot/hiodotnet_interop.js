@@ -102,5 +102,112 @@ class HioHeatmapInterop {
     }
 }
 
+class HioJsonViewerInterop {
+    async loadJsonViewer() {
+        await import("https://unpkg.com/@alenaksu/json-viewer@2.1.0/dist/json-viewer.bundle.js");
+    }
+
+    initializeJsonViewer(elementId, jsonData) {
+        const selector = `#${CSS.escape(elementId)}`;
+        const jsonViewer = document.querySelector(selector);
+
+        if (jsonViewer) {
+            jsonViewer.data = JSON.parse(jsonData);
+            this.waitForShadowRoot(jsonViewer);
+        } else {
+            console.error(`Element s ID '${elementId}' nebyl nalezen.`);
+        }
+    }
+
+    waitForShadowRoot(jsonViewer) {
+        const intervalId = setInterval(() => {
+            if (jsonViewer.shadowRoot) {
+                clearInterval(intervalId);
+                this.observeShadowRoot(jsonViewer.shadowRoot);
+            } else {
+                console.log(`Čekám na vytvoření shadowRoot pro element s ID '${jsonViewer.id}'`);
+            }
+        }, 100);
+    }
+
+    observeShadowRoot(root) {
+        const observer = new MutationObserver((mutationsList) => {
+            mutationsList.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        this.addCopyButtonsToPrimitiveNodes(node);
+                    }
+                });
+            });
+        });
+
+        observer.observe(root, { childList: true, subtree: true });
+        this.addCopyButtonsToPrimitiveNodes(root);
+    }
+
+    addCopyButtonsToPrimitiveNodes(root) {
+        const primitiveElements = root.querySelectorAll(`[part^="primitive"]`);
+
+        primitiveElements.forEach((primitiveElement) => {
+            if (!primitiveElement.hasAttribute("data-copy-added")) {
+                primitiveElement.setAttribute("data-copy-added", "true");
+
+                const copyButton = document.createElement("span");
+                copyButton.textContent = "📋"; // copy icon
+                copyButton.style.cursor = "pointer";
+                copyButton.style.marginLeft = "5px";
+                copyButton.style.fontSize = "14px";
+
+                copyButton.onclick = () => {
+                    const textToCopy = primitiveElement.cloneNode(true);
+                    textToCopy.querySelector("span")?.remove();
+
+                    navigator.clipboard.writeText(textToCopy.textContent.trim())
+                        .then(() => {
+                            copyButton.textContent = "✔️";
+                            setTimeout(() => {
+                                copyButton.textContent = "📋";
+                            }, 1500);
+                        })
+                        .catch(err => console.error("Chyba kopírování:", err));
+                };
+
+                primitiveElement.appendChild(copyButton);
+            }
+        });
+    }
+
+    expand(elementId, path) {
+        const jsonViewer = document.querySelector(`#${CSS.escape(elementId)}`);
+        jsonViewer?.expand(path);
+    }
+
+    expandAll(elementId) {
+        const jsonViewer = document.querySelector(`#${CSS.escape(elementId)}`);
+        jsonViewer?.expandAll();
+    }
+
+    collapse(elementId, path) {
+        const jsonViewer = document.querySelector(`#${CSS.escape(elementId)}`);
+        jsonViewer?.collapse(path);
+    }
+
+    collapseAll(elementId) {
+        const jsonViewer = document.querySelector(`#${CSS.escape(elementId)}`);
+        jsonViewer?.collapseAll();
+    }
+
+    filter(elementId, filterText) {
+        const jsonViewer = document.querySelector(`#${CSS.escape(elementId)}`);
+        jsonViewer?.filter(filterText);
+    }
+
+    search(elementId, searchText) {
+        const jsonViewer = document.querySelector(`#${CSS.escape(elementId)}`);
+        jsonViewer?.search(searchText);
+    }
+}
+
 window.hiodotnet = new HioDotnetInterop()
 window.hioheatmap = new HioHeatmapInterop()
+window.hiojsonviewer = new HioJsonViewerInterop()

@@ -1,0 +1,54 @@
+﻿@using Microsoft.JSInterop
+
+@inject IJSRuntime JSRuntime
+
+<json-viewer id="@id" />
+
+@code {
+    private string id = $"{Guid.NewGuid().ToString().Split('-')[0]}";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("hiojsonviewer.loadJsonViewer");
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public async ValueTask Load(string data)
+    {
+        await JSRuntime.InvokeVoidAsync("hiojsonviewer.initializeJsonViewer", id, data);
+    }
+
+    public async ValueTask Expand(string path)
+    {
+        await JSRuntime.InvokeVoidAsync("hiojsonviewer.expand", id, path);
+    }
+
+    public async ValueTask ExpandAll()
+    {
+        await JSRuntime.InvokeVoidAsync("hiojsonviewer.expandAll", id);
+    }
+
+    public async ValueTask Collapse(string path)
+    {
+        await JSRuntime.InvokeVoidAsync("hiojsonviewer.collapse", id, path);
+    }
+
+    public async ValueTask CollapseAll()
+    {
+        await JSRuntime.InvokeVoidAsync("hiojsonviewer.collapseAll", id);
+    }
+
+    public async ValueTask Filter(string filter)
+    {
+        await JSRuntime.InvokeVoidAsync("hiojsonviewer.filter", id, filter);
+    }
+
+    public async ValueTask Search(string search)
+    {
+        await JSRuntime.InvokeVoidAsync("hiojsonviewer.search", id, search);
+    }
+}

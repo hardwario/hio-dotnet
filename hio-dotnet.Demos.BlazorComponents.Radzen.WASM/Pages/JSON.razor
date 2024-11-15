@@ -1,0 +1,31 @@
+﻿@using System.Text.Json
+@using hio_dotnet.UI.BlazorComponents.Radzen.Common.JSON
+@using hio_dotnet.Common.Models.CatalogApps.Meteo
+@using hio_dotnet.Common.Models.DataSimulation
+
+@page "/json"
+@inject HttpClient Http
+
+<PageTitle>JSON Viewer</PageTitle>
+
+<h1>JSON Viewer Example</h1>
+
+<JSONViewer @ref=jsonViewerRef />
+
+@code {
+    private JSONViewer? jsonViewerRef;
+    private ChesterMeteoCloudMessage chesterMeteoCloudMessage = new ChesterMeteoCloudMessage();
+    private string jsonData = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            BaseSimulator.GetSimulatedData(chesterMeteoCloudMessage);
+            jsonData = JsonSerializer.Serialize(chesterMeteoCloudMessage);
+
+            if (jsonViewerRef != null)
+                await jsonViewerRef.Load(jsonData);
+        }
+    }
+}

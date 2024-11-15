@@ -43,7 +43,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.UI.BlazorCompone
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.Demos.BlazorComponents.Radzen.WASM", "hio-dotnet.Demos.BlazorComponents.Radzen.WASM\hio-dotnet.Demos.BlazorComponents.Radzen.WASM.csproj", "{395ACA60-AD81-4F2E-B4EB-74440EE10ABD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.Demos.HardwarioMonitor", "hio-dotnet.Demos.HardwarioMonitor\hio-dotnet.Demos.HardwarioMonitor.csproj", "{576AF76C-8F76-42E4-89B5-6FF16FAD3D70}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.Demos.HardwarioMonitor", "hio-dotnet.Demos.HardwarioMonitor\hio-dotnet.Demos.HardwarioMonitor.csproj", "{576AF76C-8F76-42E4-89B5-6FF16FAD3D70}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
