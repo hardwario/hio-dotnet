@@ -1,0 +1,73 @@
+﻿@using System.Text.Json
+@using hio_dotnet.UI.BlazorComponents.Radzen.Common.JSON
+@using hio_dotnet.Common.Models.CatalogApps.Meteo
+@using hio_dotnet.Common.Models.DataSimulation
+
+@page "/json"
+@inject HttpClient Http
+
+<PageTitle>JSON Viewer</PageTitle>
+
+<h1>JSON Viewer Example</h1>
+
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenButton Text="Expand All" Click="@ExpandAll" />
+    </RadzenColumn>
+    <RadzenColumn>
+        <RadzenButton Text="Collapse All" Click="@CollapseAll" />
+    </RadzenColumn>
+    <RadzenColumn>
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenTextBox @bind-Value="filter" Placeholder="Filter" />
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenButton Text="Filter" Click="@(async () => await Filter(filter))" />
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenColumn>
+</RadzenRow>
+
+<RadzenRow>
+    <RadzenColumn>
+        <JSONViewer @ref=jsonViewerRef />
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    private JSONViewer? jsonViewerRef;
+    private ChesterMeteoCloudMessage chesterMeteoCloudMessage = new ChesterMeteoCloudMessage();
+    private string jsonData = string.Empty;
+    private string filter = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            BaseSimulator.GetSimulatedData(chesterMeteoCloudMessage);
+            jsonData = JsonSerializer.Serialize(chesterMeteoCloudMessage);
+
+            if (jsonViewerRef != null)
+                await jsonViewerRef.Load(jsonData);
+        }
+    }
+
+    private async Task ExpandAll()
+    {
+        if (jsonViewerRef != null)
+            await jsonViewerRef.ExpandAll();
+    }
+
+    private async Task CollapseAll()
+    {
+        if (jsonViewerRef != null)
+            await jsonViewerRef.CollapseAll();
+    }
+
+    private async Task Filter(string filter)
+    {
+        if (jsonViewerRef != null)
+            await jsonViewerRef.Filter(filter);
+    }
+}
