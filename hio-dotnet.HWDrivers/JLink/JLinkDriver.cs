@@ -26,15 +26,13 @@ namespace hio_dotnet.HWDrivers.JLink
             _mcu = mcu;
             _speed = speed;
 
-            JLink.Open();
+            CheckErrorCode(JLink.Open());
+
             SetMcuType(mcu);
-            JLink.TIF_Select(JLink.JLINKARM_TIF_SWD);
+            CheckErrorCode(JLink.TIF_Select(JLink.JLINKARM_TIF_SWD));
             JLink.SetSpeed(speed);
 
-            if (JLink.Connect() < 0)
-            {
-                throw new Exception("J-Link connection failed.");
-            }
+            CheckErrorCode(JLink.Connect());
 
             StartRtt();
             IsOpen = true;
@@ -47,6 +45,33 @@ namespace hio_dotnet.HWDrivers.JLink
         private int _speed = 4000;
         private uint flashStartAddress = 0x100000;
 
+        private void CheckErrorCode(int errorCode)
+        {
+            var error = (JLinkErrorCodes)errorCode;
+            if (error != JLinkErrorCodes.None)
+            {
+                if (error == JLinkErrorCodes.JLINK_ERR_VCC_FAILURE)
+                {
+                    throw new Exception("JLinkDriver>> Target power supply is not present.");
+                }
+                else if (error == JLinkErrorCodes.JLINK_ERR_NO_TARGET_DEVICE_SELECTED)
+                {
+                    throw new Exception("JLinkDriver>> No target device selected.");
+                }
+                else if (error == JLinkErrorCodes.JLINK_ERR_DLL_NOT_OPEN)
+                {
+                    throw new Exception("JLinkDriver>> JLink DLL is not open. Please check if the ./JLink/Driver/JLink_x64.dll is present.");
+                }
+                else if (error == JLinkErrorCodes.JLINK_ERR_NO_CPU_FOUND)
+                {
+                    throw new Exception("JLinkDriver>> No CPU found, please check the target type.");
+                }
+                else
+                {
+                    throw new Exception($"JLinkDriver>> Error Code: {error}");
+                }
+            }
+        }
 
         private void LogMessage(string message)
         {
@@ -74,16 +99,13 @@ namespace hio_dotnet.HWDrivers.JLink
             //JLink.Close();
             //System.Threading.Thread.Sleep(1000);
 
-            JLink.Open();
+            CheckErrorCode(JLink.Open());
             SetMcuType(_mcu);
-            JLink.TIF_Select(JLink.JLINKARM_TIF_SWD);
+            CheckErrorCode(JLink.TIF_Select(JLink.JLINKARM_TIF_SWD));
             JLink.SetSpeed(_speed);
 
-            if (JLink.Connect() < 0)
-            {
-                throw new Exception("J-Link re-connection failed.");
-            }
-
+            CheckErrorCode(JLink.Connect());
+            
             StartRtt();
             IsOpen = true;
         }
@@ -93,7 +115,7 @@ namespace hio_dotnet.HWDrivers.JLink
             string command = $"Device = {mcuType}";
             byte[] input = Encoding.ASCII.GetBytes(command);
             byte[] output = new byte[256];
-            JLink.ExecCommand(input, output, output.Length);
+            CheckErrorCode(JLink.ExecCommand(input, output, output.Length));
         }
 
         #region RTT
