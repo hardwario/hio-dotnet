@@ -19,6 +19,7 @@ using hio_dotnet.HWDrivers.PPK2;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -818,7 +819,6 @@ if(HIOCLOUDV2_TEST)
     }
 
     var messages = await hiocloudAPI.GetAllDeviceMessages(wall_space, specific_device);
-
     if (messages != null)
     {
         Console.WriteLine("\n");
@@ -855,7 +855,6 @@ if(HIOCLOUDV2_TEST)
 
     Console.WriteLine("Press key to quit...");
     Console.ReadKey();
-
 }
 
 #endregion
@@ -875,7 +874,7 @@ if (HIOCLOUDV2_TEST_DOWNLINK)
         buzzer = 5
     };
 
-    var res = await hiocloudAPI.AddNewDownlingMessage(new Guid(spaceid), 
+    var res = await hiocloudAPI.AddNewDownlinkMessage(new Guid(spaceid), 
                                                       new Guid(deviceid), 
                                                       data, 
                                                       HioCloudv2MessageType.Data);

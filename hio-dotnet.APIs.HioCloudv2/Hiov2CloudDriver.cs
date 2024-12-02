@@ -565,7 +565,7 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// <param name="message_type">Use HioCloudv2MessageType static class to get types</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task<HioCloudv2Message?> AddNewDownlingMessage(Guid space_id,
+        public async Task<HioCloudv2Message?> AddNewDownlinkMessage(Guid space_id,
                                                                     Guid device_id,
                                                                     object message_body,
                                                                     string message_type)
