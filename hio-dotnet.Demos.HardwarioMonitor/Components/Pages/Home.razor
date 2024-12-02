@@ -1,0 +1,272 @@
+﻿@using Services
+@page "/"
+
+@inject ConsoleService ConsoleService
+
+<RadzenCard>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" >
+
+        <RadzenRow>
+            @if (!ConsoleService.IsPPK2Connected())
+            {
+                <RadzenColumn>
+                    <RadzenButton Click="OnInitPPK2Handler">Init PPK2</RadzenButton>
+                </RadzenColumn>
+            }
+            else
+            {
+                <RadzenColumn>
+                    <RadzenButton Click="OnInitPPK2Handler" Disabled="true">Init PPK2</RadzenButton>
+                </RadzenColumn>
+            }
+            <RadzenColumn>
+                <RadzenRow>
+                    <RadzenColumn>
+                        <RadzenNumeric @bind-Value=Voltage Min="3300" Max="4000"></RadzenNumeric>
+                    </RadzenColumn>
+                    <RadzenColumn>
+                        <RadzenButton Click="SetPPK2Voltage">Set Voltage</RadzenButton>
+                    </RadzenColumn>
+                </RadzenRow>
+            </RadzenColumn>
+            @if (!ConsoleService.IsDeviceOn)
+            {
+                <RadzenColumn>
+                    <RadzenButton Click="StartPPK2">Turn On</RadzenButton>
+                </RadzenColumn>
+
+                <RadzenColumn>
+                    <RadzenButton Click="StartPPK2WithGraph">Turn On With Graph</RadzenButton>
+                </RadzenColumn>
+            }
+            else
+            {
+                <RadzenColumn>
+                    <RadzenButton Click="StopPPK2">Turn Off</RadzenButton>
+                </RadzenColumn>
+            }
+        </RadzenRow>
+
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenHeading Size="H2">Device Status</RadzenHeading>
+                <span>@ConsoleService.IsPPK2Connected()</span>
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenHeading Size="H2">Device Voltage</RadzenHeading>
+                <span>@ConsoleService.DeviceVoltage mV</span>
+            </RadzenColumn>
+        </RadzenRow>
+
+    </RadzenStack>
+</RadzenCard>
+
+<RadzenRow>
+    <RadzenColumn>
+        @if (!ConsoleService.IsConsoleListening)
+        {
+            <RadzenButton Click="OnInitConsoleHandler">Init Console</RadzenButton>
+        }
+        else
+        {
+            <RadzenButton Click="OnInitConsoleHandler" Disabled="true">Init Console</RadzenButton>
+        }
+    </RadzenColumn>
+</RadzenRow>
+
+<RadzenRow>
+    <RadzenColumn>
+        <ConsoleComponent @ref=consoleComponentRef Output="outputConfig" OnSendCommand="HandleSendCommand" />
+    </RadzenColumn>
+    <RadzenColumn>
+        <ConsoleComponent @ref=consoleComponentRef Output="output" HideCommandLine="true" />
+    </RadzenColumn>
+</RadzenRow>
+
+<RadzenRow>
+    <RadzenColumn>
+        <hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.Configs.LoRa.LoRaWANConfigCompleteForm @ref=LoRaConfigFormRef />
+    </RadzenColumn>
+</RadzenRow>
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenButton Click="ApplyLoRaSettings">Apply LoRa Settings</RadzenButton>
+    </RadzenColumn>
+</RadzenRow>
+
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenChart @ref=radzenChartRef>
+            <RadzenChartTooltipOptions Shared="@sharedTooltip" />
+            <RadzenLineSeries Smooth="@smooth" Data="@ConsoleService.dataPoints" CategoryProperty="Time" Title="Current" LineType="LineType.Solid" ValueProperty="Current">
+                <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Circle" />
+                <RadzenSeriesDataLabels Visible="@showDataLabels" />
+            </RadzenLineSeries>
+            <RadzenCategoryAxis Padding="20" />
+            <RadzenValueAxis Formatter="@FormatAsString">
+                <RadzenGridLines Visible="true" />
+                <RadzenAxisTitle Text="MircroAmpers" />
+            </RadzenValueAxis>
+        </RadzenChart>
+    </RadzenColumn>
+</RadzenRow>
+
+
+@code {
+    bool smooth = false;
+    bool sharedTooltip = false;
+    bool showDataLabels = false;
+    bool showMarkers = true;
+    RadzenChart? radzenChartRef;
+    hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.Configs.LoRa.LoRaWANConfigCompleteForm? LoRaConfigFormRef;
+
+    public DataPoint[] dataPoints = new DataPoint[2000];
+
+    private List<string> outputConfig = new List<string>();
+    private List<string> output = new List<string>();
+    ConsoleComponent? consoleComponentRef;
+
+    Timer? timer;
+
+    public int Voltage { get; set; } = 3300;
+
+    protected override void OnInitialized()
+    {
+        for (int i = 0; i < dataPoints.Length; i++)
+        {
+            dataPoints[i] = new DataPoint() { Time = i, Current = 0 };
+        }
+        ConsoleService.InitArrays();
+        ConsoleService.NewRTTMessageLineReceived += NewLineReceived;
+        ConsoleService.DataPointsReceived += DataPointsReceived;
+    }
+
+    string FormatAsString(object value)
+    {
+        return ((double)value).ToString();
+    }
+
+    public void DataPointsReceived(object sender, DataPoint[] data)
+    {
+        if (radzenChartRef != null)
+        {
+            /*
+            Array.Copy(ConsoleService.latestDataPoints, dataPoints, ConsoleService.latestDataPoints.Length);
+
+            for (int i = 0; i < dataPoints.Length; i++)
+                {
+                dataPoints[i].Time = i;
+            }
+            */
+            InvokeAsync(radzenChartRef.Reload);
+            //InvokeAsync(StateHasChanged);
+        }
+
+    }
+
+    public async Task Refresh()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task OnInitConsoleHandler()
+    {
+        await ConsoleService.StartListening();
+    }
+
+    public async Task OnInitPPK2Handler()
+    {
+        await ConsoleService.FindAndConnectPPK();
+    }
+
+    public async Task SetPPK2Voltage()
+    {
+        await ConsoleService.SetPPK2Voltage(Voltage);
+    }
+
+    public async Task StartPPK2()
+    {
+        await ConsoleService.TurnOnPower();
+        /*
+        timer = new Timer(async (e) => 
+            {
+            if (radzenChartRef != null)
+                await InvokeAsync(radzenChartRef.Reload);
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+    */
+    }
+
+    public async Task StartPPK2WithGraph()
+    {
+        await ConsoleService.TurnOnPower(true);
+    }
+
+    public async Task StopPPK2()
+    {
+        await ConsoleService.TurnOffPower();
+        timer?.Dispose();
+        timer = null;
+    }
+
+    public void NewLineReceived(object sender, Tuple<string, MultiRTTClientBase> data)
+    {
+        if (data?.Item2.Channel == 0)
+        {
+            var line = $"{data.Item1}";
+            Console.WriteLine(line);
+            InvokeAsync(async () =>
+            {
+                outputConfig.Add(line);
+
+                if (line.Contains("config") && LoRaConfigFormRef != null)
+                {
+                    if (line.Contains("lrw"))
+                        await LoRaConfigFormRef.ParseLine(line);
+                }
+
+                await InvokeAsync(StateHasChanged);
+            });
+        }
+        else if (data?.Item2.Channel == 1)
+        {
+            var line = $"MCU Log Message: {data.Item1}";
+            Console.WriteLine();
+            InvokeAsync(async () =>
+            {
+                output.Add(line);
+                await InvokeAsync(StateHasChanged);
+            });
+        }
+    }
+
+    private async Task ApplyLoRaSettings()
+    {
+        var cfg = string.Empty;
+        var lines = new List<string>();
+        if (LoRaConfigFormRef != null)
+            cfg = LoRaConfigFormRef.Config.GetWholeConfig();
+
+        // parse each line and send it as command
+        if (!string.IsNullOrEmpty(cfg))
+        {
+            lines = cfg.Split("\n").ToList();
+            foreach (var line in lines)
+            {
+                await ConsoleService.SendCommand(line);
+            }
+        }
+    }
+
+    private async Task HandleSendCommand(string command)
+    {
+        outputConfig.Add("> " + command);
+
+        if (command.Contains("config") && LoRaConfigFormRef != null)
+        {
+            LoRaConfigFormRef.Config.ParseLine(command);
+        }
+
+        await ConsoleService.SendCommand(command.ToLower().Trim() + "\n");
+    }
+
+}

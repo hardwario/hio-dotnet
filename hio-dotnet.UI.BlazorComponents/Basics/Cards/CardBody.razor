@@ -1,0 +1,9 @@
+﻿<div class="card-body" style="@Style">
+    @ChildContent
+</div>
+
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? Style { get; set; } = string.Empty;
+}

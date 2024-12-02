@@ -45,7 +45,7 @@ bld/
 [Ll]og/
 
 # NuGet Packages
-*.nupkg
+#*.nupkg
 # NuGet Packages Cache
 **/packages/*
 # except build/, which is used as an MSBuild target.

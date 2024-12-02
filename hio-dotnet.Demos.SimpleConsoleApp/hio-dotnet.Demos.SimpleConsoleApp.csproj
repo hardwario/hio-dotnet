@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>hio_dotnet.Demos.SimpleConsoleApp</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <DefineConstants>WINDOWS</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+    <DefineConstants>LINUX;OSX</DefineConstants>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\hio-dotnet.APIs.Chirpstack\hio-dotnet.APIs.Chirpstack.csproj" />
+    <ProjectReference Include="..\hio-dotnet.APIs.HioCloudv2\hio-dotnet.APIs.HioCloudv2.csproj" />
+    <ProjectReference Include="..\hio-dotnet.APIs.ThingsBoard\hio-dotnet.APIs.ThingsBoard.csproj" />
+    <ProjectReference Include="..\hio-dotnet.APIs.Wmbusmeters\hio-dotnet.APIs.Wmbusmeters.csproj" />
+    <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />
+    <ProjectReference Include="..\hio-dotnet.HWDrivers\hio-dotnet.HWDrivers.csproj" />
+    <ProjectReference Include="..\hio-dotnet.Tests.Common\hio-dotnet.Tests.Common.csproj" />
+  </ItemGroup>
+
+</Project>

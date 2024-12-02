@@ -1,0 +1,185 @@
+﻿@page "/"
+@using Shiny.BluetoothLE
+@using Shiny
+@using hio_dotnet.PhoneDrivers.BLE
+
+@inject ChesterBLEService BleService
+@inject NotificationService NotificationService
+
+<RadzenStack Orientation="Orientation.Vertical" Gap="1rem">
+    <!-- Loading overlay -->
+    @if (isBusy)
+    {
+        <RadzenCard Style="z-index: 3; text-align: center; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, .5)">
+            <div style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%;">
+                <RadzenProgressBarCircular ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+                    <Template>Wait</Template>
+                </RadzenProgressBarCircular>
+            </div>
+        </RadzenCard>
+    }
+
+    <RadzenButton Text="Scan QR Code" Click="@OpenQRScanner" />
+    <hr />
+
+    <SearchForChesters @ref=searchForChesterRef OnStartSearch="onStartSearchHandler" OnConnectToChester="onConnectToChesterHandler" />
+
+    @if (IsConnected && BleService.ConnectedPeripheral != null)
+    {
+        <RadzenText TextStyle="TextStyle.Body1">Is Connected to @BleService.ConnectedPeripheral.Name</RadzenText>
+        <RadzenButton Text="Get CHESTER Info" ButtonStyle="ButtonStyle.Primary" Click="() => GetChesterDescriptionData()" />
+        <hr />
+
+        @if (BleService.ConnectedDevice != null)
+        {
+            <RadzenStack Orientation="Orientation.Vertical" Gap="1rem">
+                <RadzenText Text="@($"Vendor Name: {BleService.ConnectedDevice.VendorName}")" />
+                <RadzenText Text="@($"Device Name: {BleService.ConnectedDevice.ProductName}")" />
+                <RadzenText Text="@($"Serial Number: {BleService.ConnectedDevice.SerialNumber}")" />
+                <RadzenText Text="@($"Hardware variant: {BleService.ConnectedDevice.HardwareVariant}")" />
+                <RadzenText Text="@($"Hardware Revision: {BleService.ConnectedDevice.HardwareRevision}")" />
+                <RadzenText Text="@($"Firmware Name: {BleService.ConnectedDevice.FirmwareName}")" />
+                <RadzenText Text="@($"Firmware Version: {BleService.ConnectedDevice.FirmwareVersion}")" />
+                <RadzenText Text="@($"Claim Token: {BleService.ConnectedDevice.ClaimToken}")" />
+                <RadzenText Text="@($"Bluetooth Address: {BleService.ConnectedDevice.BluetoothAddress}")" />
+                <RadzenText Text="@($"Bluetooth Key: {BleService.ConnectedDevice.BluetoothKey}")" />
+            </RadzenStack>
+        }
+    }
+    else
+    {
+        <RadzenText Text="Chester is not connected yet" />
+    }
+
+    <hr />
+    <EventConsole @ref=@console />
+</RadzenStack>
+
+@code {
+    private bool isBusy = false;
+    private SearchForChesters searchForChesterRef;
+    private EventConsole console;
+
+    public bool IsConnected { get => BleService.IsConnected; }
+
+    public string QRCode { get; set; } = string.Empty;
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (BleService != null && BleService.PeripherialsDict != null &&
+            BleService.PeripherialsDict.Count() > 0 && searchForChesterRef != null)
+            searchForChesterRef?.LoadChesters(BleService.PeripherialsDict.Keys.ToList());
+
+        if (MainDataContext.ScannedQRCode != QRCode)
+        {
+            QRCode = MainDataContext.ScannedQRCode;
+
+            if (!string.IsNullOrEmpty(QRCode))
+            {
+                ShowNotification(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Summary = "QR Code Readed",
+                        Detail = $"New QR Code Captured: {QRCode}",
+                        Duration = 4000
+                    });
+                console.Log($"New QRCode Captured: {QRCode}");
+            }
+        }
+
+        return base.OnAfterRenderAsync(firstRender);
+    }
+
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+
+        //console.Log($"{message.Severity} notification");
+    }
+
+    private async Task OpenQRScanner()
+    {
+        await Application.Current.MainPage.Navigation.PushAsync(new QRScannerPage());
+    }
+
+    private async Task onStartSearchHandler()
+    {
+        try
+        {
+            isBusy = true; // Enable loading indicator during search
+            StateHasChanged();
+
+            BleService.PeripherialsDictChanged += refresh;
+            BleService.Connected += connected;
+            BleService.DeviceDetialsLoaded += devicedetailsloaded;
+            await BleService.ScanForDevices();
+        }
+        finally
+        {
+            isBusy = false; // Disable loading indicator after search
+            StateHasChanged();
+        }
+    }
+
+    private void refresh(object sender, EventArgs e)
+    {
+        StateHasChanged();
+        searchForChesterRef?.LoadChesters(BleService.PeripherialsDict.Keys.ToList());
+    }
+
+    private async Task onConnectToChesterHandler(string chester)
+    {
+        if (!BleService.PeripherialsDict.ContainsKey(chester))
+            return;
+
+        try
+        {
+            isBusy = true; // Enable loading indicator during connection
+            StateHasChanged();
+
+            var per = BleService.PeripherialsDict[chester];
+            await ConnectToDevice(per);
+        }
+        finally
+        {
+            isBusy = false; // Disable loading indicator after connection
+            StateHasChanged();
+        }
+    }
+
+    private async Task ConnectToDevice(IPeripheral per)
+    {
+        await BleService.ConnectToDevice(per);
+    }
+
+    private async Task GetChesterDescriptionData()
+    {
+        if (BleService.ConnectedPeripheral != null)
+        {
+            try
+            {
+                isBusy = true; // Enable loading indicator while fetching Chester data
+                StateHasChanged();
+
+                await BleService.GetChesterDescriptionData(BleService.ConnectedPeripheral);
+            }
+            finally
+            {
+                isBusy = false; // Disable loading indicator after fetching Chester data
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void connected(object sender, EventArgs e)
+    {
+        isBusy = false; // Disable loading indicator after connection
+        StateHasChanged();
+    }
+
+    private void devicedetailsloaded(object sender, EventArgs e)
+    {
+        isBusy = false; // Disable loading indicator after data is loaded
+        StateHasChanged();
+    }
+}

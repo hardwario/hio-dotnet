@@ -1,93 +1,107 @@
-# hio-dotnet
+# HARDWARIO .NET SDK
 
+HARDWARIO .NET SDK project is here to help you with creating your custom application around the HARDWARIO ecosystem of IoT devices and services. 
 
+This SDK focuses to .NET C# developers mainly, but thanks to the simplicity and readibility of the C# it can help to programmers who uses different languages as well. 
 
-## Getting started
+SDK consists of several libraries and example projects which will be described below. 
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Please note that HARDWARIO .NET SDK is still under the development. We are happy to receive tips and bugreports if you would like to help us.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## Requirements
 
-## Add your files
+HARDWARIO .NET SDK is created in [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) (tested in actual Version 17.12.1) with [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) (updated to .NET 9 is in roadmap). 
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+Compilation and building MAUI applications for Android requires Installlation of [Android SDK](https://visualstudio.microsoft.com/vs/android/).
+
+We recommend to use Windows machine for the development, but project can be build on MacOS and Linux as well because the .NET 8 is multiplatform framework. Applications written in .NET 8 C# can run on all platforms (Windows, MacOS, Linux). [MAUI](https://dotnet.microsoft.com/en-us/apps/maui) Applications can run also on Android and iOS devices.
+
+UI Library uses [Radzen Component Library](https://blazor.radzen.com/?theme=material3). More information about the using this component library you can find in [Readme file for Hio-DotNet UI Component Library]().
+
+WebAssembly applications demos are part of the demo projects. You can run them in most of the modern web browsers without having the active web server. You need just webhosting for this type of applications. We usually test them in Chrome browser or Edge browser.
+
+## First Steps
+
+### Cloning the repository
+
+First step is to clone the repository to some local folder in your computer. You can do it with the command:
+```
+git clone https://github.com/hardwario/hio-dotnet.git
+```
+
+Then you can enter the project folder:
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.hardwario.com/tools/hio-dotnet.git
-git branch -M main
-git push -uf origin main
+cd hio-dotnet
+```
+where you will find the hio-dotnet.sln solution file. This file can be opened in the Visual Studio 2022.
+
+### Build the demo console application
+
+There are multiple demo applications. One of them is simple console application with multiple partial demos how to use parts of the SDK. All partial demos are turned off in default and you need to allow one or multiple of them by setting the proper variable to "true". Then you can run the build with command:
+
+```
+dotnet run --project "hio-dotnet.Demos.SimpleConsoleApp/hio-dotnet.Demos.SimpleConsoleApp.csp
+roj" --configuration Debug
 ```
 
-## Integrate with your tools
+As it is written above, the project has no sub-demo allowed by default so if you will not change it in the [Program.cs]() it will just write this (in case you are running it on Windows machine):
 
-- [ ] [Set up project integrations](https://gitlab.hardwario.com/tools/hio-dotnet/-/settings/integrations)
+```
+Running on Windows
+Program ends. Goodbye
+```
 
-## Collaborate with your team
+To discover more about the parts of the [Simple Console App Demo Please Continue with reading Here]().
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+## Projects in the Solution
 
-## Test and Deploy
+There are multiple projects in the solution:
 
-Use the built-in continuous integration in GitLab.
+### Demos
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+- [hio-dotnet.Demos.BlazorComponents.Radzen.WASM]() - Example WebAssembly app with the UI components with use of the Radzen Component Library
+- [hio-dotnet.Demos.BlazorComponents.WASM]() - Example WebAssembly app with the own basic UI components
+- [hio-dotnet.Demos.HardwarioManager]() - Example MAUI Blazor Hybrid App for phones which can search for and connect to [CHESTER]() device and communicate with it
+- [hio-dotnet.Demos.HardwarioMonitor]() - Example MAUI Blazor Hybrid App for desktop which can search and connect [SEGGER JLink programmer](https://www.segger.com/downloads/jlink/), [Nordic Semiconductor Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2) and connect the CHESTER device.
+- [hio-dotnet.Demos.SimpleConsoleApp]() - Simple console application with examples of using parts of the HARDWARIO .NET SDK.
 
-***
+### APIs
 
-# Editing this README
+- [hio-dotnet.APIs.HioCloudv2]() - Wrapper library for Official HARDWARIO Cloud version 2 API. 
+- [hio-dotnet.APIs.Chirpstack]() - Wrapper library for [Chirpstack](https://www.chirpstack.io/) LoRaWAN network Server API
+- [hio-dotnet.APIs.ThingsBoard]() - Wrapper library for [ThingsBoard](https://thingsboard.io/) Application API
+- [hio-dotnet.APIs.Wmbusmeters]() - Wrapper library for HARDWARIO instance of [wmbusmeters](https://github.com/wmbusmeters/wmbusmeters) application running on our server.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+### UI
 
-## Suggestions for a good README
+There are two basic UI Components library project in the HARDWARIO .NET SKD. One shows how you can create own wrappers for components to create own component library from scratch. Second (main) uses already existing component library called [Radzen](https://blazor.radzen.com/?theme=material3) to simplify the creating nice smooth responsive UIs.
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+- [hio-dotnet.UI.BlazorComponents]() - own UI components build from scratch
+- [hio-dotnet.UI.BlazorComponents.Radzen]() - UI components build with use of Radzen component library
 
-## Name
-Choose a self-explaining name for your project.
+### Other Projects
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+- [hio-dotnet.Common]() - basic models, helpers and classes usefull across all other projects, this project includes models of all [CHESTER Catalog Applications](https://www.hardwario.com/chester/catalog-applications) output data models and other usefull classes.
+- [hio-dotnet.HWDrivers]() - hardware dependent drivers such as [SEGGER JLink](https://www.segger.com/downloads/jlink/) and [Nordic Semiconductors Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2)
+- [hio-dotnet.PhoneDrivers] - library with phone dependend drivers such as Bluetooth Low Energy driver.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+### Test project
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+- [hio-dotnet.Tests.Common]() - main test project with use of [xUnit test framework](https://xunit.net/docs/getting-started/v2/netfx/visual-studio).
 
 ## License
-For open source projects, say how it is licensed.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+This project is under standard MIT license.
+
+## Contribution
+
+We welcome any contribution to the project. There are multiple ways how to contribute:
+
+- Testing and creating issues for bugs or features. 
+- Improving the library with pull requests
+- Bringing ideas for new features
+
+## Do you need help?
+
+If you need help please feel free to contact us via [form on our website](https://www.hardwario.com/contact).

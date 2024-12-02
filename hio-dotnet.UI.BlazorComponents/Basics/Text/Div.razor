@@ -1,0 +1,45 @@
+﻿<div class="@GetDivClass() @Class" style="@Style">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public TextSize Size { get; set; } = TextSize.Medium;
+    [Parameter] public Color TextColor { get; set; } = Color.Default;
+    [Parameter] public Color BackgroundColor { get; set; } = Color.Default;
+    [Parameter] public string? Class { get; set; } = string.Empty;
+    [Parameter] public string? Style { get; set; } = string.Empty;
+
+    private string GetDivClass()
+    {
+        var classes = string.Empty;
+
+        switch (Size)
+        {
+            case TextSize.ExtraSmall:
+                classes += " text-xs";
+                break;
+            case TextSize.Small:
+                classes += " text-sm";
+                break;
+            case TextSize.Medium:
+                classes += " text-base";
+                break;
+            case TextSize.Large:
+                classes += " text-lg";
+                break;
+        }
+
+        if (TextColor != Color.Default)
+        {
+            classes += $" text-{TextColor.ToString().ToLower()}";
+        }
+
+        if (BackgroundColor != Color.Default)
+        {
+            classes += $" bg-{BackgroundColor.ToString().ToLower()}";
+        }
+
+        return classes.Trim();
+    }
+}

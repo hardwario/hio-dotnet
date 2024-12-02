@@ -1,0 +1,117 @@
+﻿@using hio_dotnet.UI.BlazorComponents.Basics.Frames
+@using hio_dotnet.UI.BlazorComponents.Basics.Buttons
+@using hio_dotnet.UI.BlazorComponents.Basics.Edits
+@using hio_dotnet.UI.BlazorComponents.Basics.Cards
+@using hio_dotnet.UI.BlazorComponents.Basics.Text
+@using hio_dotnet.UI.BlazorComponents.Basics
+
+<h4>Console</h4>
+<hr />
+
+<Div Class="console-container">
+    <Row Width="RowWidth.Full">
+        <Column CWidth="ColumnWidth.Twelve" Style="display: flex; flex-direction: column; flex-grow: 1;">
+            <Card Class="console-card" BackgroundColor="Color.Dark" Style="flex-grow: 1; display: flex; flex-direction: column;">
+                <CardBody Style="flex-grow: 1; display: flex; flex-direction: column;">
+                    <Div class="console-output">
+                        @foreach (var line in Output)
+                        {
+                            <Div><Small TextColor="Color.Light" Style="font-size:8px;">@line</Small></Div>
+                        }
+                    </Div>
+                </CardBody>
+            </Card>
+            <!-- Input area -->
+            <Row Width="RowWidth.Full">
+                <Column CWidth="ColumnWidth.Twelve">
+                    <Row Width="RowWidth.Full" AlignItems="AlignItems.End" JustifyContent="JustifyContent.Center">
+                        <Column CWidth="ColumnWidth.Ten">
+                            <TextEdit Value="@command" ValueChanged="OnCommandValueChangedHandler" Placeholder="Type command" @onkeydown="HandleKeyDown" />
+                        </Column>
+                        <Column CWidth="ColumnWidth.Two" AlignSelf="AlignSelf.End" TextAlignment="TextAlignment.Center">
+                            <Button OnClick="SendCommand">Send</Button>
+                        </Column>
+                    </Row>
+                </Column>
+            </Row>
+        </Column>
+    </Row>
+</Div>
+<style>
+    .console-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh; /* Adjust as needed */
+    }
+
+    .console-card {
+        color: #d4d4d4;
+        font-family: monospace;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .console-output {
+        flex-grow: 1;
+        overflow-y: auto;
+        min-height: @(GetMinHeight());
+        max-height: @(GetMaxHeight());
+    }
+</style>
+
+@code {
+    [Parameter] public EventCallback<string> OnSendCommand { get; set; }
+    [Parameter] public EventCallback<string> OnNewLineReceived { get; set; }
+    [Parameter] public List<string> Output { get; set; } = new List<string>();
+    [Parameter] public int MinHeight { get; set; } = 500;
+    [Parameter] public int MaxHeight { get; set; } = 500;
+
+    private string GetMinHeight() => $"{MinHeight}px";
+    private string GetMaxHeight() => $"{MaxHeight}px";
+
+    private string command = string.Empty;
+    private int historyIndex = -1;
+    private List<string> commandHistory = new List<string>();
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SendCommand();
+        }
+        else if (e.Key == "ArrowUp")
+        {
+            NavigateHistory(1);
+        }
+        else if (e.Key == "ArrowDown")
+        {
+            NavigateHistory(-1);
+        }
+    }
+
+    private void OnCommandValueChangedHandler(string text)
+    {
+        command = text;
+    }
+
+    private async Task SendCommand()
+    {
+        if (!string.IsNullOrEmpty(command))
+        {
+            commandHistory.Insert(0, command);
+            historyIndex = -1;
+            await OnSendCommand.InvokeAsync(command);
+            command = string.Empty;
+        }
+    }
+
+    private void NavigateHistory(int direction)
+    {
+        if (commandHistory.Count == 0) return;
+
+        historyIndex = Math.Clamp(historyIndex + direction, -1, commandHistory.Count - 1);
+
+        command = historyIndex >= 0 ? commandHistory[historyIndex] : string.Empty;
+    }
+}

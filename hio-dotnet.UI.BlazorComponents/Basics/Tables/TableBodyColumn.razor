@@ -1,0 +1,12 @@
+﻿<td class="@Class" style="@Style" colspan="@ColSpan" rowspan="@RowSpan">
+    @ChildContent
+</td>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public int? ColSpan { get; set; }
+    [Parameter] public int? RowSpan { get; set; }
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public string Style { get; set; } = string.Empty;
+}
+

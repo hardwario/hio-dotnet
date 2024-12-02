@@ -1,0 +1,39 @@
+﻿<div class="@GetCardClass()" style="@Style">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public Color BackgroundColor { get; set; } = Color.Default;
+    [Parameter] public Color BorderColor { get; set; } = Color.Default;
+    [Parameter] public Color TextColor { get; set; } = Color.Default;
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public string? Style { get; set; } = string.Empty;
+
+    private string GetCardClass()
+    {
+        var classes = "card";
+
+        if (BackgroundColor != Color.Default)
+        {
+            classes += $" bg-{BackgroundColor.ToString().ToLower()}";
+        }
+
+        if (BorderColor != Color.Default)
+        {
+            classes += $" border-{BorderColor.ToString().ToLower()}";
+        }
+
+        if (TextColor != Color.Default)
+        {
+            classes += $" text-{TextColor.ToString().ToLower()}";
+        }
+
+        if (!string.IsNullOrWhiteSpace(Class))
+        {
+            classes += $" {Class}";
+        }
+
+        return classes;
+    }
+}

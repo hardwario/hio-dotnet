@@ -1,0 +1,71 @@
+﻿@using System.Text.RegularExpressions
+@inject NotificationService NotificationService
+
+<div class="rz-p-12 @getAlign()">
+    <RadzenFieldset Text="JoinEUI">
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenTextBox Name="JoinEUI" Value=@Value ValueChanged="@OnValueChangedHandler"
+                               Placeholder="Enter JoinEUI"
+                               Style="@getStyle()" />
+                <RadzenRequiredValidator Component="JoinEUI" Text="JoinEUI is required" />
+                <RadzenCustomValidator Component="JoinEUI" Text="Invalid JoinEUI. Must be 16 hex characters." Validator=@(() => ValidateJoinEUI(Value)) Popup="@true" />
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenFieldset>
+</div>
+
+@code {
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public string Align { get; set; } = "center";
+    private bool isValid = true; // To track validity
+
+    private string getStyle()
+    {
+        var strbase = "display: block; width: 100%; background-color:";
+        if (isValid)
+            return strbase + "white";
+        else
+            return strbase + "lightpink";
+        return strbase;
+    }
+
+    public bool ValidateJoinEUI(object value)
+    {
+        string input = value as string;
+        var res = !string.IsNullOrEmpty(input) && Regex.IsMatch(input, @"^[0-9A-Fa-f]{16}$");
+        isValid = res; // Update validity flag
+        if (!res)
+        {
+            NotificationService.Notify(
+            new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Wrong JoinEUI Format",
+                    Detail = $"JoinEUI must be 16 hex characters. Do not use '-' between hexs.",
+                    Duration = 2000
+                });
+        }
+        return res;
+    }
+
+    private async Task OnValueChangedHandler(string value)
+    {
+        Value = value;
+        if (ValidateJoinEUI(value))
+        {
+            await ValueChanged.InvokeAsync(value);
+        }
+    }
+
+    public string getAlign()
+    {
+        if (Align == "left")
+            return "rz-text-align-start";
+        else if (Align == "right")
+            return "rz-text-align-end";
+        else
+            return "rz-text-align-center";
+    }
+}

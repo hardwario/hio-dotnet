@@ -1,0 +1,375 @@
+﻿@using System.Globalization
+@using Microsoft.AspNetCore.Components.Rendering
+@using System.Threading.Tasks
+@using Microsoft.JSInterop
+
+@inject IJSRuntime JS
+
+@if (!isSettingActivated)
+{
+    <svg id="heatmapSvg" width="@(Width * Zoom)" height="@(Height * Zoom)">
+        @if (!string.IsNullOrEmpty(imageSource))
+        {
+            <image href="@imageSource" width="@(Width * Zoom)" height="@(Height * Zoom)" />
+        }
+
+        @if (IsEditEnabled)
+        {
+            <!--Edit icon-->
+            <foreignObject x="@(Width * Zoom - 90 * Zoom)" y="50" width="@(40 * Zoom)" height="@(40 * Zoom)">
+                <button @onclick="() => isSettingActivated = !isSettingActivated" style="background:none;border:none;cursor:pointer;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="@(30 * Zoom)" height="@(30 * Zoom)" fill="currentColor" class="bi bi-pencil" viewBox="0 0 30 30">
+                        <g stroke-width="0"></g>
+                        <g stroke-linecap="round" stroke-linejoin="round"></g>
+                        <g> <title></title> <g id="Complete"> <g id="edit"> <g> <path d="M20,16v4a2,2,0,0,1-2,2H4a2,2,0,0,1-2-2V6A2,2,0,0,1,4,4H8" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path> <polygon fill="none" points="12.5 15.8 22 6.2 17.8 2 8.3 11.5 8 16 12.5 15.8" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></polygon> </g> </g> </g> </g>
+                    </svg>
+                </button>
+            </foreignObject>
+        }
+
+        @if (IsExportEnabled)
+        {
+            <!--Download image icon-->
+            <foreignObject x="@(Width * Zoom - 60 * Zoom)" y="49" width="@(40 * Zoom)" height="@(40 * Zoom)">
+                <button @onclick="SaveAsSVG" style="background:none;border:none;cursor:pointer;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="@(24 * Zoom)" height="@(24 * Zoom)" fill="currentColor" class="bi bi-pencil" viewBox="0 0 24 24">
+                        <g stroke-width="0"></g>
+                        <g stroke-linecap="round" stroke-linejoin="round"></g>
+                        <g> <g id="Interface / Download"> <path id="Vector" d="M6 21H18M12 3V17M12 17L17 12M12 17L7 12" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g>
+                    </svg>
+                </button>
+            </foreignObject>
+        }
+
+        @for (int x = 0; x < Width; x += GridStep)
+        {
+            for (int y = 0; y < Height; y += GridStep)
+            {
+                var intensity = CalculateGridIntensity(x, y);
+                if (intensity > 0.01)
+                {
+                    <rect x="@(x * Zoom)" y="@(y * Zoom)" width="@(GridStep * Zoom)" height="@(GridStep * Zoom)"
+                            fill="@colorCache[intensity]" opacity="@(intensity * DefaultOpacity)" />
+                }
+            }
+        }
+    </svg>
+}
+else
+{
+    <svg id="heatmapSvg" width="@(Width * Zoom)" height="@(Height * Zoom)" @onmousemove="OnMouseMove" @onmouseup="OnMouseUp">
+        @if (!string.IsNullOrEmpty(imageSource))
+        {
+            <image href="@imageSource" width="@(Width * Zoom)" height="@(Height * Zoom)" />
+        }
+
+        @if (IsEditEnabled)
+        {
+            <!--Save Edits-->
+            <foreignObject x="@(Width * Zoom - 90 * Zoom)" y="50" width="@(40 * Zoom)" height="@(40 * Zoom)">
+                <button @onclick="() => isSettingActivated = !isSettingActivated" style="background:none;border:none;cursor:pointer;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="@(20 * Zoom)" height="@(20 * Zoom)" fill="currentColor" class="bi bi-pencil" viewBox="0 0 32 32">
+                        <g stroke-width="0"></g>
+                        <g stroke-linecap="round" stroke-linejoin="round"></g>
+                        <g> <path d="M26 0H6a6 6 0 0 0-6 6v20a6 6 0 0 0 6 6h20a6 6 0 0 0 6-6V6a6 6 0 0 0-6-6zm-6 2v3a1 1 0 1 0 2 0V2h1v7H9V2zm10 24a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4h1v8a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V2h1a4 4 0 0 1 4 4zM24 14H8a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V15a1 1 0 0 0-1-1zm-1 12H9V16h14zM12 20h8a1 1 0 0 0 0-2h-8a1 1 0 0 0 0 2zM12 24h8a1 1 0 0 0 0-2h-8a1 1 0 0 0 0 2z"></path> </g>
+                    </svg>
+                </button>
+            </foreignObject>
+        }
+        @if (IsExportEnabled)
+        {
+            <!--Download image icon-->
+            <foreignObject x="@(Width * Zoom - 60 * Zoom)" y="49" width="@(40 * Zoom)" height="@(40 * Zoom)">
+                <button @onclick="SaveAsSVG" style="background:none;border:none;cursor:pointer;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="@(24 * Zoom)" height="@(24 * Zoom)" fill="currentColor" class="bi bi-pencil" viewBox="0 0 24 24">
+                        <g stroke-width="0"></g>
+                        <g stroke-linecap="round" stroke-linejoin="round"></g>
+                        <g> <g id="Interface / Download"> <path id="Vector" d="M6 21H18M12 3V17M12 17L17 12M12 17L7 12" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g>
+                    </svg>
+                </button>
+            </foreignObject>
+        }
+
+        @foreach (var point in Points)
+        {
+            @for (int i = CircleLayers - 1; i >= 0; i--)
+            {
+                var layerRadius = Radius * (i + 1) / CircleLayers;
+                var opacity = CalculateLayerOpacity(i);
+
+                <circle cx="@point.X" cy="@point.Y" r="@layerRadius"
+                        fill="@CalculateColor(point.Value, opacity, layerRadius, Radius)"
+                        opacity="@opacity"
+                        @onmousedown="(e => OnMouseDown(e, point))" />
+            }
+        }
+    </svg>
+}
+
+@code {
+    //Calculation logic based on https://github.com/RainkLH/HeatMapSharp/tree/master
+
+    [Parameter] public string? ImageSource { get; set; }
+    [Parameter] public List<PointData> Points { get; set; } = new List<PointData>();
+    [Parameter] public int Width { get; set; } = 800;
+    [Parameter] public int Height { get; set; } = 600;
+    [Parameter] public double Radius { get; set; } = 60.0;
+    [Parameter] public double Intensity { get; set; } = 1.0;
+    [Parameter] public double DefaultOpacity { get; set; } = 0.5;
+    [Parameter] public int GridStep { get; set; } = 1;
+    [Parameter] public double Zoom { get; set; } = 1.0;
+    [Parameter] public bool IsEditEnabled { get; set; } = true;
+    [Parameter] public bool IsExportEnabled { get; set; } = true;
+    [Parameter] public int HoverRange { get; set; } = 25;
+
+    [Parameter] public EventCallback<List<PointData>> PointsChanged { get; set; }
+
+    private bool isSettingActivated = false;
+
+    private string imageSource = string.Empty;
+    private double[,] heatValues;
+    private double[,] kernel;
+    private Dictionary<double, string> colorCache = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+
+        heatValues = new double[Height / GridStep, Width / GridStep];
+        kernel = GenerateGaussianKernel();
+        InitializeHeatValues();
+        PrecomputeColorCache();
+
+        if (ImageSource != null)
+        {
+            string base64Image = await GetImageAsBase64(ImageSource);
+            imageSource = $"data:image/png;base64,{base64Image}";
+        }
+
+        await base.OnParametersSetAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await JS.InvokeVoidAsync("hioheatmap.setUpMouseTracking", Points, Zoom, HoverRange);
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task SaveAsSVG()
+    {
+        await JS.InvokeVoidAsync("hiodotnet.downloadSvgAsFile", "heatmapSvg", "heatmap.svg");
+    }
+
+    private async Task<string> GetImageAsBase64(string imageUrl)
+    {
+        return await JS.InvokeAsync<string>("hiodotnet.convertImageToBase64", imageUrl);
+    }
+
+    #region SmoothHeatmap
+
+    private void InitializeHeatValues()
+    {
+        Parallel.ForEach(Points, point =>
+        {
+            ApplyGaussianKernel(point);
+        });
+        NormalizeHeatValues();
+    }
+
+    private void ApplyGaussianKernel(PointData point)
+    {
+        int centerX = (int)(point.X / GridStep);
+        int centerY = (int)(point.Y / GridStep);
+
+        for (int i = 0; i < kernel.GetLength(0); i++)
+        {
+            for (int j = 0; j < kernel.GetLength(1); j++)
+            {
+                int gridX = centerX + i - kernel.GetLength(0) / 2;
+                int gridY = centerY + j - kernel.GetLength(1) / 2;
+
+                if (gridX >= 0 && gridX < heatValues.GetLength(1) && gridY >= 0 && gridY < heatValues.GetLength(0))
+                {
+                    heatValues[gridY, gridX] += kernel[i, j] * point.Value * Intensity;
+                }
+            }
+        }
+    }
+
+    private double[,] GenerateGaussianKernel()
+    {
+        int size = (int)(Radius * 2 / GridStep);
+        double sigma = Radius / 3.0;
+        double[,] kernel = new double[size, size];
+        int center = size / 2;
+
+        for (int i = 0; i < size; i++)
+        {
+            for (int j = 0; j < size; j++)
+            {
+                int x = i - center;
+                int y = j - center;
+                kernel[i, j] = Math.Exp(-(x * x + y * y) / (2 * sigma * sigma)) / (2 * Math.PI * sigma * sigma);
+            }
+        }
+        return kernel;
+    }
+
+    private void NormalizeHeatValues()
+    {
+        double max = 0.0;
+        foreach (var value in heatValues)
+        {
+            if (value > max) max = value;
+        }
+
+        for (int i = 0; i < heatValues.GetLength(0); i++)
+        {
+            for (int j = 0; j < heatValues.GetLength(1); j++)
+            {
+                heatValues[i, j] /= max;
+            }
+        }
+    }
+
+    private double CalculateGridIntensity(int x, int y)
+    {
+        int gridX = x / GridStep;
+        int gridY = y / GridStep;
+
+        if (gridY >= 0 && gridY < heatValues.GetLength(0) && gridX >= 0 && gridX < heatValues.GetLength(1))
+            return Math.Round(heatValues[gridY, gridX], 2);
+        else
+            return 0.0;
+    }
+
+    private void PrecomputeColorCache()
+    {
+        colorCache.Clear();
+        for (double intensity = 0.0; intensity <= 1.0; intensity += 0.01)
+        {
+            double roundedIntensity = Math.Round(intensity, 2);
+            colorCache[roundedIntensity] = CalculateColor(roundedIntensity, DefaultOpacity);
+        }
+
+        if (!colorCache.ContainsKey(1.0))
+        {
+            colorCache[1.0] = CalculateColor(1.0, DefaultOpacity);
+        }
+    }
+
+    private string CalculateColor(double intensity, double opacity)
+    {
+        var colors = new (int R, int G, int B)[] {
+            (0, 255, 255),  // Azure
+            (0, 128, 255),  // Blue
+            (0, 0, 255),    // Dark Blue
+            (0, 255, 0),    // Green
+            (255, 255, 0),  // Yellow
+            (255, 128, 0),  // Orange
+            (255, 0, 0)     // Red
+    };
+
+        int colorIndex = (int)(intensity * (colors.Length - 1));
+        double blend = (intensity * (colors.Length - 1)) - colorIndex;
+
+        var (r1, g1, b1) = colors[colorIndex];
+        var (r2, g2, b2) = colors[Math.Min(colorIndex + 1, colors.Length - 1)];
+
+        int r = (int)(r1 + (r2 - r1) * blend);
+        int g = (int)(g1 + (g2 - g1) * blend);
+        int b = (int)(b1 + (b2 - b1) * blend);
+
+        return $"rgba({r}, {g}, {b}, {opacity.ToString(CultureInfo.InvariantCulture)})";
+    }
+
+    // using of this like this: @RenderLoadingText("Loading...", Width * Zoom / 2, Height * Zoom / 2)
+    private RenderFragment RenderLoadingText(string text, double x, double y) => builder =>
+    {
+        builder.OpenElement(0, "text");
+        builder.AddAttribute(1, "x", x);
+        builder.AddAttribute(2, "y", y);
+        builder.AddAttribute(3, "text-anchor", "middle");
+        builder.AddAttribute(4, "font-size", 20 * Zoom);
+        builder.AddAttribute(5, "fill", "black");
+        builder.AddContent(6, text);
+        builder.CloseElement();
+    };
+
+    #endregion
+
+    #region SettingHeatmap
+
+    private int CircleLayers => 10;
+
+    private PointData? selectedPoint;
+    private bool isDragging = false;
+
+    private void OnMouseDown(MouseEventArgs e, PointData point)
+    {
+        selectedPoint = point;
+        isDragging = true;
+    }
+
+    private async Task OnMouseMove(MouseEventArgs e)
+    {
+        if (isDragging && selectedPoint != null)
+        {
+            selectedPoint.X = e.OffsetX;
+            selectedPoint.Y = e.OffsetY;
+
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task OnMouseUp(MouseEventArgs e)
+    {
+        if (isDragging)
+        {
+            isDragging = false;
+
+            await PointsChanged.InvokeAsync(Points);
+            selectedPoint = null;
+        }
+    }
+
+    private string CalculateColor(double value, double opacity, double layerRadius, double maxRadius)
+    {
+        double normalizedValue = Math.Min(1, value * Intensity);
+
+        double radiusFactor = layerRadius / maxRadius;
+        double adjustedValue = normalizedValue * (1 - radiusFactor);
+
+        var colors = new (int R, int G, int B)[]
+        {
+        (0, 255, 0),    // Green
+        (255, 255, 0),  // Yellow
+        (255, 165, 0),  // Orange
+        (255, 0, 0)     // Red
+        };
+
+        int colorIndex = (int)(adjustedValue * (colors.Length - 1));
+        double blend = (adjustedValue * (colors.Length - 1)) - colorIndex;
+
+        var (r1, g1, b1) = colors[colorIndex];
+        var (r2, g2, b2) = colors[Math.Min(colorIndex + 1, colors.Length - 1)];
+
+        int r = (int)(r1 + (r2 - r1) * blend);
+        int g = (int)(g1 + (g2 - g1) * blend);
+        int b = (int)(b1 + (b2 - b1) * blend);
+
+        return $"rgba({r}, {g}, {b}, {(opacity).ToString(CultureInfo.InvariantCulture)})";
+    }
+
+    private double CalculateLayerOpacity(int layerIndex)
+    {
+        double baseOpacity = -DefaultOpacity;
+        double layerEffect = 1.0 - ((double)layerIndex / CircleLayers);
+
+        double opacity = baseOpacity + (layerEffect * (1.0 - baseOpacity));
+
+        return Math.Max(0.1, opacity);
+    }
+
+    #endregion
+}

@@ -1,0 +1,23 @@
+﻿<div class="@GetContainerClass()" style="@Style">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public ContainerType Type { get; set; } = ContainerType.Default;
+    [Parameter] public string? CustomClass { get; set; } // For custom container classes
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public string Style { get; set; } = string.Empty;
+
+    private string GetContainerClass()
+    {
+        var baseClass = Type switch
+        {
+            ContainerType.Fluid => "container-fluid",
+            ContainerType.Custom => CustomClass ?? "container",
+            _ => "container"
+        };
+
+        return $"{baseClass} {Class}".Trim();
+    }
+}

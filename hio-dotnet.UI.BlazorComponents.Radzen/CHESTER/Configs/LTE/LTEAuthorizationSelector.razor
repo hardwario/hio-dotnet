@@ -1,0 +1,33 @@
+﻿@using hio_dotnet.Common.Enums.LTE
+
+<div class="rz-p-12 @getAlign()">
+    <RadzenRadioButtonList Value=@Value TValue="LTEAuthType" ValueChanged="OnValueChangedHandler">
+        <Items>
+            <RadzenRadioButtonListItem Text="None" Value="LTEAuthType.None" />
+            <RadzenRadioButtonListItem Text="PAP" Value="LTEAuthType.PAP" />
+            <RadzenRadioButtonListItem Text="CHAP" Value="LTEAuthType.CHAP" />
+        </Items>
+    </RadzenRadioButtonList>
+</div>
+
+@code {
+    [Parameter] public LTEAuthType Value { get; set; } = LTEAuthType.None;
+    [Parameter] public EventCallback<LTEAuthType> ValueChanged { get; set; }
+    [Parameter] public string Align { get; set; } = "center";
+
+    private void OnValueChangedHandler(LTEAuthType value)
+    {
+        Value = value;
+        ValueChanged.InvokeAsync(value);
+    }
+
+    public string getAlign()
+    {
+        if (Align == "left")
+            return "rz-text-align-start";
+        else if (Align == "right")
+            return "rz-text-align-end";
+        else
+            return "rz-text-align-center";
+    }
+}

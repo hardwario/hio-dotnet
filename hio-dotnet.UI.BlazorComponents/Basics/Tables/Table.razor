@@ -1,0 +1,58 @@
+﻿<table class="@GetTableClass()" style="width: @(GetWidthStyle()); @CustomStyle">
+    @ChildContent
+</table>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public TableWidth Width { get; set; } = TableWidth.Auto;
+    [Parameter] public string? CustomWidth { get; set; } // For custom width values, e.g., "75%"
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public string CustomStyle { get; set; } = string.Empty;
+    [Parameter] public TableVariant Variant { get; set; } = TableVariant.Default;
+
+    private string GetTableClass()
+    {
+        var classes = "table";
+
+        switch (Variant)
+        {
+            case TableVariant.Striped:
+                classes += " table-striped";
+                break;
+            case TableVariant.Bordered:
+                classes += " table-bordered";
+                break;
+            case TableVariant.Hover:
+                classes += " table-hover";
+                break;
+            case TableVariant.Condensed:
+                classes += " table-sm";
+                break;
+            case TableVariant.Custom:
+                // Custom styling, no additional classes
+                break;
+            default:
+                break;
+        }
+
+        if (!string.IsNullOrWhiteSpace(Class))
+        {
+            classes += $" {Class}";
+        }
+
+        return classes;
+    }
+
+    private string GetWidthStyle()
+    {
+        return Width switch
+        {
+            TableWidth.Full => "100%",
+            TableWidth.Half => "50%",
+            TableWidth.Quarter => "25%",
+            TableWidth.Auto => "auto",
+            TableWidth.Custom => CustomWidth ?? "auto",
+            _ => "auto"
+        };
+    }
+}

@@ -1,0 +1,24 @@
+﻿<button @onclick="OnClick" class="@GetButtonCssClass()" style="width:@Width; height:@Height;" id="@Id" disabled="@IsDisabled">
+    @ChildContent
+</button>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    //[Parameter] public string Text { get; set; } = "Click Me";
+    [Parameter] public EventCallback OnClick { get; set; }
+    [Parameter] public Color Variant { get; set; } = Color.Primary;
+    [Parameter] public string Width { get; set; } = "auto";
+    [Parameter] public string Height { get; set; } = "auto";
+    [Parameter] public bool IsDisabled { get; set; } = false;
+    [Parameter] public string CssClass { get; set; } = "";
+    [Parameter] public string Id { get; set; } = string.Empty;
+    [Parameter] public bool IsOutline { get; set; } = false;
+    [Parameter] public bool IsBlock { get; set; } = false;
+
+    private string GetButtonCssClass()
+    {
+        var variantClass = IsOutline ? $"btn-outline-{Variant.ToString().ToLower()}" : $"btn-{Variant.ToString().ToLower()}";
+        var blockClass = IsBlock ? "btn-block" : string.Empty;
+        return $"btn {variantClass} {blockClass} {CssClass}".Trim();
+    }
+}

@@ -1,0 +1,80 @@
+﻿<div class="@GetRowClass()" style="width: @(GetWidthStyle()) @Style">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RowWidth Width { get; set; } = RowWidth.Auto;
+    [Parameter] public string? CustomWidth { get; set; } // For custom width values, e.g., "75%"
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public string? Style { get; set; } = string.Empty;
+
+    // New Parameters for Justification and Alignment
+    [Parameter] public JustifyContent JustifyContent { get; set; } = JustifyContent.None;
+    [Parameter] public AlignItems AlignItems { get; set; } = AlignItems.None;
+
+    private string GetRowClass()
+    {
+        var classes = "row";
+
+        // Add Justify Content class if specified
+        if (JustifyContent != JustifyContent.None)
+        {
+            classes += $" justify-content-{GetJustifyContentClass()}";
+        }
+
+        // Add Align Items class if specified
+        if (AlignItems != AlignItems.None)
+        {
+            classes += $" align-items-{GetAlignItemsClass()}";
+        }
+
+        // Add additional classes if provided
+        if (!string.IsNullOrWhiteSpace(Class))
+        {
+            classes += $" {Class}";
+        }
+
+        return classes.Trim();
+    }
+
+    private string GetWidthStyle()
+    {
+        return Width switch
+        {
+            RowWidth.Full => "100%",
+            RowWidth.Half => "50%",
+            RowWidth.Quarter => "25%",
+            RowWidth.Auto => "auto",
+            RowWidth.Custom => CustomWidth ?? "auto",
+            _ => "100%"
+        };
+    }
+
+    private string GetJustifyContentClass()
+    {
+        return JustifyContent switch
+        {
+            JustifyContent.Start => "start",
+            JustifyContent.End => "end",
+            JustifyContent.Center => "center",
+            JustifyContent.Between => "between",
+            JustifyContent.Around => "around",
+            JustifyContent.Evenly => "evenly",
+            _ => ""
+        };
+    }
+
+    private string GetAlignItemsClass()
+    {
+        return AlignItems switch
+        {
+            AlignItems.Start => "start",
+            AlignItems.End => "end",
+            AlignItems.Center => "center",
+            AlignItems.Baseline => "baseline",
+            AlignItems.Stretch => "stretch",
+            _ => ""
+        };
+    }
+}

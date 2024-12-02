@@ -1,0 +1,105 @@
+﻿@using hio_dotnet.Common.Enums
+@using hio_dotnet.Common.Enums.LTE
+@using hio_dotnet.Common.Config
+
+<RadzenTemplateForm TItem="LTEConfig" Data="@Config">
+    <RadzenFieldset Text="LTE Settings">
+
+        <RadzenFieldset Text="Network Mode">
+            <RadzenRadioButtonList Value=@NetworkMode TValue="bool" ValueChanged="OnNetworkModeChangedHandler">
+                <Items>
+                    <RadzenRadioButtonListItem Text="LTE-M" Value="true" />
+                    <RadzenRadioButtonListItem Text="NB IoT" Value="false" />
+                </Items>
+            </RadzenRadioButtonList>
+        </RadzenFieldset>
+
+        <RadzenFieldset Text="Antenna">
+            <RadzenRadioButtonList @bind-Value=@Config.Antenna TValue="AntennaType" >
+                <Items>
+                    <RadzenRadioButtonListItem Text="Internal" Value="AntennaType.Internal" />
+                    <RadzenRadioButtonListItem Text="External" Value="AntennaType.External" />
+                </Items>
+            </RadzenRadioButtonList>
+        </RadzenFieldset>
+
+        <RadzenFieldset Text="Authorization">
+            <RadzenRadioButtonList @bind-Value=@Config.Authorization TValue="LTEAuthType" >
+                <Items>
+                    <RadzenRadioButtonListItem Text="None" Value="LTEAuthType.None" />
+                    <RadzenRadioButtonListItem Text="PAP" Value="LTEAuthType.PAP" />
+                    <RadzenRadioButtonListItem Text="CHAP" Value="LTEAuthType.CHAP" />
+                </Items>
+            </RadzenRadioButtonList>
+        </RadzenFieldset>
+            
+        <RadzenFieldset Text="APN">
+            <RadzenTextBox Placeholder="APN..." @bind-Value="Config.Apn" Style="width: 100%" aria-label="LTE APN" />
+        </RadzenFieldset>
+
+        <RadzenFieldset Text="Username">
+            <RadzenTextBox Placeholder="Username..." @bind-Value="Config.Username" Style="width: 100%" aria-label="LTE Username" />
+        </RadzenFieldset>
+
+        <RadzenFieldset Text="Password">
+            <RadzenPassword @bind-Value="Config.Password" Style="width: 100%" aria-label="LTE Password" />
+        </RadzenFieldset>
+
+        <RadzenFieldset Text="IP Address">
+            <RadzenTextBox Placeholder="IP Address..." @bind-Value="Config.Address" Style="width: 100%" aria-label="LTE Username" />
+        </RadzenFieldset>
+
+        <RadzenFieldset Text="Port">
+            <RadzenNumeric TValue="int" @bind-Value="Config.Port" Min="0" Max="65356" />
+        </RadzenFieldset>
+
+        <RadzenFieldset Text="PLMN ID">
+            <RadzenNumeric TValue="int" @bind-Value="Config.PlmnId" Min="0" Max="65356" />
+        </RadzenFieldset>
+
+        <RadzenFieldset Text="Auto Connection">
+            <RadzenRadioButtonList @bind-Value=@Config.AutoConn TValue="bool">
+                <Items>
+                    <RadzenRadioButtonListItem Text="Yes" Value="true" />
+                    <RadzenRadioButtonListItem Text="No" Value="false" />
+                </Items>
+            </RadzenRadioButtonList>
+        </RadzenFieldset>
+
+        <RadzenFieldset Text="Clock Synchronization">
+            <RadzenRadioButtonList @bind-Value=@Config.ClkSync TValue="bool">
+                <Items>
+                    <RadzenRadioButtonListItem Text="Yes" Value="true" />
+                    <RadzenRadioButtonListItem Text="No" Value="false" />
+                </Items>
+            </RadzenRadioButtonList>
+        </RadzenFieldset>
+
+    </RadzenFieldset>
+
+</RadzenTemplateForm>
+
+@code {
+    [Parameter] public LTEConfig Config { get; set; } = new LTEConfig();
+
+    public bool NetworkMode { get; set; } = false;
+
+    public LTEConfig GetConfig()
+    {
+        return Config;
+    }
+
+    private void OnNetworkModeChangedHandler(bool value)
+    {
+        if (!value)
+        {
+            Config.LteMMode = false;
+            Config.NbIotMode = true;
+        }
+        else
+        {
+            Config.LteMMode = true;
+            Config.NbIotMode = false;
+        }
+    }
+}
