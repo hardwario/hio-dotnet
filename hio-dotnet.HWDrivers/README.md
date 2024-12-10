@@ -142,7 +142,7 @@ listeningTask = multiconsole.StartListening(cts.Token);
 As you can see the console must be turned off before the process of the loading of the firmware and then reconnected again.
 
 ### Error propagation
-J-Link DLL provides different types of the errors in decoded form. For example very often error is missing power supply for the target MCU. Those errors are reimplemented in the library and you will receive them as the Exception with the text description what type error happened. All main errors are described in the [JLinkErrorCodes]() enum.
+J-Link DLL provides different types of the errors in decoded form. For example very often error is missing power supply for the target MCU. Those errors are reimplemented in the library and you will receive them as the Exception with the text description what type error happened. All main errors are described in the [JLinkErrorCodes](/hio-dotnet.HWDrivers/JLink/JLinkErrorCodes.cs) enum. Some of those codes are wrapped to the Exception in [JLinkDriver](/hio-dotnet.HWDrivers/JLink/JLinkDriver.cs#L48).
 
 ## Power Profiler Kit II
 Power Profiler Kit II helps to provide power supply for your MCU mainly during the development stage. It is advanced PC controlled power supply with the precise measurement of the output current. This helps especially with the development of the low power devices. This hardware does not come with some specific DLL. It comes just with the API available via COM port. This API is wrapped in the library to provide high level interface.
