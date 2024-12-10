@@ -45,14 +45,14 @@ dotnet run --project "hio-dotnet.Demos.SimpleConsoleApp/hio-dotnet.Demos.SimpleC
 roj" --configuration Debug
 ```
 
-As it is written above, the project has no sub-demo allowed by default so if you will not change it in the [Program.cs]() it will just write this (in case you are running it on Windows machine):
+As it is written above, the project has no sub-demo allowed by default so if you will not change it in the [Program.cs](/hio-dotnet.Demos.SimpleConsoleApp/Program.cs) it will just write this (in case you are running it on Windows machine):
 
 ```
 Running on Windows
 Program ends. Goodbye
 ```
 
-To discover more about the parts of the [Simple Console App Demo Please Continue with reading Here]().
+To discover more about the parts of the [Simple Console App Demo Please Continue with reading Here](/hio-dotnet.Demos.SimpleConsoleApp/).
 
 ## Projects in the Solution
 
