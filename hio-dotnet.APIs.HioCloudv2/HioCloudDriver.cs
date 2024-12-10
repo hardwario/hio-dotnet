@@ -7,9 +7,9 @@ using System.Text.Json;
 
 namespace hio_dotnet.APIs.HioCloudv2
 {
-    public class Hiov2CloudDriver
+    public class HioCloudDriver
     {
-        public static string DefaultHardwarioCloudUrl = HioCloudv2Defaults.DefaultHardwarioCloudUrl;
+        public static string DefaultHardwarioCloudUrl = HioCloudDefaults.DefaultHardwarioCloudUrl;
 
         /// <summary>
         /// Use this constructor to authenticate with ThingsBoard using username and password.
@@ -19,7 +19,7 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// <param name="password"></param>
         /// <param name="port"></param>
         /// <exception cref="ArgumentException"></exception>
-        public Hiov2CloudDriver(string baseUrl, string username, string password, int port = 0)
+        public HioCloudDriver(string baseUrl, string username, string password, int port = 0)
         {
             if (string.IsNullOrEmpty(baseUrl))
                 throw new ArgumentException("Base URL cannot be empty.");
@@ -41,7 +41,7 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// <param name="jwtToken"></param>
         /// <param name="port"></param>
         /// <exception cref="ArgumentException"></exception>
-        public Hiov2CloudDriver(string baseUrl, string jwtToken, int port = 0)
+        public HioCloudDriver(string baseUrl, string jwtToken, int port = 0)
         {
             if (string.IsNullOrEmpty(baseUrl))
                 throw new ArgumentException("Base URL cannot be empty.");
@@ -61,7 +61,7 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// <param name="jwtToken"></param>
         /// <param name="port"></param>
         /// <exception cref="ArgumentException"></exception>
-        public Hiov2CloudDriver(string baseUrl, string apitoken, bool useapitoken = true, int port = 0)
+        public HioCloudDriver(string baseUrl, string apitoken, bool useapitoken = true, int port = 0)
         {
             if (string.IsNullOrEmpty(baseUrl))
                 throw new ArgumentException("Base URL cannot be empty.");
@@ -144,7 +144,7 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// <param name="space_offset_id">space guid to offset from</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task<List<HioCloudv2Space>?> GetSpaces(int num_of_items = 100, string space_offset_id = "")
+        public async Task<List<HioCloudSpace>?> GetSpaces(int num_of_items = 100, string space_offset_id = "")
         {
             if (_useapitoken)
                 throw new Exception("You cannot call all spaces with API token. Pleae initialize driver with use of JWT token or username and password.");
@@ -168,7 +168,7 @@ namespace hio_dotnet.APIs.HioCloudv2
 
                     CheckResponse(response);
 
-                    var spaces = System.Text.Json.JsonSerializer.Deserialize<List<HioCloudv2Space>>(cnt);
+                    var spaces = System.Text.Json.JsonSerializer.Deserialize<List<HioCloudSpace>>(cnt);
                     return spaces;
                 }
                 catch (HttpRequestException ex)
@@ -185,7 +185,7 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="Exception"></exception>
-        public async Task<HioCloudv2Space?> GetSpace(Guid space_id)
+        public async Task<HioCloudSpace?> GetSpace(Guid space_id)
         {
             if (space_id == Guid.Empty)
                 throw new ArgumentException("Space ID cannot be empty.");
@@ -201,7 +201,7 @@ namespace hio_dotnet.APIs.HioCloudv2
 
                     CheckResponse(response);
 
-                    var space = System.Text.Json.JsonSerializer.Deserialize<HioCloudv2Space>(cnt);
+                    var space = System.Text.Json.JsonSerializer.Deserialize<HioCloudSpace>(cnt);
                     return space;
                 }
                 catch (HttpRequestException ex)
@@ -218,7 +218,7 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// <param name="space"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task<HioCloudv2Space?> CreateSpace(Guid space_id, HioCloudv2Space space)
+        public async Task<HioCloudSpace?> CreateSpace(Guid space_id, HioCloudSpace space)
         {
             using (var httpClient = GetHioClient())
             {
@@ -236,7 +236,7 @@ namespace hio_dotnet.APIs.HioCloudv2
                     }
                     CheckResponse(response);
 
-                    var spaceResponse = System.Text.Json.JsonSerializer.Deserialize<HioCloudv2Space?>(cnt);
+                    var spaceResponse = System.Text.Json.JsonSerializer.Deserialize<HioCloudSpace?>(cnt);
                     return spaceResponse;
                 }
                 catch (HttpRequestException ex)
@@ -266,7 +266,7 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="Exception"></exception>
-        public async Task<List<HioCloudv2Device>?> GetAllDevicesOfSpace(Guid space_id, 
+        public async Task<List<HioCloudDevice>?> GetAllDevicesOfSpace(Guid space_id, 
                                                                        int num_of_items = 20, 
                                                                        string filter_logic = "any", 
                                                                        string sort_by = "id", 
@@ -336,7 +336,7 @@ namespace hio_dotnet.APIs.HioCloudv2
 
                     CheckResponse(response);
 
-                    var devices = System.Text.Json.JsonSerializer.Deserialize<List<HioCloudv2Device>?>(cnt);
+                    var devices = System.Text.Json.JsonSerializer.Deserialize<List<HioCloudDevice>?>(cnt);
                     return devices;
                 }
                 catch (HttpRequestException ex)
@@ -353,7 +353,7 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// <param name="device_id">Guid of device</param>
         /// <returns>Device</returns>
         /// <exception cref="Exception"></exception>
-        public async Task<HioCloudv2Device?> GetDevice(Guid space_id, Guid device_id)
+        public async Task<HioCloudDevice?> GetDevice(Guid space_id, Guid device_id)
         {
 
             using (var httpClient = GetHioClient())
@@ -367,7 +367,7 @@ namespace hio_dotnet.APIs.HioCloudv2
 
                     CheckResponse(response);
 
-                    var device = System.Text.Json.JsonSerializer.Deserialize<HioCloudv2Device?>(cnt);
+                    var device = System.Text.Json.JsonSerializer.Deserialize<HioCloudDevice?>(cnt);
                     return device;
                 }
                 catch (HttpRequestException ex)
@@ -384,7 +384,7 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// <param name="device"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task<HioCloudv2Device?> CreateDevice(Guid space_id, HioCloudv2Device device)
+        public async Task<HioCloudDevice?> CreateDevice(Guid space_id, HioCloudDevice device)
         {
 
             using (var httpClient = GetHioClient())
@@ -403,7 +403,7 @@ namespace hio_dotnet.APIs.HioCloudv2
                     }
                     CheckResponse(response);
 
-                    var deviceResponse = System.Text.Json.JsonSerializer.Deserialize<HioCloudv2Device?>(cnt);
+                    var deviceResponse = System.Text.Json.JsonSerializer.Deserialize<HioCloudDevice?>(cnt);
                     return deviceResponse;
                 }
                 catch (HttpRequestException ex)
@@ -433,7 +433,7 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// <returns>Message List</returns>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="Exception"></exception>
-        public async Task<List<HioCloudv2Message>?> GetAllDeviceMessages(Guid space_id,
+        public async Task<List<HioCloudMessage>?> GetAllDeviceMessages(Guid space_id,
                                                                          Guid device_id,
                                                                          int num_of_items = 20,
                                                                          string offset_message_id = "",
@@ -444,7 +444,7 @@ namespace hio_dotnet.APIs.HioCloudv2
                                                                          string[]? type = null)
         {
 
-            if (!string.IsNullOrEmpty(direction) && !HioCloudv2MessageDirection.IsMessageDirection(direction))
+            if (!string.IsNullOrEmpty(direction) && !HioCloudMessageDirection.IsMessageDirection(direction))
                 throw new ArgumentException("Invalid direction value. Use one of the HioCloudv2MessageDirection values.");
             
             using (var httpClient = GetHioClient())
@@ -455,7 +455,7 @@ namespace hio_dotnet.APIs.HioCloudv2
                 {
                     foreach (var t in type)
                     {
-                        if (!string.IsNullOrEmpty(t) && !HioCloudv2MessageType.IsMessageType(t))
+                        if (!string.IsNullOrEmpty(t) && !HioCloudMessageType.IsMessageType(t))
                             url = $"{url}%5B%5D={t}";
                     }
                 }
@@ -498,7 +498,7 @@ namespace hio_dotnet.APIs.HioCloudv2
 
                     CheckResponse(response);
 
-                    var devices = System.Text.Json.JsonSerializer.Deserialize<List<HioCloudv2Message>?>(cnt);
+                    var devices = System.Text.Json.JsonSerializer.Deserialize<List<HioCloudMessage>?>(cnt);
                     return devices;
                 }
                 catch (HttpRequestException ex)
@@ -518,7 +518,7 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// <param name="message_type">Use HioCloudv2MessageType static class to get types</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task<HioCloudv2Message?> AddNewDownlingMessage(Guid space_id,
+        public async Task<HioCloudMessage?> AddNewDownlingMessage(Guid space_id,
                                                                     Guid device_id,
                                                                     string message_body,
                                                                     string message_type)
@@ -545,7 +545,7 @@ namespace hio_dotnet.APIs.HioCloudv2
 
                     CheckResponse(response);
 
-                    var msg = System.Text.Json.JsonSerializer.Deserialize<HioCloudv2Message?>(cnt);
+                    var msg = System.Text.Json.JsonSerializer.Deserialize<HioCloudMessage?>(cnt);
                     return msg;
                 }
                 catch (HttpRequestException ex)
@@ -565,7 +565,7 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// <param name="message_type">Use HioCloudv2MessageType static class to get types</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task<HioCloudv2Message?> AddNewDownlinkMessage(Guid space_id,
+        public async Task<HioCloudMessage?> AddNewDownlinkMessage(Guid space_id,
                                                                     Guid device_id,
                                                                     object message_body,
                                                                     string message_type)
@@ -594,7 +594,7 @@ namespace hio_dotnet.APIs.HioCloudv2
 
                     CheckResponse(response);
 
-                    var msg = System.Text.Json.JsonSerializer.Deserialize<HioCloudv2Message?>(cnt);
+                    var msg = System.Text.Json.JsonSerializer.Deserialize<HioCloudMessage?>(cnt);
                     return msg;
                 }
                 catch (HttpRequestException ex)
@@ -615,7 +615,7 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// <param name="tag"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task<HioCloudv2Tag?> CreateTag(Guid space_id, HioCloudv2Tag tag)
+        public async Task<HioCloudTag?> CreateTag(Guid space_id, HioCloudTag tag)
         {
             using (var httpClient = GetHioClient())
             {
@@ -633,7 +633,7 @@ namespace hio_dotnet.APIs.HioCloudv2
                     }
                     CheckResponse(response);
 
-                    var tagResponse = System.Text.Json.JsonSerializer.Deserialize<HioCloudv2Tag?>(cnt);
+                    var tagResponse = System.Text.Json.JsonSerializer.Deserialize<HioCloudTag?>(cnt);
                     return tagResponse;
                 }
                 catch (HttpRequestException ex)
@@ -654,7 +654,7 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// <param name="connector"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task<HioCloudv2Connector?> CreateConnector(Guid space_id, HioCloudv2Connector connector)
+        public async Task<HioCloudConnector?> CreateConnector(Guid space_id, HioCloudConnector connector)
         {
             using (var httpClient = GetHioClient())
             {
@@ -672,7 +672,7 @@ namespace hio_dotnet.APIs.HioCloudv2
                     }
                     CheckResponse(response);
 
-                    var connectorResponse = System.Text.Json.JsonSerializer.Deserialize<HioCloudv2Connector?>(cnt);
+                    var connectorResponse = System.Text.Json.JsonSerializer.Deserialize<HioCloudConnector?>(cnt);
                     return connectorResponse;
                 }
                 catch (HttpRequestException ex)

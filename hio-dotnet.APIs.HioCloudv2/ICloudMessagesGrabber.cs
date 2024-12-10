@@ -57,7 +57,7 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// <summary>
         /// Last message received to the grabber from the cloud
         /// </summary>
-        HioCloudv2Message? LastMessage { get; set; }
+        HioCloudMessage? LastMessage { get; set; }
         /// <summary>
         /// This event will occur when the new message is received from the cloud
         /// </summary>
@@ -73,7 +73,7 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// <summary>
         /// Cloud driver that will be used to communicate with the cloud
         /// </summary>
-        Hiov2CloudDriver? CloudDriver { get; set; }
+        HioCloudDriver? CloudDriver { get; set; }
         /// <summary>
         /// Start the data grabbing process
         /// </summary>
@@ -93,6 +93,6 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// Get Last message received from the cloud
         /// </summary>
         /// <returns></returns>
-        HioCloudv2Message? GetLastMessage();
+        HioCloudMessage? GetLastMessage();
     }
 }

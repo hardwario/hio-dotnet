@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\hio-dotnet.APIs.Chirpstack\hio-dotnet.APIs.Chirpstack.csproj" />
-    <ProjectReference Include="..\hio-dotnet.APIs.HioCloudv2\hio-dotnet.APIs.HioCloudv2.csproj" />
+    <ProjectReference Include="..\hio-dotnet.APIs.HioCloudv2\hio-dotnet.APIs.HioCloud.csproj" />
     <ProjectReference Include="..\hio-dotnet.APIs.ThingsBoard\hio-dotnet.APIs.ThingsBoard.csproj" />
     <ProjectReference Include="..\hio-dotnet.APIs.Wmbusmeters\hio-dotnet.APIs.Wmbusmeters.csproj" />
     <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />

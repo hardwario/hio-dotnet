@@ -29,11 +29,11 @@ var JLINK_COMBINED_CONSOLE_TEST = false;
 var PPK2_TEST = false;
 var CHIRPSTACK_TEST = false;
 var THINGSBOARD_TEST = false;
-var HIOCLOUDV2_TEST = false;
-var HIOCLOUDV2_TEST_DOWNLINK = false;
-var HIOCLOUDV2_TEST_ADD_DEVICE_WITH_CONNECTOR = false;
-var HIOCLOUDV2_TEST_SIMPLEGRABBER = false;
-var HIOCLOUDV2_TEST_SIMPLEGRABBER_HANDLER = false;
+var HIOCLOUD_TEST = false;
+var HIOCLOUD_TEST_DOWNLINK = false;
+var HIOCLOUD_TEST_ADD_DEVICE_WITH_CONNECTOR = false;
+var HIOCLOUD_TEST_SIMPLEGRABBER = false;
+var HIOCLOUD_TEST_SIMPLEGRABBER_HANDLER = false;
 var HIO_WMBUSMETER_TEST = false;
 var HIO_SIMULATOR_TEST = false;
 var HIO_SIMULATOR_HANDLER_TEST = false;
@@ -741,9 +741,9 @@ if (THINGSBOARD_TEST)
 
 #endregion
 
-#region HIOCLOUDV2Example
+#region HIOCLOUDExample
 
-if(HIOCLOUDV2_TEST)
+if(HIOCLOUD_TEST)
 {
     var email = "YOUR EMAIL";
     var password = "YOUR PASSWORD";
@@ -752,9 +752,9 @@ if(HIOCLOUDV2_TEST)
 
     // you can init the driver with use of email and password
     // you need to use this if you want to list all available spaces because api tokens are just for specific space
-    Hiov2CloudDriver hiocloudJWT = null; 
+    HioCloudDriver hiocloudJWT = null; 
     if (email != "YOUR EMAIL" && password != "YOUR PASSWORD")
-        hiocloudJWT = new Hiov2CloudDriver(Hiov2CloudDriver.DefaultHardwarioCloudUrl, email, password);
+        hiocloudJWT = new HioCloudDriver(HioCloudDriver.DefaultHardwarioCloudUrl, email, password);
 
     if (hiocloudJWT == null && apitoken == "YOUR API TOKEN IF YOU HAVE CREATED IT IN HIO CLOUD SPACE")
     {
@@ -763,7 +763,7 @@ if(HIOCLOUDV2_TEST)
     }
 
     // or if you have already created the API token in HIO Cloud space you can use it
-    var hiocloudAPI = new Hiov2CloudDriver(Hiov2CloudDriver.DefaultHardwarioCloudUrl, apitoken, true);
+    var hiocloudAPI = new HioCloudDriver(HioCloudDriver.DefaultHardwarioCloudUrl, apitoken, true);
 
     if (hiocloudJWT != null)
     {
@@ -826,7 +826,7 @@ if(HIOCLOUDV2_TEST)
         foreach (var m in messages)
         {
             Console.WriteLine($"Message: {m.Type}, Time: {m.CreatedAt}, \n\nPayload:\n {m.Body}\n\n");
-            if (m.Type == HioCloudv2MessageType.Data)
+            if (m.Type == HioCloudMessageType.Data)
             {
                 Type guessedType = ChesterCloudMessageAutoIdentifier.FindTypeByMessageStructure(m.Body);
                 var parsed = System.Text.Json.JsonSerializer.Deserialize(m.Body, guessedType);
@@ -859,14 +859,14 @@ if(HIOCLOUDV2_TEST)
 
 #endregion
 
-#region HIOCLOUDV2DownlinkExample
-if (HIOCLOUDV2_TEST_DOWNLINK)
+#region HIOCLOUDDownlinkExample
+if (HIOCLOUD_TEST_DOWNLINK)
 {
     var apitoken = "YOUR_API_TOKEN";
     var spaceid = "YOUR_SPACE_ID";
     var deviceid = "YOUR_DEVICE_ID";
 
-    var hiocloudAPI = new Hiov2CloudDriver(Hiov2CloudDriver.DefaultHardwarioCloudUrl, apitoken, true);
+    var hiocloudAPI = new HioCloudDriver(HioCloudDriver.DefaultHardwarioCloudUrl, apitoken, true);
 
     var data = new
     {
@@ -877,20 +877,20 @@ if (HIOCLOUDV2_TEST_DOWNLINK)
     var res = await hiocloudAPI.AddNewDownlinkMessage(new Guid(spaceid), 
                                                       new Guid(deviceid), 
                                                       data, 
-                                                      HioCloudv2MessageType.Data);
+                                                      HioCloudMessageType.Data);
 }
 #endregion
 
-#region HIOCLOUDV2AddDeviceAndConnectorExample
-if (HIOCLOUDV2_TEST_ADD_DEVICE_WITH_CONNECTOR)
+#region HIOCLOUDAddDeviceAndConnectorExample
+if (HIOCLOUD_TEST_ADD_DEVICE_WITH_CONNECTOR)
 {
     var apitoken = "HIO_CLOUD_V2_API_TOKEN";
     var spaceid = new Guid("HIO_CLOUD_V2_SPACE_ID");
     var devicetoken = "THINGSBOARD_DEVICE_CONNECTION_TOKEN";
 
-    var hiocloudAPI = new Hiov2CloudDriver(Hiov2CloudDriver.DefaultHardwarioCloudUrl, apitoken, true);
+    var hiocloudAPI = new HioCloudDriver(HioCloudDriver.DefaultHardwarioCloudUrl, apitoken, true);
 
-    var tag = new HioCloudv2Tag()
+    var tag = new HioCloudTag()
                   .WithName("test-tag")
                   .WithColor("#0000FF");
 
@@ -898,18 +898,18 @@ if (HIOCLOUDV2_TEST_ADD_DEVICE_WITH_CONNECTOR)
     var newTag = await hiocloudAPI.CreateTag(spaceid, tag);
     Console.WriteLine($"Tag created: {newTag.Id}");
 
-    var device = new HioCloudv2Device()
+    var device = new HioCloudDevice()
                         .WithName("test-device")
                         .WithSpaceId(spaceid)
                         .WithSerialNumber(BaseSimulator.GenerateSerialNumberString())
-                        .WithToken(HioCloudv2Device.GenerateClaimToken())
+                        .WithToken(HioCloudDevice.GenerateClaimToken())
                         .WithTag(newTag);
 
     Console.WriteLine("Creating new device...");
     var newDevice = await hiocloudAPI.CreateDevice(spaceid, device);
     Console.WriteLine($"Device created: {newDevice.Id}");
 
-    var connector = new HioCloudv2Connector()
+    var connector = new HioCloudConnector()
                         .WithName("test-connector")
                         .WithDirection("up")
                         .WithTag(newTag)
@@ -927,8 +927,8 @@ if (HIOCLOUDV2_TEST_ADD_DEVICE_WITH_CONNECTOR)
 }
 #endregion
 
-#region HIOCLOUDV2SimpleGrabberExample
-if (HIOCLOUDV2_TEST_SIMPLEGRABBER)
+#region HIOCLOUDSimpleGrabberExample
+if (HIOCLOUD_TEST_SIMPLEGRABBER)
 {
     var apitoken = "YOUR_API_TOKEN";
     var spaceid = "YOUR_SPACE_ID";
@@ -937,7 +937,7 @@ if (HIOCLOUDV2_TEST_SIMPLEGRABBER)
     Console.WriteLine("Creating Grabber instance...");
     var grabber = new SimpleCloudMessageGrabber(new Guid(spaceid), 
                                                 new Guid(deviceid), 
-                                                Hiov2CloudDriver.DefaultHardwarioCloudUrl, 
+                                                HioCloudDriver.DefaultHardwarioCloudUrl, 
                                                 apitoken, 
                                                 useapitoken:true)
                       .WithName("Meteo2MessagesGrabber")  
@@ -967,8 +967,8 @@ if (HIOCLOUDV2_TEST_SIMPLEGRABBER)
 }
 #endregion
 
-#region HIOCLOUDV2SimpleGrabberHandlerExample
-if (HIOCLOUDV2_TEST_SIMPLEGRABBER_HANDLER)
+#region HIOCLOUDSimpleGrabberHandlerExample
+if (HIOCLOUD_TEST_SIMPLEGRABBER_HANDLER)
 {
     var apitoken = "YOUR_API_TOKEN";
     var spaceid = "YOUR_SPACE_ID";
@@ -979,14 +979,14 @@ if (HIOCLOUDV2_TEST_SIMPLEGRABBER_HANDLER)
 
     grabberHandler.AddNewGrabber(new Guid(spaceid), 
                                  new Guid(deviceid), 
-                                 Hiov2CloudDriver.DefaultHardwarioCloudUrl, 
+                                 HioCloudDriver.DefaultHardwarioCloudUrl, 
                                  60000, 
                                  "Meteo1MessagesGrabber",
                                  apitoken: apitoken);
 
     grabberHandler.AddNewGrabber(new Guid(spaceid),
                                  new Guid(deviceid2),
-                                 Hiov2CloudDriver.DefaultHardwarioCloudUrl,
+                                 HioCloudDriver.DefaultHardwarioCloudUrl,
                                  60000,
                                  "Meteo2MessagesGrabber",
                                  apitoken: apitoken);

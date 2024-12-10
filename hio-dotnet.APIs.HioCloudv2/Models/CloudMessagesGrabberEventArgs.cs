@@ -10,6 +10,6 @@ namespace hio_dotnet.APIs.HioCloudv2.Models
     {
         public Guid GrabberId { get; set; } = Guid.Empty;
 
-        public HioCloudv2Message? Message { get; set; }
+        public HioCloudMessage? Message { get; set; }
     }
 }

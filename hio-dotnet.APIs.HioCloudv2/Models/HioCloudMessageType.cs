@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.APIs.HioCloudv2.Models
 {
-    public static class HioCloudv2MessageType
+    public static class HioCloudMessageType
     {
         public static string Data = "data";
         public static string Config = "config";

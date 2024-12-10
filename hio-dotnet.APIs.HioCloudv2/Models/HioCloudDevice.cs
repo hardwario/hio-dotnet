@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.APIs.HioCloudv2.Models
 {
-    public class HioCloudv2Device
+    public class HioCloudDevice
     {
         [JsonPropertyName("id")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -68,38 +68,38 @@ namespace hio_dotnet.APIs.HioCloudv2.Models
 
         [JsonPropertyName("tags")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public List<HioCloudv2Tag>? Tags { get; set; }
+        public List<HioCloudTag>? Tags { get; set; }
 
         [JsonPropertyName("token")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Token { get; set; }
 
 
-        public HioCloudv2Device WithName(string name)
+        public HioCloudDevice WithName(string name)
         {
             Name = name;
             return this;
         }
-        public HioCloudv2Device WithSerialNumber(string sn)
+        public HioCloudDevice WithSerialNumber(string sn)
         {
             SerialNumber = sn;
             return this;
         }
-        public HioCloudv2Device WithTag(HioCloudv2Tag tag)
+        public HioCloudDevice WithTag(HioCloudTag tag)
         {
             if (Tags == null)
-                Tags = new List<HioCloudv2Tag>();
+                Tags = new List<HioCloudTag>();
 
             Tags.Add(tag);
             return this;
         }
-        public HioCloudv2Device WithToken(string token)
+        public HioCloudDevice WithToken(string token)
         {
             Token = token;
             return this;
         }
 
-        public HioCloudv2Device WithSpaceId(Guid spaceid)
+        public HioCloudDevice WithSpaceId(Guid spaceid)
         {
             SpaceId = spaceid;
             return this;

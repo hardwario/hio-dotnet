@@ -14,21 +14,21 @@ namespace hio_dotnet.APIs.HioCloudv2
     {
         public SimpleCloudMessageGrabber(Guid spaceId, Guid deviceId, string baseUrl, string username, string password, int port = 0)
         {
-            CloudDriver = new Hiov2CloudDriver(baseUrl, username, password, port);
+            CloudDriver = new HioCloudDriver(baseUrl, username, password, port);
             SpaceId = spaceId;
             DeviceId = deviceId;
         }
 
         public SimpleCloudMessageGrabber(Guid spaceId, Guid deviceId, string baseUrl, string jwtToken, int port = 0)
         {
-            CloudDriver = new Hiov2CloudDriver(baseUrl, jwtToken, port);
+            CloudDriver = new HioCloudDriver(baseUrl, jwtToken, port);
             SpaceId = spaceId;
             DeviceId = deviceId;
         }
 
         public SimpleCloudMessageGrabber(Guid spaceId, Guid deviceId, string baseUrl, string apitoken, bool useapitoken = true, int port = 0)
         {
-            CloudDriver = new Hiov2CloudDriver(baseUrl, apitoken, useapitoken, port);
+            CloudDriver = new HioCloudDriver(baseUrl, apitoken, useapitoken, port);
             SpaceId = spaceId;
             DeviceId = deviceId;
         }
@@ -84,7 +84,7 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// <summary>
         /// Last message received to the grabber from the cloud
         /// </summary>
-        public override HioCloudv2Message? LastMessage { get; set; }
+        public override HioCloudMessage? LastMessage { get; set; }
         /// <summary>
         /// This event will occur when the new message is received from the cloud
         /// </summary>
@@ -100,11 +100,11 @@ namespace hio_dotnet.APIs.HioCloudv2
         /// <summary>
         /// Cloud driver that will be used to communicate with the cloud
         /// </summary>
-        public override Hiov2CloudDriver? CloudDriver { get; set; }
+        public override HioCloudDriver? CloudDriver { get; set; }
 
         private CancellationTokenSource? _cancellationTokenSource;
 
-        private ConcurrentDictionary<Guid, HioCloudv2Message> _messages { get; set; } = new ConcurrentDictionary<Guid, HioCloudv2Message>();
+        private ConcurrentDictionary<Guid, HioCloudMessage> _messages { get; set; } = new ConcurrentDictionary<Guid, HioCloudMessage>();
 
         #region FluentAPI
 
@@ -135,7 +135,7 @@ namespace hio_dotnet.APIs.HioCloudv2
         }
         #endregion
 
-        public override HioCloudv2Message? GetLastMessage()
+        public override HioCloudMessage? GetLastMessage()
         {
             return LastMessage;
         }
@@ -182,7 +182,7 @@ namespace hio_dotnet.APIs.HioCloudv2
                     {
                         await Task.Delay((int)Interval, cancellationToken);
 
-                        HioCloudv2Message? receivedMessage = null;
+                        HioCloudMessage? receivedMessage = null;
                         // get the last message from the cloud
                         try
                         {

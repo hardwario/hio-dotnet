@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.APIs.HioCloudv2.Models
 {
-    public static class HioCloudv2MessageDirection
+    public static class HioCloudMessageDirection
     {
         public static string Up = "up";
         public static string Down = "down";
