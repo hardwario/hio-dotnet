@@ -16,7 +16,7 @@ Compilation and building MAUI applications for Android requires Installlation of
 
 We recommend to use Windows machine for the development, but project can be build on MacOS and Linux as well because the .NET 8 is multiplatform framework. Applications written in .NET 8 C# can run on all platforms (Windows, MacOS, Linux). [MAUI](https://dotnet.microsoft.com/en-us/apps/maui) Applications can run also on Android and iOS devices.
 
-UI Library uses [Radzen Component Library](https://blazor.radzen.com/?theme=material3). More information about the using this component library you can find in [Readme file for Hio-DotNet UI Component Library]().
+UI Library uses [Radzen Component Library](https://blazor.radzen.com/?theme=material3). More information about the using this component library you can find in [Readme file for Hio-DotNet UI Component Library](./hio-dotnet.UI.BlazorComponents.Radzen/README.md).
 
 WebAssembly applications demos are part of the demo projects. You can run them in most of the modern web browsers without having the active web server. You need just webhosting for this type of applications. We usually test them in Chrome browser or Edge browser.
 
@@ -45,14 +45,14 @@ dotnet run --project "hio-dotnet.Demos.SimpleConsoleApp/hio-dotnet.Demos.SimpleC
 roj" --configuration Debug
 ```
 
-As it is written above, the project has no sub-demo allowed by default so if you will not change it in the [Program.cs]() it will just write this (in case you are running it on Windows machine):
+As it is written above, the project has no sub-demo allowed by default so if you will not change it in the [Program.cs](/hio-dotnet.Demos.SimpleConsoleApp/Program.cs) it will just write this (in case you are running it on Windows machine):
 
 ```
 Running on Windows
 Program ends. Goodbye
 ```
 
-To discover more about the parts of the [Simple Console App Demo Please Continue with reading Here]().
+To discover more about the parts of the [Simple Console App Demo Please Continue with reading Here](/hio-dotnet.Demos.SimpleConsoleApp/).
 
 ## Projects in the Solution
 
@@ -60,35 +60,35 @@ There are multiple projects in the solution:
 
 ### Demos
 
-- [hio-dotnet.Demos.BlazorComponents.Radzen.WASM]() - Example WebAssembly app with the UI components with use of the Radzen Component Library
-- [hio-dotnet.Demos.BlazorComponents.WASM]() - Example WebAssembly app with the own basic UI components
-- [hio-dotnet.Demos.HardwarioManager]() - Example MAUI Blazor Hybrid App for phones which can search for and connect to [CHESTER]() device and communicate with it
-- [hio-dotnet.Demos.HardwarioMonitor]() - Example MAUI Blazor Hybrid App for desktop which can search and connect [SEGGER JLink programmer](https://www.segger.com/downloads/jlink/), [Nordic Semiconductor Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2) and connect the CHESTER device.
-- [hio-dotnet.Demos.SimpleConsoleApp]() - Simple console application with examples of using parts of the HARDWARIO .NET SDK.
+- [hio-dotnet.Demos.BlazorComponents.Radzen.WASM](./hio-dotnet.Demos.BlazorComponents.Radzen.WASM/) - Example WebAssembly app with the UI components with use of the Radzen Component Library
+- [hio-dotnet.Demos.BlazorComponents.WASM](./hio-dotnet.Demos.BlazorComponents.WASM/) - Example WebAssembly app with the own basic UI components
+- [hio-dotnet.Demos.HardwarioManager](./hio-dotnet.Demos.HardwarioManager/) - Example MAUI Blazor Hybrid App for phones which can search for and connect to [CHESTER]() device and communicate with it
+- [hio-dotnet.Demos.HardwarioMonitor](./hio-dotnet.Demos.HardwarioMonitor/) - Example MAUI Blazor Hybrid App for desktop which can search and connect [SEGGER JLink programmer](https://www.segger.com/downloads/jlink/), [Nordic Semiconductor Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2) and connect the CHESTER device.
+- [hio-dotnet.Demos.SimpleConsoleApp](./hio-dotnet.Demos.SimpleConsoleApp/) - Simple console application with examples of using parts of the HARDWARIO .NET SDK.
 
 ### APIs
 
-- [hio-dotnet.APIs.HioCloudv2]() - Wrapper library for Official HARDWARIO Cloud version 2 API. 
-- [hio-dotnet.APIs.Chirpstack]() - Wrapper library for [Chirpstack](https://www.chirpstack.io/) LoRaWAN network Server API
-- [hio-dotnet.APIs.ThingsBoard]() - Wrapper library for [ThingsBoard](https://thingsboard.io/) Application API
-- [hio-dotnet.APIs.Wmbusmeters]() - Wrapper library for HARDWARIO instance of [wmbusmeters](https://github.com/wmbusmeters/wmbusmeters) application running on our server.
+- [hio-dotnet.APIs.HioCloudv2](./hio-dotnet.APIs.HioCloudv2/) - Wrapper library for Official HARDWARIO Cloud version 2 API. 
+- [hio-dotnet.APIs.Chirpstack](./hio-dotnet.APIs.Chirpstack/) - Wrapper library for [Chirpstack](https://www.chirpstack.io/) LoRaWAN network Server API
+- [hio-dotnet.APIs.ThingsBoard](./hio-dotnet.APIs.ThingsBoard/) - Wrapper library for [ThingsBoard](https://thingsboard.io/) Application API
+- [hio-dotnet.APIs.Wmbusmeters](./hio-dotnet.APIs.Wmbusmeters/) - Wrapper library for HARDWARIO instance of [wmbusmeters](https://github.com/wmbusmeters/wmbusmeters) application running on our server.
 
 ### UI
 
 There are two basic UI Components library project in the HARDWARIO .NET SKD. One shows how you can create own wrappers for components to create own component library from scratch. Second (main) uses already existing component library called [Radzen](https://blazor.radzen.com/?theme=material3) to simplify the creating nice smooth responsive UIs.
 
-- [hio-dotnet.UI.BlazorComponents]() - own UI components build from scratch
-- [hio-dotnet.UI.BlazorComponents.Radzen]() - UI components build with use of Radzen component library
+- [hio-dotnet.UI.BlazorComponents](./hio-dotnet.UI.BlazorComponents/) - own UI components build from scratch
+- [hio-dotnet.UI.BlazorComponents.Radzen](./hio-dotnet.UI.BlazorComponents.Radzen/) - UI components build with use of Radzen component library
 
 ### Other Projects
 
-- [hio-dotnet.Common]() - basic models, helpers and classes usefull across all other projects, this project includes models of all [CHESTER Catalog Applications](https://www.hardwario.com/chester/catalog-applications) output data models and other usefull classes.
-- [hio-dotnet.HWDrivers]() - hardware dependent drivers such as [SEGGER JLink](https://www.segger.com/downloads/jlink/) and [Nordic Semiconductors Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2)
-- [hio-dotnet.PhoneDrivers] - library with phone dependend drivers such as Bluetooth Low Energy driver.
+- [hio-dotnet.Common](./hio-dotnet.Common/) - basic models, helpers and classes usefull across all other projects, this project includes models of all [CHESTER Catalog Applications](https://www.hardwario.com/chester/catalog-applications) output data models and other usefull classes.
+- [hio-dotnet.HWDrivers](./hio-dotnet.HWDrivers/) - hardware dependent drivers such as [SEGGER JLink](https://www.segger.com/downloads/jlink/) and [Nordic Semiconductors Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2)
+- [hio-dotnet.PhoneDrivers](./hio-dotnet.PhoneDrivers/) - library with phone dependend drivers such as Bluetooth Low Energy driver.
 
 ### Test project
 
-- [hio-dotnet.Tests.Common]() - main test project with use of [xUnit test framework](https://xunit.net/docs/getting-started/v2/netfx/visual-studio).
+- [hio-dotnet.Tests.Common](./hio-dotnet.Tests.Common/) - main test project with use of [xUnit test framework](https://xunit.net/docs/getting-started/v2/netfx/visual-studio).
 
 ## License
 

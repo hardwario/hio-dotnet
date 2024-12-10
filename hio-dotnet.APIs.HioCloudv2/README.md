@@ -12,7 +12,7 @@ You can create your login on [HARDWARIO Cloud v2 webpage](https://hardwario.clou
 Note: If you will need to request names of the "Spaces" you will need the email and password because API token is always related to some specific "Space".
 
 ## Demos
-You can find whole demo in the [SimpleConsoleApp]() project.
+You can find whole demo in the [SimpleConsoleApp](/hio-dotnet.Demos.SimpleConsoleApp/) project.
 
 ## How to use this library
 
