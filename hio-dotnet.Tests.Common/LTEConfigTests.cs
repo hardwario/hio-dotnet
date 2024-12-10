@@ -108,6 +108,50 @@ namespace hio_dotnet.Tests.Common
         }
 
         [Fact]
+        public void ParseAllLines()
+        {
+            var config = new LTEConfig();
+            config.ParseLine("lte config test true");
+            Assert.Equal(config.Test, true);
+
+            config.ParseLine("lte config nb-iot-mode true");
+            Assert.Equal(config.NbIotMode, true);
+
+            config.ParseLine("lte config lte-m-mode true");
+            Assert.Equal(config.LteMMode, true);
+
+            config.ParseLine("lte config autoconn true");
+            Assert.Equal(config.AutoConn, true);
+
+            config.ParseLine("lte config clksync true");
+            Assert.Equal(config.ClkSync, true);
+
+            config.ParseLine("lte config plmnid 1234");
+            Assert.Equal(config.PlmnId, 1234);
+
+            config.ParseLine("lte config port 4321");
+            Assert.Equal(config.Port, 4321);
+
+            config.ParseLine("lte config antenna ext");
+            Assert.Equal(config.Antenna, AntennaType.External);
+
+            config.ParseLine("lte config auth chap");
+            Assert.Equal(config.Authorization, LTEAuthType.CHAP);
+
+            config.ParseLine("lte config apn hardwario");
+            Assert.Equal(config.Apn, "hardwario");
+
+            config.ParseLine("lte config username name");
+            Assert.Equal(config.Username, "name");
+
+            config.ParseLine("lte config password pass");
+            Assert.Equal(config.Password, "pass");
+
+            config.ParseLine("lte config addr 127.0.0.1");
+            Assert.Equal(config.Address, "127.0.0.1");
+        }
+
+        [Fact]
         public void GetWholeConfig_ShouldHandleDefaultValues()
         {
             var config = new LTEConfig();
