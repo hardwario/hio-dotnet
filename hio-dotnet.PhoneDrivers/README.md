@@ -4,13 +4,13 @@ This project contains phone related drivers. Actually it is the Bluetooth Low En
 
 ## Shiny.BluetoothLE
 The project uses external library [Shiny.BluetoothLE](https://shinylib.net/client/ble/manager/). The library manages the searching the BLE devices and connect to them. 
-There is simple wrapper for this library to provide some high level functions to search CHESTER devices, connect to them, load the basic information or start communication on BLE console. The wrapper service is called [ChesterBLEService.cs]().
+There is simple wrapper for this library to provide some high level functions to search CHESTER devices, connect to them, load the basic information or start communication on BLE console. The wrapper service is called [ChesterBLEService.cs](/hio-dotnet.PhoneDrivers/BLE/ChesterBLEService.cs).
 
 ## Using service in the MAUI application
-There is example which use this driver called [hio-dotnet.Demos.HardwarioManager]().
+There is example which use this driver called [hio-dotnet.Demos.HardwarioManager](/hio-dotnet.Demos.HardwarioManager/).
 
 ### Injecting the service
-If you want to use the service in the [MAUI](https://dotnet.microsoft.com/en-us/apps/maui) application you must add it in the [MauiProgram.cs]() first:
+If you want to use the service in the [MAUI](https://dotnet.microsoft.com/en-us/apps/maui) application you must add it in the [MauiProgram.cs](/hio-dotnet.Demos.HardwarioManager/MauiProgram.cs#L25) first:
 
 ```csharp
 using hio_dotnet.PhoneDrivers.BLE;
@@ -20,7 +20,7 @@ builder.Services.AddSingleton<ChesterBLEService>();
 ....
 
 ```
-Then you can use this service in the components by injecting it into the component as you can see in the [Home.razor]() component/page.
+Then you can use this service in the components by injecting it into the component as you can see in the [Home.razor](/hio-dotnet.Demos.HardwarioManager/Components/Pages/Home.razor) component/page.
 
 ```csharp
 @using hio_dotnet.PhoneDrivers.BLE
@@ -56,7 +56,7 @@ await BleService.GetChesterDescriptionData(BleService.ConnectedPeripheral);
 ```
 
 ### Console communication
-The example of the console communiation is in this [Console.razor]() component/page.
+The example of the console communiation is in this [Console.razor](/hio-dotnet.Demos.HardwarioManager/Components/Pages/Console.razor) component/page.
 
 If you expect that the device is already connected you can simply subscribe to the new line event:
 
