@@ -17,7 +17,7 @@ There are multiple namespaces in the library:
 ## Examples
 
 ### Working with the config classes
-Config classes are actually two: [LoRaWANConfig]() and [LTEConfig](). Later we will add the BLE config and App specific configs as well. 
+Config classes are actually two: [LoRaWANConfig](/hio-dotnet.Common/Config/LoRaWANConfig.cs) and [LTEConfig](/hio-dotnet.Common/Config/LTEConfig.cs). Later we will add the BLE config and App specific configs as well. 
 Those classes helps to parse or create configuration for the CHESTER device. The CHESTER accept the config via console via cloud, JLink or BLE. This classes helps to take the string received from console and automatically parse it into the config property and back. 
 
 Simple example you can see in this test:
@@ -74,10 +74,10 @@ config.ParseLine("lrw config antenna internal");
 
 The same logic works for the LTEConfig class. 
 
-Please check the [LoRaWANConfig tests]() or [LTEConfig tests]() for more details.
+Please check the [LoRaWANConfig tests](/hio-dotnet.Tests.Common/LoRaWANConfigTests.cs) or [LTEConfig tests](/hio-dotnet.Tests.Common/LTEConfigTests.cs) for more details.
 
 ### Catalog Apps Models
-The namespace [CatalogApps]() contains most of our [CHESTER Catalog Applications](https://www.hardwario.com/chester/catalog-applications) data models. 
+The namespace [CatalogApps](/hio-dotnet.Common/Models/CatalogApps/) contains most of our [CHESTER Catalog Applications](https://www.hardwario.com/chester/catalog-applications) data models. 
 You can use those models for serialization/deserialization of the cloud v2 messages bodies. If you do not know the type of the message you can use static class ChesterCloudMessageAutoIdentifier like this:
 
 ```csharp
@@ -135,7 +135,7 @@ This library contains message simulator mechanism which simplify creating the st
 [JsonPropertyName("concentration_hourly")]
 public SimpleDoubleMeasurementGroup ConcentrationHourly { get; set; } = new SimpleDoubleMeasurementGroup();
 ```
-The [SimulationMeasurementAttribute]() defines information for simulation. In this case it means that the:
+The [SimulationMeasurementAttribute](/hio-dotnet.Common/Models/DataSimulation/SimulationMeasurementAttribute.cs) defines information for simulation. In this case it means that the:
 
 - "false" => Property is not static => must be simulated
 - 10.0 => Minimum value
@@ -153,7 +153,7 @@ BaseSimulator.GetSimulatedData(message);
 ```
 This will give you one message with statically generated simulated data in all properties which has defined the attribute. 
 
-If you need to run stream of simulated messages you can use [StandardContinuousSimulator]() class like this:
+If you need to run stream of simulated messages you can use [StandardContinuousSimulator](/hio-dotnet.Common/Models/DataSimulation/StandardContinuousSimulator.cs) class like this:
 
 First create instance of specific simulator with defined type of the message name and interval:
 
