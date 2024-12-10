@@ -142,10 +142,10 @@ private async Task OnKeyDown(KeyboardEventArgs e, DialogService ds)
 
 
 ## Example projects
-Example project with the components is called [hio-dotnet.Demos.BlazorComponents.Radzen.WASM](). You can find the application of practically all the components in the library because we are using this project for the testing components during the development. They are not connected to the HW specific drivers. It means that for example Console component is using just dummy values.
+Example project with the components is called [hio-dotnet.Demos.BlazorComponents.Radzen.WASM](/hio-dotnet.Demos.BlazorComponents.Radzen.WASM/). You can find the application of practically all the components in the library because we are using this project for the testing components during the development. They are not connected to the HW specific drivers. It means that for example Console component is using just dummy values.
 
 Another projects which are using these components are:
 
-- [hio-dotnet.Demos.HardwarioManger]() - MAUI phone application for BLE communication with CHESTER
-- [hio-dotnet.Demos.HardwarioMonitor]() - MAUI desktop application for J-Link and PPKII communication with CHESTER
+- [hio-dotnet.Demos.HardwarioManger](/hio-dotnet.Demos.HardwarioManager/) - MAUI phone application for BLE communication with CHESTER
+- [hio-dotnet.Demos.HardwarioMonitor](/hio-dotnet.Demos.HardwarioMonitor/) - MAUI desktop application for J-Link and PPKII communication with CHESTER
 
