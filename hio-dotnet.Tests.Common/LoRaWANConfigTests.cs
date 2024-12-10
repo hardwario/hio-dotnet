@@ -124,6 +124,56 @@ namespace hio_dotnet.Tests.Common
         }
 
         [Fact]
+        public void ParseAllLines()
+        {
+            var config = new LoRaWANConfig();
+            config.ParseLine("lrw config devaddr 123456789");
+            Assert.Equal(config.DevAddr, "123456789");
+
+            config.ParseLine("lrw config deveui 223456789");
+            Assert.Equal(config.DevEui, "223456789");
+
+            config.ParseLine("lrw config joineui 323456789");
+            Assert.Equal(config.JoinEui, "323456789");
+
+            config.ParseLine("lrw config appkey 423456789");
+            Assert.Equal(config.AppKey, "423456789");
+
+            config.ParseLine("lrw config appskey 523456789");
+            Assert.Equal(config.AppSKey, "523456789");
+
+            config.ParseLine("lrw config nwkskey 623456789");
+            Assert.Equal(config.NwkSKey, "623456789");
+
+            config.ParseLine("lrw config antenna ext");
+            Assert.Equal(config.Antenna, AntennaType.External);
+
+            config.ParseLine("lrw config band us915");
+            Assert.Equal(config.Band, LoRaWANBand.US915);
+
+            config.ParseLine("lrw config mode abp");
+            Assert.Equal(config.Mode, LoRaWANMode.ABP);
+
+            config.ParseLine("lrw config nwk public");
+            Assert.Equal(config.Network, LoRaWANNetwork.Public);
+
+            config.ParseLine("lrw config class c");
+            Assert.Equal(config.Class, LoRaWANClass.C);
+
+            config.ParseLine("lrw config adr true");
+            Assert.Equal(config.Adr, true);
+
+            config.ParseLine("lrw config test true");
+            Assert.Equal(config.Test, true);
+
+            config.ParseLine("lrw config dutycycle true");
+            Assert.Equal(config.DutyCycle, true);
+
+            config.ParseLine("lrw config datarate 1");
+            Assert.Equal(config.DataRate, 1);
+        }
+
+        [Fact]
         public void GetWholeConfig_ShouldHandleDefaultValues()
         {
             var config = new LoRaWANConfig();

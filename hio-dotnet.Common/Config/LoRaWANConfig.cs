@@ -6,31 +6,47 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 
 namespace hio_dotnet.Common.Config
 {
     public class LoRaWANConfig : ConfigCommon
     {
         #region ConnectionParams
+        [ConfigSerializationAttribute(true, false, "lrw", "devaddr")]
         public string DevAddr { get; set; } = "00000000";
+        [ConfigSerializationAttribute(true, false, "lrw", "deveui")]
         public string DevEui { get; set; } = "0000000000000000";
+        [ConfigSerializationAttribute(true, false, "lrw", "joineui")]
         public string JoinEui { get; set; } = "0000000000000000";
+        [ConfigSerializationAttribute(true, false, "lrw", "appkey")]
         public string AppKey { get; set; } = "00000000000000000000000000000000";
+        [ConfigSerializationAttribute(true, false, "lrw", "appskey")]
         public string AppSKey { get; set; } = "00000000000000000000000000000000";
+        [ConfigSerializationAttribute(true, false, "lrw", "nwkskey")]
         public string NwkSKey { get; set; } = "00000000000000000000000000000000";
         #endregion
 
         #region LoRaWANParams
+        [ConfigSerializationAttribute(true, false, "lrw", "antenna")]
         public AntennaType Antenna { get; set; } = AntennaType.Internal;
+        [ConfigSerializationAttribute(true, false, "lrw", "band")]
         public LoRaWANBand Band { get; set; } = LoRaWANBand.EU868;
+        [ConfigSerializationAttribute(true, false, "lrw", "mode")]
         public LoRaWANMode Mode { get; set; } = LoRaWANMode.OTAA;
+        [ConfigSerializationAttribute(true, false, "lrw", "nwk")]
         public LoRaWANNetwork Network { get; set; } = LoRaWANNetwork.Private;
+        [ConfigSerializationAttribute(true, false, "lrw", "class")]
         public LoRaWANClass Class { get; set; } = LoRaWANClass.A;
         #endregion
 
+        [ConfigSerializationAttribute(true, false, "lrw", "adr")]
         public bool Adr { get; set; } = true;
+        [ConfigSerializationAttribute(true, false, "lrw", "test")]
         public bool Test { get; set; } = false;
+        [ConfigSerializationAttribute(true, false, "lrw", "dutycycle")]
         public bool DutyCycle { get; set; } = false;
+        [ConfigSerializationAttribute(true, false, "lrw", "datarate")]
         public int DataRate { get; set; } = 0;
 
         #region FluentInterface
@@ -125,7 +141,7 @@ namespace hio_dotnet.Common.Config
             return this;
         }
         #endregion
-
+        
         public void ParseLine(string line)
         {
             if (string.IsNullOrEmpty(line))
@@ -138,76 +154,63 @@ namespace hio_dotnet.Common.Config
             if (line.Contains("app "))
                 throw new ArgumentException("LoRaWAN Parsing>> The config line is not for LoRa. It belongs to APP parsing.");
 
-
             if (line.Contains("lrw config "))
                 line = line.Replace("lrw config ", string.Empty).ReplaceLineEndings();
 
-            if (line.Contains("test "))
-            {
-                Test = GetBoolParameter(line);
-            }
-            else if (line.Contains("adr "))
-            {
-                Adr = GetBoolParameter(line);
-            }
-            else if (line.Contains("dutycycle "))
-            {
-                DutyCycle = GetBoolParameter(line);
-            }
-            else if (line.Contains("antenna "))
-            {
-                if (line.Contains("int") && !line.Contains("internal"))
-                    line = line.Replace("int", "internal");
-                if (line.Contains("ext") && !line.Contains("external"))
-                    line = line.Replace("ext", "external");
+            var split = ParseStringProperty(line);
 
-                Antenna = GetEnumParameter<AntennaType>(line) ?? AntennaType.Internal;
-            }
-            else if (line.Contains("band "))
+            if (!string.IsNullOrEmpty(split.Property))
             {
-                Band = GetEnumParameter<LoRaWANBand>(line) ?? LoRaWANBand.EU868;
-            }
-            else if (line.Contains("class "))
-            {
-                Class = GetEnumParameter<LoRaWANClass>(line) ?? LoRaWANClass.A;
-            }
-            else if (line.Contains("mode "))
-            {
-                Mode = GetEnumParameter<LoRaWANMode>(line) ?? LoRaWANMode.OTAA;
-            }
-            else if (line.Contains("nwk "))
-            {
-                Network = GetEnumParameter<LoRaWANNetwork>(line) ?? LoRaWANNetwork.Private;
-            }
-            else if (line.Contains("devaddr "))
-            {
-                DevAddr = GetStringParameter(line) ?? "00000000";
-            }
-            else if (line.Contains("deveui "))
-            {
-                DevEui = GetStringParameter(line) ?? "0000000000000000";
-            }
-            else if (line.Contains("joineui "))
-            {
-                JoinEui = GetStringParameter(line) ?? "0000000000000000";
-            }
-            else if (line.Contains("appkey "))
-            {
-                AppKey = GetStringParameter(line) ?? "00000000000000000000000000000000";
-            }
-            else if (line.Contains("nwkskey "))
-            {
-                NwkSKey = GetStringParameter(line) ?? "00000000000000000000000000000000";
-            }
-            else if (line.Contains("appskey "))
-            {
-                AppSKey = GetStringParameter(line) ?? "00000000000000000000000000000000";
-            }
-            else if (line.Contains("datarate "))
-            {
-                DataRate = GetIntParameter(line) ?? 0;
-            }
+                var key = split.Property.Trim().ToLower();
+                var value = split.Value.Trim();
 
+                #region SpecificParsingPreparation
+                if (key.Contains("antenna"))
+                {
+                    if (value.Contains("int") && !value.Contains("internal"))
+                        value = value.Replace("int", "internal");
+                    if (value.Contains("ext") && !value.Contains("external"))
+                        value = value.Replace("ext", "external");
+                }
+                #endregion
+
+                var props = this.GetType().GetProperties();
+                foreach (var prop in props)
+                {
+                    var attr = prop.GetCustomAttribute<ConfigSerializationAttribute>();
+                    if (attr != null && (attr.IsConfigParam || attr.IsStatusParam) && attr.ConfigParamName == key)
+                    {
+                        if (prop.PropertyType == typeof(bool))
+                        {
+                            prop.SetValue(this, bool.Parse(value));
+                        }
+                        else if (prop.PropertyType == typeof(int))
+                        {
+                            prop.SetValue(this, int.Parse(value));
+                        }
+                        else if (prop.PropertyType == typeof(string))
+                        {
+                            prop.SetValue(this, value);
+                        }
+                        else if (prop.PropertyType.IsEnum)
+                        {
+                            try
+                            {
+                                var enumValue = Enum.Parse(prop.PropertyType, value, true);
+                                prop.SetValue(this, enumValue);
+                            }
+                            catch (ArgumentException)
+                            {
+                                throw new InvalidOperationException($"Value '{value}' does not fit for enum '{prop.PropertyType.Name}'.");
+                            }
+                        }
+                        else
+                        {
+                            prop.SetValue(this, value);
+                        }
+                    }
+                }
+            }
         }
 
         #region GenerateFunctions
@@ -239,55 +242,57 @@ namespace hio_dotnet.Common.Config
             var propertyInfo = this.GetType().GetProperty(propertyName);
 
             if (propertyInfo == null)
-                throw new ArgumentException($"Property '{propertyName}' not found in LoRaConfig.");
+                throw new ArgumentException($"Property '{propertyName}' not found in LoRaWANConfig.");
 
             var value = propertyInfo.GetValue(this);
 
-            if (value is bool boolValue)
+            var attr = propertyInfo.GetCustomAttribute<ConfigSerializationAttribute>();
+            if (attr != null)
             {
-                paramValue = GetBoolString(boolValue);
-                if (Equals(propertyName, nameof(Test))) tag = "test";
-                else if (Equals(propertyName, nameof(Adr))) tag = "adr";
-                else if (Equals(propertyName, nameof(DutyCycle))) tag = "dutycycle";
-            }
-            else if (value is int intValue)
-            {
-                paramValue = GetIntString(intValue);
-                if (Equals(propertyName, nameof(DataRate))) tag = "datarate";
-            }
-            else if (value is Enum enumValue)
-            {
-                paramValue = GetEnumString(enumValue);
+                if (attr.IsConfigParam)
+                {
+                    tag = attr.ConfigParamName;
 
-                // Přidáme logiku pro přiřazení tagu
-                var enumType = enumValue.GetType();
-                if (enumType == typeof(AntennaType)) tag = "antenna";
-                else if (enumType == typeof(LoRaWANBand)) tag = "band";
-                else if (enumType == typeof(LoRaWANClass)) tag = "class";
-                else if (enumType == typeof(LoRaWANMode)) tag = "mode";
-                else if (enumType == typeof(LoRaWANNetwork)) tag = "nwk";
-            }
-            else if (value is string stringValue)
-            {
-                paramValue = stringValue;
-                if (Equals(propertyName, nameof(DevAddr))) tag = "devaddr";
-                else if (Equals(propertyName, nameof(DevEui))) tag = "deveui";
-                else if (Equals(propertyName, nameof(JoinEui))) tag = "joineui";
-                else if (Equals(propertyName, nameof(AppKey))) tag = "appkey";
-                else if (Equals(propertyName, nameof(NwkSKey))) tag = "nwkskey";
-                else if (Equals(propertyName, nameof(AppSKey))) tag = "appskey";
-            }
+                    if (value is string stringValue)
+                    {
+                        paramValue = stringValue;
+                    }
+                    else if (value is bool boolValue)
+                    {
+                        paramValue = GetBoolString(boolValue);
+                    }
+                    else if (value is int intValue)
+                    {
+                        paramValue = GetIntString(intValue);
+                    }
+                    else if (value is Enum enumValue)
+                    {
+                        paramValue = GetEnumString(enumValue);
+                    }
+                    else
+                    {
+                        paramValue = value.ToString();
+                    }
 
-            if (tag == "antenna")
-            {
-                if (paramValue.Contains("internal"))
-                    paramValue = "int";
-                if (paramValue.Contains("external"))
-                    paramValue = "ext";
-            }
+                    if (tag == "antenna")
+                    {
+                        if (paramValue.Contains("internal"))
+                            paramValue = "int";
+                        if (paramValue.Contains("external"))
+                            paramValue = "ext";
+                    }
 
-            // Vrací finální konfigurační řádek ve formátu "lrw {tag} {paramValue}"
-            return $"lrw config {tag} {paramValue}";
+                    return $"lrw config {tag} {paramValue}";
+                }
+                else
+                {
+                    return string.Empty;
+                }
+            }
+            else
+            {
+                return string.Empty;
+            }
         }
 
         #endregion

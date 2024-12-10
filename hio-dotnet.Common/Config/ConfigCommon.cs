@@ -69,6 +69,20 @@ namespace hio_dotnet.Common.Config
             }
             return null;
         }
+
+        public (string Property, string Value) ParseStringProperty(string configLine)
+        {
+            int spaceIndex = configLine.IndexOf(' ');
+
+            if (spaceIndex == -1)
+            {
+                return (configLine, string.Empty);
+            }
+            string property = configLine.Substring(0, spaceIndex);
+            string value = configLine.Substring(spaceIndex + 1);
+
+            return (property, value);
+        }
         #endregion
 
         public string GetEnumString(Enum enumValue)
