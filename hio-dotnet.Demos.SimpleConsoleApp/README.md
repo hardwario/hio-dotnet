@@ -5,7 +5,7 @@ This readme will not explain all the functions of each demo in details because t
 
 ## Start demo
 
-Each demo in this console app is wrapped in separated region define. In each of those regions you will find the "if" statement which turns on/off specific demo in the console app. All variables for turning on/off of the demos are declared in start of the file [Program.cs](). If you would like to run some demo you need to change the specific variable from "false" to "true". For example if you would like to turn on the demo for HARDWARIO Simulator you need to setup this variable:
+Each demo in this console app is wrapped in separated region define. In each of those regions you will find the "if" statement which turns on/off specific demo in the console app. All variables for turning on/off of the demos are declared in start of the file [Program.cs](/hio-dotnet.Demos.SimpleConsoleApp/Program.cs). If you would like to run some demo you need to change the specific variable from "false" to "true". For example if you would like to turn on the demo for HARDWARIO Simulator you need to setup this variable:
 
 ```
 var HIO_SIMULATOR_TEST = true;
