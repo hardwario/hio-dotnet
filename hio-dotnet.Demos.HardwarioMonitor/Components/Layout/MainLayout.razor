@@ -40,6 +40,7 @@
         @Body
     </RadzenBody>
     <RadzenFooter>
+        <Footer @ref=footerRef />
     </RadzenFooter>
 </RadzenLayout>
 
@@ -47,6 +48,7 @@
 
 @code {
     bool sidebarExpanded = true;
+    Footer? footerRef;
 
     public string GetVersion()
     {

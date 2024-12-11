@@ -28,6 +28,14 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         public event EventHandler<DataPoint[]?> DataPointsReceived;
 
         public event EventHandler<bool> OnIsBusy;
+        public event EventHandler<bool> OnIsPPKConnected;
+        public event EventHandler<bool> OnIsPPKDisconnected;
+
+        public event EventHandler<bool> OnIsPPKVoltageOutputConnected;
+        public event EventHandler<bool> OnIsPPKVoltageOutputDisconnected;
+
+        public event EventHandler<bool> OnIsJLinkConnected;
+        public event EventHandler<bool> OnIsJLinkDisconnected;
 
         public List<string> ConsoleOutputShell = new List<string>();
         public List<string> ConsoleOutputLog = new List<string>();
@@ -40,7 +48,6 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         public int DataPointsTimeSinceStartCounter { get; set; } = 0;
 
         public bool IsConsoleListening { get; set; } = false;
-
         public bool IsPPK2Connected()
         {
             return ppk2 != null;
@@ -79,6 +86,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
             ppk2 = new PPK2_Driver(selectedDevice.PortName);
 
+            OnIsPPKConnected?.Invoke(this, true);
         }
 
         public async Task SetPPK2Voltage(int voltage)
@@ -98,6 +106,8 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             IsDeviceOn = true;
             if (withMeasurement)
                 await MeasureLoop();
+
+            OnIsPPKVoltageOutputConnected?.Invoke(this, true);
         }
 
         public async Task TurnOffPower()
@@ -108,6 +118,8 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             Console.WriteLine("Turning off DUT power...");
             ppk2?.ToggleDUTPower(PPK2_OutputState.OFF);
             IsDeviceOn = false;
+
+            OnIsPPKVoltageOutputDisconnected?.Invoke(this, true);
         }
 
         public async Task MeasureLoop()
@@ -281,6 +293,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             IsConsoleListening = true;
 
             OnIsBusy?.Invoke(this, false);
+            OnIsJLinkConnected?.Invoke(this, true);
 
             await Task.WhenAny(new Task[] { listeningTask });
 
@@ -300,8 +313,11 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
             MCUConsole?.Dispose();
 
+            OnIsJLinkDisconnected?.Invoke(this, true);
+
             Console.WriteLine("Turning off DUT power...");
             ppk2?.ToggleDUTPower(PPK2_OutputState.OFF);
+            OnIsPPKVoltageOutputDisconnected?.Invoke(this, true);
         }
 
         public double[] Downsample(double[] data, int originalRate, int targetRate)
