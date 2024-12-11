@@ -27,6 +27,8 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         public event EventHandler<DataPoint[]?> DataPointsReceived;
 
+        public event EventHandler<bool> OnIsBusy;
+
         public List<string> ConsoleOutputShell = new List<string>();
         public List<string> ConsoleOutputLog = new List<string>();
 
@@ -208,6 +210,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         public async Task StartListening()
         {
+            OnIsBusy?.Invoke(this, true);
             // Get all available connected JLinks
             Console.WriteLine("Searching for available JLinks...");
             var connected_jlinks = JLinkDriver.GetConnectedJLinks();
@@ -277,6 +280,8 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
             IsConsoleListening = true;
 
+            OnIsBusy?.Invoke(this, false);
+
             await Task.WhenAny(new Task[] { listeningTask });
 
         }
@@ -303,7 +308,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         {
             if (originalRate < targetRate)
             {
-                throw new ArgumentException("Cílová vzorkovací frekvence musí být nižší než původní.");
+                throw new ArgumentException("Target frequency must be lower than the original.");
             }
 
             int ratio = originalRate / targetRate;
@@ -327,13 +332,13 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         public async Task SaveConsoleShellToFile()
         {
             var fileService = new FileService();
-            await fileService.SaveFileWithDialogAsync(ConsoleOutputShell);
+            await fileService.SaveFileWithDialogAsync(ConsoleOutputShell, "ConsoleShellOutput.txt");
         }
 
         public async Task SaveConsoleLogToFile()
         {
             var fileService = new FileService();
-            await fileService.SaveFileWithDialogAsync(ConsoleOutputLog);
+            await fileService.SaveFileWithDialogAsync(ConsoleOutputLog, "ConsoleLogOutput.txt");
         }
     }
 }

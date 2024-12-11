@@ -49,27 +49,39 @@
 
         <RadzenButton Click="SaveShellToFile" Style="margin-top: 5px; width: 100%;">Save Shell To File</RadzenButton>
         <RadzenButton Click="SaveLogToFile" Style="margin-top: 5px; width: 100%;">Save Log To File</RadzenButton>
+
+        <RadzenRow Style="margin-top: 5px; width: 100%;">
+            <RadzenColumn>
+                <RadzenStack Orientation="Orientation.Horizontal">
+                    @if (ConsoleService.IsPPK2Connected())
+                    {
+                        <RadzenText Text="PPK Connected" />
+                    }
+                    else 
+                    {
+                        <RadzenText Text="PPK Disconnected" />
+                    }
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow Style="margin-top: 5px; width: 100%;">
+            <RadzenColumn>
+                <RadzenStack Orientation="Orientation.Horizontal">
+                    <RadzenText Text="PPK Voltage: " />
+                    <RadzenText Text="@($"{ConsoleService.DeviceVoltage.ToString()} mV")" />
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
     </RadzenSidebar>
     <RadzenBody>
         <RadzenRow Style="height: 100%;">
             <RadzenColumn Style="height: 100%;">
                 <RadzenRow>
                     <RadzenColumn>
-                        <RadzenHeading Size="H2">Device Status</RadzenHeading>
-                        <span>@ConsoleService.IsPPK2Connected()</span>
+                        <ConsoleComponent @ref=consoleComponentRef TextSize="12" Output="@ConsoleService.ConsoleOutputShell" OnSendCommand="HandleSendCommand" />
                     </RadzenColumn>
                     <RadzenColumn>
-                        <RadzenHeading Size="H2">Device Voltage</RadzenHeading>
-                        <span>@ConsoleService.DeviceVoltage mV</span>
-                    </RadzenColumn>
-                </RadzenRow>
-
-                <RadzenRow>
-                    <RadzenColumn>
-                        <ConsoleComponent @ref=consoleComponentRef Output="@ConsoleService.ConsoleOutputShell" OnSendCommand="HandleSendCommand" />
-                    </RadzenColumn>
-                    <RadzenColumn>
-                        <ConsoleComponent @ref=consoleComponentRef Output="@ConsoleService.ConsoleOutputLog" HideCommandLine="true" />
+                        <ConsoleComponent @ref=consoleComponentLogRef TextSize="12" Headline="Log" Output="@ConsoleService.ConsoleOutputLog" HideCommandLine="true" />
                     </RadzenColumn>
                 </RadzenRow>
 
@@ -98,6 +110,7 @@
     private List<string> outputConfig = new List<string>();
     private List<string> output = new List<string>();
     ConsoleComponent? consoleComponentRef;
+    ConsoleComponent? consoleComponentLogRef;
 
     public int Voltage { get; set; } = 3300;
 
@@ -105,6 +118,29 @@
     {
         ConsoleService.InitArrays();
         ConsoleService.NewRTTMessageLineReceived += NewLineReceived;
+        ConsoleService.OnIsBusy += (s, e) =>
+        {
+            isBusy = e;
+            Refresh();
+        };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (consoleComponentRef != null)
+            {
+                consoleComponentRef.MaxHeight = 650;
+                consoleComponentRef.MinHeight = 650;
+            }
+            if (consoleComponentLogRef != null)
+            {
+                consoleComponentLogRef.MaxHeight = 650;
+                consoleComponentLogRef.MinHeight = 650;
+            }
+            await Refresh();
+        }
     }
 
     public async Task Refresh()

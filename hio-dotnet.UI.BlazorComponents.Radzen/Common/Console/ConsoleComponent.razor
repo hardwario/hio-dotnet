@@ -3,7 +3,7 @@
 
 @inject IJSRuntime JSRuntime
 
-<h4>Console</h4>
+<h4>@Headline</h4>
 <hr />
 
 <div class="console-container">
@@ -13,7 +13,7 @@
                 <div class="console-output">
                     @foreach (var line in Output)
                     {
-                        <div><small style="color: #d4d4d4; font-size: 8px;">@line</small></div>
+                        <div><small style=@GetConsoleTextStyle()>@line</small></div>
                     }
                 </div>
             </RadzenCard>
@@ -26,7 +26,7 @@
                         <RadzenTextBox @bind-Value="@command" Placeholder="Type command" Style="width: 100%;" @onkeydown="HandleKeyDown" @onfocus="() => OnCommandLineGotFocus.InvokeAsync()" @onfocusout="() => OnCommandLineLostFocus.InvokeAsync()" />
                     </RadzenColumn>
                     <RadzenColumn Width="2">
-                        <RadzenButton Text="Send" Click="SendCommand" Style="width: 100%;" />
+                        <RadzenButton Text="Send" Disabled="@IsSendButtonDisabled" Click="SendCommand" Style="width: 100%;" />
                     </RadzenColumn>
                 </RadzenRow>
             }
@@ -36,38 +36,41 @@
 
 <style>
     .console-container {
-        display: flex;
-        flex-direction: column;
-        height: 100vh; /* Adjust as needed */
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Adjust as needed */
     }
 
     .console-card {
-        color: #d4d4d4;
-        font-family: monospace;
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
+    color: #d4d4d4;
+    font-family: monospace;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
     }
 
     .console-output {
-        flex-grow: 1;
-        overflow-y: auto;
-        min-height: @(GetMinHeight());
-        max-height: @(GetMaxHeight());
+    flex-grow: 1;
+    overflow-y: auto;
+    min-height: @(GetMinHeight());
+    max-height: @(GetMaxHeight());
     }
 </style>
 
 @code {
+    [Parameter] public string Headline { get; set; } = "Console";
     [Parameter] public EventCallback<string> OnSendCommand { get; set; }
     [Parameter] public EventCallback<string> OnCommandLineGotFocus { get; set; }
     [Parameter] public EventCallback<string> OnCommandLineLostFocus { get; set; }
     [Parameter] public EventCallback<string> OnNewLineReceived { get; set; }
     [Parameter] public List<string> Output { get; set; } = new List<string>();
     [Parameter] public bool HideCommandLine { get; set; } = false;
+    [Parameter] public bool IsSendButtonDisabled { get; set; } = false;
+    [Parameter] public int TextSize { get; set; } = 8;
 
     public int MinHeight { get; set; } = 500;
     public int MaxHeight { get; set; } = 500;
-    
+
     public int MinHeightDefault { get; } = 500;
     public int MaxHeightDefault { get; } = 500;
 
@@ -77,6 +80,11 @@
     private string command = string.Empty;
     private int historyIndex = -1;
     private List<string> commandHistory = new List<string>();
+
+    private string GetConsoleTextStyle()
+    {
+        return $"color: #d4d4d4; font-size: {TextSize}px;";
+    }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
     {
