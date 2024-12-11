@@ -1,3 +1,5 @@
+[![Test Status](https://github.com/hardwario/hio-dotnet/actions/workflows/dotnet.yml/badge.svg)](https://github.com/username/hio-dotnet/actions)
+
 # HARDWARIO .NET SDK
 
 HARDWARIO .NET SDK project is here to help you with creating your custom application around the HARDWARIO ecosystem of IoT devices and services. 
