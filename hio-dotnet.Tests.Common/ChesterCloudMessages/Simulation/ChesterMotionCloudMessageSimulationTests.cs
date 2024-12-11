@@ -20,9 +20,16 @@ namespace hio_dotnet.Tests.Common.ChesterCloudMessages.Simulation
 
             var message1 = new ChesterMotionCloudMessage();
             BaseSimulator.GetSimulatedData(message1, message);
+
+            var message2 = new ChesterMotionCloudMessage();
+            BaseSimulator.GetSimulatedData(message2, message1);
+
+            var message3 = new ChesterMotionCloudMessage();
+            BaseSimulator.GetSimulatedData(message3, message2);
+
             var state = message.MotionStates?.CountLeft;
-            var state1 = message1.MotionStates?.CountLeft;
-            Assert.True(state1 > state);
+            var state3 = message3.MotionStates?.CountLeft;
+            Assert.True(state3 > state);
         }
     }
 }

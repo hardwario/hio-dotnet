@@ -10,61 +10,61 @@ namespace hio_dotnet.Tests.Common.ChesterCloudMessages.Simulation
 {
     public class TestObjectShouldFollowAndRaise
     {
-        [SimulationAttribute(false, 1, 100, true, true, 0.2)]
+        [SimulationAttribute(false, 1, 100, true, true, 0.4)]
         public int Value1 { get; set; } = 0;
 
-        [SimulationAttribute(false, 1, 100, true, true, 0.2)]
+        [SimulationAttribute(false, 1, 100, true, true, 0.4)]
         public int Value2 { get; set; } = 0;
     }
 
     public class TestObjectShouldFollowAndFall
     {
-        [SimulationAttribute(false, 1, 100, true, false, 0.2)]
+        [SimulationAttribute(false, 1, 100, true, false, 0.4)]
         public int Value1 { get; set; } = 0;
 
-        [SimulationAttribute(false, 1, 100, true, false, 0.2)]
+        [SimulationAttribute(false, 1, 100, true, false, 0.4)]
         public int Value2 { get; set; } = 0;
     }
 
     public class TestObjectShouldFollowAndRaiseInMinus
     {
-        [SimulationAttribute(false, -100, 0, true, true, 0.2)]
+        [SimulationAttribute(false, -100, 0, true, true, 0.4)]
         public int Value1 { get; set; } = 0;
 
-        [SimulationAttribute(false, -100, 0, true, true, 0.2)]
+        [SimulationAttribute(false, -100, 0, true, true, 0.4)]
         public int Value2 { get; set; } = 0;
     }
 
     public class TestObjectShouldFollowAndFallInMinus
     {
-        [SimulationAttribute(false, -100, 0, true, false, 0.2)]
+        [SimulationAttribute(false, -100, 0, true, false, 0.4)]
         public int Value1 { get; set; } = 0;
 
-        [SimulationAttribute(false, -100, 0, true, false, 0.2)]
+        [SimulationAttribute(false, -100, 0, true, false, 0.4)]
         public int Value2 { get; set; } = 0;
     }
 
     public class TestObjectIntNullable
     {
-        [SimulationAttribute(false, 1, 100, true, true, 0.2)]
+        [SimulationAttribute(false, 1, 100, true, true, 0.4)]
         public int? Value1 { get; set; } = 0;
     }
 
     public class TestObjectDoubleNullable
     {
-        [SimulationAttribute(false, 1, 100, true, true, 0.2)]
+        [SimulationAttribute(false, 1, 100, true, true, 0.4)]
         public double? Value1 { get; set; } = 0.0;
     }
 
     public class TestObjectLongNullable
     {
-        [SimulationAttribute(false, 1, 100, true, true, 0.2)]
+        [SimulationAttribute(false, 1, 100, true, true, 0.4)]
         public long? Value1 { get; set; } = 0;
     }
 
     public class TestObjectIntReversedMinMax
     {
-        [SimulationAttribute(false, 100, 1, true, true, 0.2)]
+        [SimulationAttribute(false, 100, 1, true, true, 0.4)]
         public int Value1 { get; set; } = 0;
     }
 
