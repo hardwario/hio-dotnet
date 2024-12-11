@@ -1,17 +1,68 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+@inject TooltipService TooltipService
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+<RadzenLayout>
+    <RadzenHeader>
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0" JustifyContent="JustifyContent.Start">
+                    <RadzenSidebarToggle Click="@sidebarToggle" Style="margin-left:4px;" />
+                    <img src="resources/hw_logo_pos.svg" alt="HARDWARIO" style="width:100px;height:100%;" />
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenHeader>
+    <RadzenSidebar Responsive="false" Style="width: max-content;height:100%;">
+        <RadzenStack Orientation="Orientation.Vertical" Style="height:100%;">
+            <RadzenRow>
+                <RadzenColumn Style="height:100%;">
+                    <RadzenPanelMenu DisplayStyle="@(sidebarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="false">
+                        <RadzenPanelMenuItem Text="Home" Icon="home" Path="/" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "Home", Position = TooltipPosition.Right }) )" />
+                        <RadzenPanelMenuItem Text="Graph" Icon="monitoring" Path="/graph" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "Counter", Position = TooltipPosition.Right }) )" />
+                        <RadzenPanelMenuItem Text="Weather" Icon="terminal" Path="/weather" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "Weather", Position = TooltipPosition.Right }) )" />
+                    </RadzenPanelMenu>
+                </RadzenColumn>
+            </RadzenRow>
+            @if (sidebarExpanded)
+            {
+                <RadzenRow Style="height:100%;">
+                    <RadzenColumn Style="height:100%;">
+                        <RadzenStack Style="height: 100%;" Orientation="Orientation.Horizontal" AlignItems="AlignItems.End" JustifyContent="JustifyContent.Center">
+                            <RadzenText Text="@GetVersion()" />
+                        </RadzenStack>
+                    </RadzenColumn>
+                </RadzenRow>
+            }
+        </RadzenStack>
+    </RadzenSidebar>
+    <RadzenBody Style="padding:0px;">
+        @Body
+    </RadzenBody>
+    <RadzenFooter>
+    </RadzenFooter>
+</RadzenLayout>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+<RadzenComponents />
+
+@code {
+    bool sidebarExpanded = true;
+
+    public string GetVersion()
+    {
+        return $"Version: {MainDataContext.Config.AppVersion}";
+    }
+
+    private async Task sidebarToggle()
+    {
+        sidebarExpanded = !sidebarExpanded;
+    }
+
+    void ShowTooltip(ElementReference elementReference, TooltipOptions options = null)
+    {
+        if (!sidebarExpanded)
+        {
+            TooltipService.Open(elementReference, options.Text, options);
+        }
+    }
+}

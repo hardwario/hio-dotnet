@@ -1,4 +1,7 @@
 ﻿@using Radzen
+@using Microsoft.JSInterop
+
+@inject IJSRuntime JSRuntime
 
 <h4>Console</h4>
 <hr />
@@ -79,6 +82,7 @@
     {
         if (e.Key == "Enter")
         {
+            await JSRuntime.InvokeVoidAsync("document.activeElement.blur");
             await SendCommand();
         }
         else if (e.Key == "ArrowUp")

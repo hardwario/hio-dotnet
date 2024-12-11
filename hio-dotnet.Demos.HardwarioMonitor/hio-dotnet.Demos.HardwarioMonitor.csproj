@@ -56,6 +56,19 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Content Remove="Resources\Raw\appconfig.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <MauiAsset Remove="Resources\Raw\appconfig.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Resources\Raw\appconfig.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="CommunityToolkit.Maui" Version="9.1.1" />
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
@@ -66,6 +79,12 @@
       <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />
       <ProjectReference Include="..\hio-dotnet.HWDrivers\hio-dotnet.HWDrivers.csproj" />
       <ProjectReference Include="..\hio-dotnet.UI.BlazorComponents.Radzen\hio-dotnet.UI.BlazorComponents.Radzen.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Update="wwwroot\resources\hw_logo_pos.svg">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>

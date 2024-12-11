@@ -27,6 +27,9 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         public event EventHandler<DataPoint[]?> DataPointsReceived;
 
+        public List<string> ConsoleOutputShell = new List<string>();
+        public List<string> ConsoleOutputLog = new List<string>();
+
         private const int dataPointsLength = 20000;
         private const int latestDataPointsLength = 2000;
         public DataPoint[] dataPoints { get; set; } = new DataPoint[dataPointsLength];
@@ -252,7 +255,22 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
                 }, "nRF52840_xxAA", 4000, "mcumulticonsole", devsn);
 
             // Subscribe to NewRTTMessageLineReceived event to get RTT messages and set output to console
-            MCUConsole.NewRTTMessageLineReceived += (sender, data) => NewRTTMessageLineReceived.Invoke(sender, data);
+
+            MCUConsole.NewRTTMessageLineReceived += (sender, data) =>
+            {
+                if (data?.Item2.Channel == 0)
+                {
+                    var line = $"{data.Item1}";
+                    ConsoleOutputShell.Add(line);
+                }
+                else if (data?.Item2.Channel == 1)
+                {
+                    var line = $"[{DateTime.UtcNow}][Log]: {data.Item1}";
+                    ConsoleOutputLog.Add(data.Item1);
+                }
+
+                NewRTTMessageLineReceived.Invoke(sender, data);
+            };
 
             var cts = new CancellationTokenSource();
             Task listeningTask = MCUConsole.StartListening(cts.Token);
@@ -264,6 +282,8 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         }
         public async Task SendCommand(string command)
         {
+            ConsoleOutputShell.Add("> " + command.Replace("\n", string.Empty));
+
             await MCUConsole?.SendCommand(0, command);
         }
 
@@ -302,6 +322,18 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             }
 
             return downsampledData;
+        }
+
+        public async Task SaveConsoleShellToFile()
+        {
+            var fileService = new FileService();
+            await fileService.SaveFileWithDialogAsync(ConsoleOutputShell);
+        }
+
+        public async Task SaveConsoleLogToFile()
+        {
+            var fileService = new FileService();
+            await fileService.SaveFileWithDialogAsync(ConsoleOutputLog);
         }
     }
 }
