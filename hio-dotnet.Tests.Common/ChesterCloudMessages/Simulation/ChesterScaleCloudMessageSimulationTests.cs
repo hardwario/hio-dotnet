@@ -20,9 +20,19 @@ namespace hio_dotnet.Tests.Common.ChesterCloudMessages.Simulation
 
             var message1 = new ChesterScaleCloudMessage();
             BaseSimulator.GetSimulatedData(message1, message);
+
+            var message2 = new ChesterScaleCloudMessage();
+            BaseSimulator.GetSimulatedData(message2, message1);
+
+            var message3 = new ChesterScaleCloudMessage();
+            BaseSimulator.GetSimulatedData(message3, message2);
+
+            var message4 = new ChesterScaleCloudMessage();
+            BaseSimulator.GetSimulatedData(message4, message3);
+
             var weight = message.Weights[0];
-            var weight1 = message1.Weights[0];
-            Assert.True(weight1.A2 > weight.A2);
+            var weight4 = message4.Weights[0];
+            Assert.True(weight4.A2 > weight.A2);
         }
     }
 }
