@@ -1,4 +1,5 @@
-[![Test Status](https://github.com/hardwario/hio-dotnet/actions/workflows/dotnet.yml/badge.svg)](https://github.com/username/hio-dotnet/actions)
+[![Test Status](https://github.com/hardwario/hio-dotnet/actions/workflows/dotnet.yml/badge.svg)](https://github.com/hardwario/hio-dotnet/actions)
+[![License](https://img.shields.io/github/license/hardwario/hio-dotnet.svg)](https://github.com/hardwario/hio-dotnet/blob/main/LICENSE)
 
 # HARDWARIO .NET SDK
 
@@ -94,7 +95,7 @@ There are two basic UI Components library project in the HARDWARIO .NET SKD. One
 
 ## License
 
-This project is under standard MIT license.
+This project is under standard [MIT license](./LICENSE).
 
 ## Contribution
 
