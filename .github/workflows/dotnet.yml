@@ -24,5 +24,5 @@ jobs:
       run: dotnet restore hio-dotnet.Common/hio-dotnet.Common.csproj
     - name: Build Common project
       run: dotnet build hio-dotnet.Common/hio-dotnet.Common.csproj --no-restore
-    - name: Run Tests
-      run: dotnet test hio-dotnet.Tests.Common/hio-dotnet.Tests.Common.csproj --no-build --verbosity detailed
+    - name: Run xUnit Tests
+      run: dotnet test hio-dotnet.Tests.Common/hio-dotnet.Tests.Common.csproj --verbosity normal
