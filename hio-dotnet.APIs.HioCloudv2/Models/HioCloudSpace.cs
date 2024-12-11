@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.APIs.HioCloudv2.Models
 {
-    public class HioCloudv2Space
+    public class HioCloudSpace
     {
         [JsonPropertyName("id")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

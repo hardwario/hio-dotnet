@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.APIs.HioCloudv2.Models
 {
-    public static class HioCloudv2Defaults
+    public static class HioCloudDefaults
     {
         public static string DefaultHardwarioCloudUrl = "https://api.hardwario.cloud";
 

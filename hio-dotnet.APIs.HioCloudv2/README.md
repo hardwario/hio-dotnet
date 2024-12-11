@@ -1,13 +1,13 @@
-# HARDWARIO Cloud v2 API
+# HARDWARIO Cloud API
 
-This project is helps to communicate with the [HARDWARIO Cloud v2 API](https://www.hardwario.com/cloud).
+This project is helps to communicate with the [HARDWARIO Cloud API](https://www.hardwario.com/cloud).
 
 The project contains wrapper for API and some helper classes to obtain new messages from the cloud automatically. 
 
 
 ## Requirements
-You will need the login to the HARDWARIO Cloud v2 to use this library. You can use the email and password or you can use just API token. 
-You can create your login on [HARDWARIO Cloud v2 webpage](https://hardwario.cloud/). But without the active [CHESTER](https://www.hardwario.com/chester) device you will have no usefull data in your login. 
+You will need the login to the HARDWARIO Cloud to use this library. You can use the email and password or you can use just API token. 
+You can create your login on [HARDWARIO Cloud webpage](https://hardwario.cloud/). But without the active [CHESTER](https://www.hardwario.com/chester) device you will have no usefull data in your login. 
 
 Note: If you will need to request names of the "Spaces" you will need the email and password because API token is always related to some specific "Space".
 
@@ -18,7 +18,7 @@ You can find whole demo in the [SimpleConsoleApp](/hio-dotnet.Demos.SimpleConsol
 
 ### Structure of the HARDWARIO Cloud
 
-At start it is important to mention the overal structure of the HARDWARIO Cloud v2. The basic hierarchy is like this.
+At start it is important to mention the overal structure of the HARDWARIO Cloud. The basic hierarchy is like this.
 
 - User
 	- Space
@@ -31,23 +31,23 @@ At start it is important to mention the overal structure of the HARDWARIO Cloud 
 
 There are two ways how to login to the cloud. You can use your email and password or you can use the API token. Using the email and password is not recommedned for most of the application because you are giving whole access to your cloud account. There is practically only one reason when you need to use email+password login. It is when you need to search multiple "Spaces", because the API tokens are related only to one specific Space. 
 
-The login information you must pass when you creating the main Hiov2CloudDriver instance:
+The login information you must pass when you creating the main HioCloudDriver instance:
 
 #### Login with the email and password
 ```csharp
 var email = "YOUR EMAIL";
 var password = "YOUR PASSWORD";
 
-Hiov2CloudDriver hiocloud = null; 
+HioCloudDriver hiocloud = null; 
 if (email != "YOUR EMAIL" && password != "YOUR PASSWORD")
-    hiocloud = new Hiov2CloudDriver(Hiov2CloudDriver.DefaultHardwarioCloudUrl, email, password);
+    hiocloud = new HioCloudDriver(HioCloudDriver.DefaultHardwarioCloudUrl, email, password);
 ```
 
 #### Login with the API token
-If you have API token which you can create in the HARDWARIO Cloud under specific space. You can use that to create instance of the Hiov2CloudDriver:
+If you have API token which you can create in the HARDWARIO Cloud under specific space. You can use that to create instance of the HioCloudDriver:
 ```csharp
 var apitoken = "YOUR API TOKEN IF YOU HAVE CREATED IT IN HIO CLOUD SPACE";
-var hiocloud = new Hiov2CloudDriver(Hiov2CloudDriver.DefaultHardwarioCloudUrl, apitoken, true);
+var hiocloud = new HioCloudDriver(HioCloudDriver.DefaultHardwarioCloudUrl, apitoken, true);
 ```
 
 #### Searching the spaces
@@ -124,7 +124,7 @@ The getting messages is simple with this command:
 var messages = await hiocloud.GetAllDeviceMessages(wall_space, specific_device);
 ```
 
-With this you will receive list of HioCloudv2Message objects. This object contains parameter "Body" which includes the main data you are looking for (for example measured meteo parameters by CHESTER Meteo). If you would like to parse automatically this data you can use the Type identifier like this:
+With this you will receive list of HioCloudMessage objects. This object contains parameter "Body" which includes the main data you are looking for (for example measured meteo parameters by CHESTER Meteo). If you would like to parse automatically this data you can use the Type identifier like this:
 
 ```csharp
 if (messages != null)
@@ -134,7 +134,7 @@ if (messages != null)
     foreach (var m in messages)
     {
         Console.WriteLine($"Message: {m.Type}, Time: {m.CreatedAt}, \n\nPayload:\n {m.Body}\n\n");
-        if (m.Type == HioCloudv2MessageType.Data)
+        if (m.Type == HioCloudMessageType.Data)
         {
             Type guessedType = ChesterCloudMessageAutoIdentifier.FindTypeByMessageStructure(m.Body);
             var parsed = System.Text.Json.JsonSerializer.Deserialize(m.Body, guessedType);
@@ -171,7 +171,7 @@ CHESTER Device is capable to download the prepared message from the cloud in the
  var spaceid = "YOUR_SPACE_ID";
  var deviceid = "YOUR_DEVICE_ID";
 
- var hiocloudAPI = new Hiov2CloudDriver(Hiov2CloudDriver.DefaultHardwarioCloudUrl, apitoken, true);
+ var hiocloudAPI = new HioCloudDriver(HioCloudDriver.DefaultHardwarioCloudUrl, apitoken, true);
 
  var data = new
  {
@@ -182,19 +182,19 @@ CHESTER Device is capable to download the prepared message from the cloud in the
  var res = await hiocloudAPI.AddNewDownlinkMessage(new Guid(spaceid), 
                                                    new Guid(deviceid), 
                                                    data, 
-                                                   HioCloudv2MessageType.Data);
+                                                   HioCloudMessageType.Data);
 ```
 
 This example is for CHESTER Andon and it tells CHESTER that the button_1_state is in the stage "Accepted" and buzzer will do short beep to acknoledge the worker who requested some action via CHESTER Andon button.
 
 #### Adding the device with connector
 
-The HARDWARIO Cloud is kind of middleware between you final service and physical device. So, sometimes you need to deploy automatically the connection of device and some callback on the cloud. This can be done with the HioCloudv2Driver as well. 
+The HARDWARIO Cloud is kind of middleware between you final service and physical device. So, sometimes you need to deploy automatically the connection of device and some callback on the cloud. This can be done with the HioCloudDriver as well. 
 
 If you need to add the device with the connector (callback) you need to connect them with specific tag. It is good practice to create tag first:
 
 ```csharp
- var tag = new HioCloudv2Tag()
+ var tag = new HioCloudTag()
                .WithName("test-tag")
                .WithColor("#0000FF");
 
@@ -206,12 +206,12 @@ If you need to add the device with the connector (callback) you need to connect 
 Then you can create specific device. You should know your device Serial Number (SN) and Claim token, but for the case of the test you can use the generator of SN and Claim token:
 
 ```csharp
-var device = new HioCloudv2Device()
-                    .WithName("test-device")
-                    .WithSpaceId(spaceid)
-                    .WithSerialNumber(BaseSimulator.GenerateSerialNumberString())
-                    .WithToken(HioCloudv2Device.GenerateClaimToken())
-                    .WithTag(newTag);
+var device = new HioCloudDevice()
+                 .WithName("test-device")
+                 .WithSpaceId(spaceid)
+                 .WithSerialNumber(BaseSimulator.GenerateSerialNumberString())
+                 .WithToken(HioCloudDevice.GenerateClaimToken())
+                 .WithTag(newTag);
 
 Console.WriteLine("Creating new device...");
 var newDevice = await hiocloud.CreateDevice(spaceid, device);
@@ -220,7 +220,7 @@ Console.WriteLine($"Device created: {newDevice.Id}");
 The last step is creating the connector (callback). It is the http api callback automatically called everytime when the new message will arrive to the cloud from the device. If you are using the ThingsBoard to receive data from the HARDWARIO Cloud we integrated the function where you can just add the device token and it will create the transformation function for you:
 
 ```csharp
- var connector = new HioCloudv2Connector()
+ var connector = new HioCloudConnector()
                      .WithName("test-connector")
                      .WithDirection("up")
                      .WithTag(newTag)
@@ -261,14 +261,14 @@ var deviceid = "YOUR_DEVICE_ID";
 Console.WriteLine("Creating Grabber instance...");
 var grabber = new SimpleCloudMessageGrabber(new Guid(spaceid), 
                                             new Guid(deviceid), 
-                                            Hiov2CloudDriver.DefaultHardwarioCloudUrl, 
+                                            HioCloudDriver.DefaultHardwarioCloudUrl, 
                                             apitoken, 
                                             useapitoken:true)
                   .WithName("Meteo2MessagesGrabber")  
                   .WithInterval(60000);
 
 ```
-First you need to instance SimpleCloudMessageGrabber. It requires the Hiov2CloudDriver instance in constructor. You can inject the existing one or you can instance it just for this grabber as you can see in the example. 
+First you need to instance SimpleCloudMessageGrabber. It requires the HioCloudDriver instance in constructor. You can inject the existing one or you can instance it just for this grabber as you can see in the example. 
 The interval 60000 says that grabber will check the API each 60 seconds for possible new message. 
 
 The grabber has event which fires when new message is available:
@@ -314,14 +314,14 @@ var grabberHandler = new CloudMessagesGrabbersHandler();
 
 grabberHandler.AddNewGrabber(new Guid(spaceid), 
                              new Guid(deviceid), 
-                             Hiov2CloudDriver.DefaultHardwarioCloudUrl, 
+                             HioCloudDriver.DefaultHardwarioCloudUrl, 
                              60000, 
                              "Meteo1MessagesGrabber",
                              apitoken: apitoken);
 
 grabberHandler.AddNewGrabber(new Guid(spaceid),
                              new Guid(deviceid2),
-                             Hiov2CloudDriver.DefaultHardwarioCloudUrl,
+                             HioCloudDriver.DefaultHardwarioCloudUrl,
                              60000,
                              "Meteo2MessagesGrabber",
                              apitoken: apitoken);
@@ -363,4 +363,4 @@ If you want to start and await the grabbers you will await the function MonitorG
 If you will need any other example or help with creating your own application you can create issue for that or you can [contact us](https://www.hardwario.com/contact).
 
 ## API Documentation
-The library contains just main, mostly used commands right now. If you are interested in all possible API commands you can search [Swagger HARDWARIO Cloud v2 documentation](https://api.hardwario.cloud/v2/documentation/index.html).
+The library contains just main, mostly used commands right now. If you are interested in all possible API commands you can search [Swagger HARDWARIO Cloud documentation](https://api.hardwario.cloud/v2/documentation/index.html).

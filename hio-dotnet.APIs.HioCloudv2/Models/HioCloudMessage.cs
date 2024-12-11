@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.APIs.HioCloudv2.Models
 {
-    public class HioCloudv2Message
+    public class HioCloudMessage
     {
         [JsonPropertyName("id")]
         public Guid Id { get; set; }

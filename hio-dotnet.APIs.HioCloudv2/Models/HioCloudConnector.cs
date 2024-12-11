@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace hio_dotnet.APIs.HioCloudv2.Models
 {
 
-    public class HioCloudv2Connector
+    public class HioCloudConnector
     {
         [JsonPropertyName("direction")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -39,7 +39,7 @@ namespace hio_dotnet.APIs.HioCloudv2.Models
 
         [JsonPropertyName("tags")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public List<HioCloudv2Tag>? Tags { get; set; } = new List<HioCloudv2Tag>();
+        public List<HioCloudTag>? Tags { get; set; } = new List<HioCloudTag>();
 
         [JsonPropertyName("transformation")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -58,7 +58,7 @@ namespace hio_dotnet.APIs.HioCloudv2.Models
         public string? Type { get; set; } = "webhook";
 
 
-        public HioCloudv2Connector WithTrigger(string trigger)
+        public HioCloudConnector WithTrigger(string trigger)
         {
             if (trigger != "data" && trigger != "session" && trigger != "config" && trigger != "stats" && trigger != "codec")
                 throw new ArgumentException("Invalid direction. Expected values are data, session, config, stats or codec.");
@@ -71,7 +71,7 @@ namespace hio_dotnet.APIs.HioCloudv2.Models
 
             return this;
         }
-        public HioCloudv2Connector WithDirection(string dir)
+        public HioCloudConnector WithDirection(string dir)
         {
             if (dir != "up" && dir != "down")
                 throw new ArgumentException("Invalid direction. Expected values are up, down.");
@@ -79,21 +79,21 @@ namespace hio_dotnet.APIs.HioCloudv2.Models
             Direction = dir;
             return this;
         }
-        public HioCloudv2Connector WithName(string name)
+        public HioCloudConnector WithName(string name)
         {
             Name = name;
             return this;
         }
-        public HioCloudv2Connector WithThingsBoardConnectionToken(string connectionToken)
+        public HioCloudConnector WithThingsBoardConnectionToken(string connectionToken)
         {
             Transformation = GetConnectorString(connectionToken);
             return this;
         }
 
-        public HioCloudv2Connector WithTag(HioCloudv2Tag tag)
+        public HioCloudConnector WithTag(HioCloudTag tag)
         {
             if (Tags == null)
-                Tags = new List<HioCloudv2Tag>();
+                Tags = new List<HioCloudTag>();
 
             Tags.Add(tag);
             return this;

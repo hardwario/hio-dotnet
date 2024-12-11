@@ -25,7 +25,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "APIs", "APIs", "{78968AF0-D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.APIs.ThingsBoard", "hio-dotnet.APIs.ThingsBoard\hio-dotnet.APIs.ThingsBoard.csproj", "{707A0052-0F33-45B0-B76E-C99A59ED517D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.APIs.HioCloudv2", "hio-dotnet.APIs.HioCloudv2\hio-dotnet.APIs.HioCloudv2.csproj", "{52640F97-6FCB-4286-9330-A482DB72EBAB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.APIs.HioCloud", "hio-dotnet.APIs.HioCloudv2\hio-dotnet.APIs.HioCloud.csproj", "{52640F97-6FCB-4286-9330-A482DB72EBAB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.PhoneDrivers", "hio-dotnet.PhoneDrivers\hio-dotnet.PhoneDrivers.csproj", "{4DECBB72-764C-4A7F-953A-E620BB8DB2C5}"
 EndProject

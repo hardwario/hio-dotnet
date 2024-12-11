@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.APIs.HioCloudv2.Models
 {
-    public class HioCloudv2Tag
+    public class HioCloudTag
     {
         [JsonPropertyName("id")]
         public Guid? Id { get; set; }
@@ -23,13 +23,13 @@ namespace hio_dotnet.APIs.HioCloudv2.Models
         [JsonPropertyName("color")]
         public string? Color { get; set; }
 
-        public HioCloudv2Tag WithName(string name)
+        public HioCloudTag WithName(string name)
         {
             Name = name;
             return this;
         }
         
-        public HioCloudv2Tag WithColor(string color)
+        public HioCloudTag WithColor(string color)
         {
             if (!Regex.IsMatch(color, "^#[0-9A-Fa-f]{6}$"))
             {
