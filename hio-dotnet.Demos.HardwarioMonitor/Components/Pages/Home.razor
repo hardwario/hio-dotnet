@@ -44,7 +44,7 @@
         }
         else
         {
-            <RadzenButton Click="OnInitConsoleHandler" Disabled="true" Style="margin-top: 5px; width: 100%;">Init Console</RadzenButton>
+            <RadzenButton Click="StopListening"  Style="margin-top: 5px; width: 100%;">Stop Listening</RadzenButton>
         }
 
         <RadzenButton Click="SaveShellToFile" Style="margin-top: 5px; width: 100%;">Save Shell To File</RadzenButton>
@@ -171,6 +171,11 @@
     public async Task OnInitConsoleHandler()
     {
         await ConsoleService.StartListening();
+    }
+
+    public async Task StopListening()
+    {
+        await ConsoleService.StopListening();
     }
 
     public async Task OnInitPPK2Handler()

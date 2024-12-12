@@ -308,10 +308,12 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
                 NewRTTMessageLineReceived.Invoke(sender, data);
             };
 
-            var cts = new CancellationTokenSource();
+            cts = new CancellationTokenSource();
             Task listeningTask = MCUConsole.StartListening(cts.Token);
 
             IsConsoleListening = true;
+
+            await Task.Delay(2000);
 
             OnIsBusy?.Invoke(this, false);
             await Task.Delay(10);
