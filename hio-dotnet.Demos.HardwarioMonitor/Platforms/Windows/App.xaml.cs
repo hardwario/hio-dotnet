@@ -19,6 +19,34 @@ namespace hio_dotnet.Demos.HardwarioMonitor.WinUI
             this.InitializeComponent();
         }
 
+        protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
+        {
+            base.OnLaunched(args);
+
+            // maximize window after launch
+            var window = MauiWinUIApplication.Current.Application.Windows[0].Handler.PlatformView as Microsoft.UI.Xaml.Window;
+            if (window != null)
+            {
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
+                var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
+
+                if (appWindow != null)
+                {
+                    var displayArea = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(windowId, Microsoft.UI.Windowing.DisplayAreaFallback.Primary);
+                    var workArea = displayArea.WorkArea;
+
+                    appWindow.MoveAndResize(new Windows.Graphics.RectInt32
+                    {
+                        X = workArea.X,
+                        Y = workArea.Y,
+                        Width = workArea.Width,
+                        Height = workArea.Height
+                    });
+                }
+            }
+        }
+
         protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
     }
 

@@ -1,16 +1,20 @@
 ﻿@using Radzen
+@using Microsoft.JSInterop
 
-<h4>Console</h4>
+@inject IJSRuntime JSRuntime
+
+<h4>@Headline</h4>
 <hr />
 
 <div class="console-container">
     <RadzenRow>
         <RadzenColumn Width="12">
             <RadzenCard Class="console-card" Style="flex-grow: 1; display: flex; flex-direction: column; background-color: #333;">
-                <div class="console-output">
-                    @foreach (var line in Output)
+                <div class="console-output" id="@id">
+                    @for (var i = 0; i < Output.Count; i++)
                     {
-                        <div><small style="color: #d4d4d4; font-size: 8px;">@line</small></div>
+                        var line = Output[i];
+                        <div><small style=@GetConsoleTextStyle()>@line</small></div>
                     }
                 </div>
             </RadzenCard>
@@ -23,7 +27,7 @@
                         <RadzenTextBox @bind-Value="@command" Placeholder="Type command" Style="width: 100%;" @onkeydown="HandleKeyDown" @onfocus="() => OnCommandLineGotFocus.InvokeAsync()" @onfocusout="() => OnCommandLineLostFocus.InvokeAsync()" />
                     </RadzenColumn>
                     <RadzenColumn Width="2">
-                        <RadzenButton Text="Send" Click="SendCommand" Style="width: 100%;" />
+                        <RadzenButton Text="Send" Disabled="@IsSendButtonDisabled" Click="SendCommand" Style="width: 100%;" />
                     </RadzenColumn>
                 </RadzenRow>
             }
@@ -33,38 +37,43 @@
 
 <style>
     .console-container {
-        display: flex;
-        flex-direction: column;
-        height: 100vh; /* Adjust as needed */
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Adjust as needed */
     }
 
     .console-card {
-        color: #d4d4d4;
-        font-family: monospace;
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
+    color: #d4d4d4;
+    font-family: monospace;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
     }
 
     .console-output {
-        flex-grow: 1;
-        overflow-y: auto;
-        min-height: @(GetMinHeight());
-        max-height: @(GetMaxHeight());
+    flex-grow: 1;
+    overflow-y: auto;
+    min-height: @(GetMinHeight());
+    max-height: @(GetMaxHeight());
     }
 </style>
 
 @code {
+    [Parameter] public string Headline { get; set; } = "Console";
     [Parameter] public EventCallback<string> OnSendCommand { get; set; }
     [Parameter] public EventCallback<string> OnCommandLineGotFocus { get; set; }
     [Parameter] public EventCallback<string> OnCommandLineLostFocus { get; set; }
     [Parameter] public EventCallback<string> OnNewLineReceived { get; set; }
     [Parameter] public List<string> Output { get; set; } = new List<string>();
     [Parameter] public bool HideCommandLine { get; set; } = false;
+    [Parameter] public bool IsSendButtonDisabled { get; set; } = false;
+    [Parameter] public int TextSize { get; set; } = 8;
+
+    private string id = $"{Guid.NewGuid().ToString().Split('-')[0]}_Console";
 
     public int MinHeight { get; set; } = 500;
     public int MaxHeight { get; set; } = 500;
-    
+
     public int MinHeightDefault { get; } = 500;
     public int MaxHeightDefault { get; } = 500;
 
@@ -75,10 +84,21 @@
     private int historyIndex = -1;
     private List<string> commandHistory = new List<string>();
 
+    private string GetConsoleTextStyle()
+    {
+        return $"color: #d4d4d4; font-size: {TextSize}px;";
+    }
+
+    private async Task ScrollToBottom()
+    {
+        await JSRuntime.InvokeVoidAsync("hiodotnet.scrollToBottom", id);
+    }
+
     private async Task HandleKeyDown(KeyboardEventArgs e)
     {
         if (e.Key == "Enter")
         {
+            await JSRuntime.InvokeVoidAsync("document.activeElement.blur");
             await SendCommand();
         }
         else if (e.Key == "ArrowUp")
@@ -94,6 +114,7 @@
     public async Task Refresh()
     {
         await InvokeAsync(StateHasChanged);
+        await ScrollToBottom();
     }
 
     private void OnCommandValueChangedHandler(string text)
@@ -110,6 +131,8 @@
             await OnSendCommand.InvokeAsync(command);
             command = string.Empty;
         }
+
+        await ScrollToBottom();
     }
 
     private void NavigateHistory(int direction)

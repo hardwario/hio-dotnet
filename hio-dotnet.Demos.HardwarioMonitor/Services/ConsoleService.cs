@@ -1,4 +1,5 @@
-﻿using hio_dotnet.HWDrivers.Enums;
+﻿using hio_dotnet.Common.Config;
+using hio_dotnet.HWDrivers.Enums;
 using hio_dotnet.HWDrivers.JLink;
 using hio_dotnet.HWDrivers.MCU;
 using hio_dotnet.HWDrivers.PPK2;
@@ -27,6 +28,19 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         public event EventHandler<DataPoint[]?> DataPointsReceived;
 
+        public event EventHandler<bool> OnIsBusy;
+        public event EventHandler<bool> OnIsPPKConnected;
+        public event EventHandler<bool> OnIsPPKDisconnected;
+
+        public event EventHandler<bool> OnIsPPKVoltageOutputConnected;
+        public event EventHandler<bool> OnIsPPKVoltageOutputDisconnected;
+
+        public event EventHandler<bool> OnIsJLinkConnected;
+        public event EventHandler<bool> OnIsJLinkDisconnected;
+
+        public List<string> ConsoleOutputShell = new List<string>();
+        public List<string> ConsoleOutputLog = new List<string>();
+
         private const int dataPointsLength = 20000;
         private const int latestDataPointsLength = 2000;
         public DataPoint[] dataPoints { get; set; } = new DataPoint[dataPointsLength];
@@ -35,7 +49,6 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         public int DataPointsTimeSinceStartCounter { get; set; } = 0;
 
         public bool IsConsoleListening { get; set; } = false;
-
         public bool IsPPK2Connected()
         {
             return ppk2 != null;
@@ -43,6 +56,9 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         public bool IsDeviceOn { get; set; } = false;
         public int DeviceVoltage { get; set; } = 0;
+        
+        public LoRaWANConfig LoRaWANConfig { get; set; } = new LoRaWANConfig();
+        public LTEConfig LTEConfig { get; set; } = new LTEConfig();
 
         public void InitArrays()
         {
@@ -57,8 +73,10 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             }
         }
 
-        public async Task FindAndConnectPPK()
+        public async Task FindAndConnectPPK(bool doNotTurnBusy = false)
         {
+            OnIsBusy?.Invoke(this, true);
+            await Task.Delay(10);
             var devices = PPK2_DeviceManager.ListAvailablePPK2Devices();
 
             if (devices.Count == 0)
@@ -74,6 +92,12 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
             ppk2 = new PPK2_Driver(selectedDevice.PortName);
 
+            OnIsPPKConnected?.Invoke(this, true);
+            if (!doNotTurnBusy)
+            {
+                OnIsBusy?.Invoke(this, false);
+                await Task.Delay(10);
+            }
         }
 
         public async Task SetPPK2Voltage(int voltage)
@@ -93,6 +117,8 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             IsDeviceOn = true;
             if (withMeasurement)
                 await MeasureLoop();
+
+            OnIsPPKVoltageOutputConnected?.Invoke(this, true);
         }
 
         public async Task TurnOffPower()
@@ -103,6 +129,8 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             Console.WriteLine("Turning off DUT power...");
             ppk2?.ToggleDUTPower(PPK2_OutputState.OFF);
             IsDeviceOn = false;
+
+            OnIsPPKVoltageOutputDisconnected?.Invoke(this, true);
         }
 
         public async Task MeasureLoop()
@@ -205,6 +233,8 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         public async Task StartListening()
         {
+            OnIsBusy?.Invoke(this, true);
+            await Task.Delay(10);
             // Get all available connected JLinks
             Console.WriteLine("Searching for available JLinks...");
             var connected_jlinks = JLinkDriver.GetConnectedJLinks();
@@ -237,7 +267,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
             if (ppk2 == null)
             {
-                await FindAndConnectPPK();
+                await FindAndConnectPPK(true);
                 await SetPPK2Voltage(3300);
                 await TurnOnPower();
             }
@@ -252,18 +282,68 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
                 }, "nRF52840_xxAA", 4000, "mcumulticonsole", devsn);
 
             // Subscribe to NewRTTMessageLineReceived event to get RTT messages and set output to console
-            MCUConsole.NewRTTMessageLineReceived += (sender, data) => NewRTTMessageLineReceived.Invoke(sender, data);
 
-            var cts = new CancellationTokenSource();
+            MCUConsole.NewRTTMessageLineReceived -= ProcessNewRTTLine;
+            MCUConsole.NewRTTMessageLineReceived += ProcessNewRTTLine;
+
+            cts = new CancellationTokenSource();
             Task listeningTask = MCUConsole.StartListening(cts.Token);
 
             IsConsoleListening = true;
 
+            await Task.Delay(2000);
+
+            OnIsBusy?.Invoke(this, false);
+            await Task.Delay(10);
+            OnIsJLinkConnected?.Invoke(this, true);
+
             await Task.WhenAny(new Task[] { listeningTask });
 
         }
+
+        private void ProcessNewRTTLine(object sender, Tuple<string, MultiRTTClientBase>? data)
+        {
+            if (data?.Item2.Channel == 0)
+            {
+                var line = $"{data.Item1}";
+                ConsoleOutputShell.Add(line);
+                if (line.Contains("config"))
+                {
+                    if (line.Contains("lrw "))
+                    {
+                        LoRaWANConfig.ParseLine(line);
+                    }
+                    else if (line.Contains("lte "))
+                    {
+                        LTEConfig.ParseLine(line);
+                    }
+                }
+            }
+            else if (data?.Item2.Channel == 1)
+            {
+                var line = $"[{DateTime.UtcNow}][Log]: {data.Item1}";
+                ConsoleOutputLog.Add(data.Item1);
+            }
+
+            NewRTTMessageLineReceived?.Invoke(sender, data);
+        }
+
         public async Task SendCommand(string command)
         {
+            ConsoleOutputShell.Add("> " + command.Replace("\n", string.Empty));
+
+            if (command.Contains("config"))
+            {
+                if (command.Contains("lrw "))
+                {
+                    LoRaWANConfig.ParseLine(command);
+                }
+                else if (command.Contains("lte "))
+                {
+                    LTEConfig.ParseLine(command);
+                }
+            }
+
             await MCUConsole?.SendCommand(0, command);
         }
 
@@ -275,15 +355,18 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
             MCUConsole?.Dispose();
 
+            OnIsJLinkDisconnected?.Invoke(this, true);
+
             Console.WriteLine("Turning off DUT power...");
             ppk2?.ToggleDUTPower(PPK2_OutputState.OFF);
+            OnIsPPKVoltageOutputDisconnected?.Invoke(this, true);
         }
 
         public double[] Downsample(double[] data, int originalRate, int targetRate)
         {
             if (originalRate < targetRate)
             {
-                throw new ArgumentException("Cílová vzorkovací frekvence musí být nižší než původní.");
+                throw new ArgumentException("Target frequency must be lower than the original.");
             }
 
             int ratio = originalRate / targetRate;
@@ -302,6 +385,43 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             }
 
             return downsampledData;
+        }
+
+        public async Task SaveConsoleShellToFile()
+        {
+            var fileService = new FileService();
+            await fileService.SaveFileWithDialogAsync(ConsoleOutputShell, "ConsoleShellOutput.txt");
+        }
+
+        public async Task SaveConsoleLogToFile()
+        {
+            var fileService = new FileService();
+            await fileService.SaveFileWithDialogAsync(ConsoleOutputLog, "ConsoleLogOutput.txt");
+        }
+
+        private async Task SendAllConfigLines(string cfg)
+        {
+            var lines = new List<string>();
+            if (!string.IsNullOrEmpty(cfg))
+            {
+                lines = cfg.Split("\n").ToList();
+                foreach (var line in lines)
+                {
+                    await SendCommand(line);
+                }
+            }
+        }
+
+        public async Task ApplyLoRaSettings()
+        {
+            var cfg = LoRaWANConfig.GetWholeConfig();
+            await SendAllConfigLines(cfg);
+        }
+
+        public async Task ApplyLTESettings()
+        {
+            var cfg = LTEConfig.GetWholeConfig();
+            await SendAllConfigLines(cfg);
         }
     }
 }
