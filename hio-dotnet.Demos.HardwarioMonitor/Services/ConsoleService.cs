@@ -1,4 +1,5 @@
-﻿using hio_dotnet.HWDrivers.Enums;
+﻿using hio_dotnet.Common.Config;
+using hio_dotnet.HWDrivers.Enums;
 using hio_dotnet.HWDrivers.JLink;
 using hio_dotnet.HWDrivers.MCU;
 using hio_dotnet.HWDrivers.PPK2;
@@ -55,6 +56,9 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         public bool IsDeviceOn { get; set; } = false;
         public int DeviceVoltage { get; set; } = 0;
+        
+        public LoRaWANConfig LoRaWANConfig { get; set; } = new LoRaWANConfig();
+        public LTEConfig LTEConfig { get; set; } = new LTEConfig();
 
         public void InitArrays()
         {
@@ -277,6 +281,18 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
                 {
                     var line = $"{data.Item1}";
                     ConsoleOutputShell.Add(line);
+
+                    if (line.Contains("config"))
+                    {
+                        if (line.Contains("lrw "))
+                        {
+                            LoRaWANConfig.ParseLine(line);
+                        }
+                        else if (line.Contains("lte "))
+                        {
+                            LTEConfig.ParseLine(line);
+                        }
+                    }
                 }
                 else if (data?.Item2.Channel == 1)
                 {
@@ -301,6 +317,18 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         public async Task SendCommand(string command)
         {
             ConsoleOutputShell.Add("> " + command.Replace("\n", string.Empty));
+
+            if (command.Contains("config"))
+            {
+                if (command.Contains("lrw "))
+                {
+                    LoRaWANConfig.ParseLine(command);
+                }
+                else if (command.Contains("lte "))
+                {
+                    LTEConfig.ParseLine(command);
+                }
+            }
 
             await MCUConsole?.SendCommand(0, command);
         }
@@ -355,6 +383,31 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         {
             var fileService = new FileService();
             await fileService.SaveFileWithDialogAsync(ConsoleOutputLog, "ConsoleLogOutput.txt");
+        }
+
+        private async Task SendAllConfigLines(string cfg)
+        {
+            var lines = new List<string>();
+            if (!string.IsNullOrEmpty(cfg))
+            {
+                lines = cfg.Split("\n").ToList();
+                foreach (var line in lines)
+                {
+                    await SendCommand(line);
+                }
+            }
+        }
+
+        public async Task ApplyLoRaSettings()
+        {
+            var cfg = LoRaWANConfig.GetWholeConfig();
+            await SendAllConfigLines(cfg);
+        }
+
+        public async Task ApplyLTESettings()
+        {
+            var cfg = LTEConfig.GetWholeConfig();
+            await SendAllConfigLines(cfg);
         }
     }
 }

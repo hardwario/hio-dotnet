@@ -5,90 +5,135 @@
 @using System.Linq.Expressions;
 @using hio_dotnet.UI.BlazorComponents.Radzen.Common.Buttons
 
-<RadzenTemplateForm TItem="LoRaWANConfig" Data="@Config">
-    <RadzenFieldset Text="LoRaWAN Settings">
 
-        <RadzenFieldset Text="Network">
-            <RadzenRadioButtonList @bind-Value=@Config.Network TValue="LoRaWANNetwork">
-                <Items>
-                    <RadzenRadioButtonListItem Text="Private" Value="LoRaWANNetwork.Private" />
-                    <RadzenRadioButtonListItem Text="Public" Value="LoRaWANNetwork.Public" />
-                </Items>
-            </RadzenRadioButtonList>
-        </RadzenFieldset>
-        <RadzenFieldset Text="Band">
-            <RadzenRadioButtonList @bind-Value=@Config.Band TValue="LoRaWANBand">
-                <Items>
-                    <RadzenRadioButtonListItem Text="EU868" Value="LoRaWANBand.EU868" />
-                    <RadzenRadioButtonListItem Text="US915" Value="LoRaWANBand.US915" />
-                    <RadzenRadioButtonListItem Text="US923" Value="LoRaWANBand.US923" />
-                </Items>
-            </RadzenRadioButtonList>
-        </RadzenFieldset>
-        <RadzenFieldset Text="Class">
-            <RadzenRadioButtonList @bind-Value=@Config.Class TValue="LoRaWANClass">
-                <Items>
-                    <RadzenRadioButtonListItem Text="A" Value="LoRaWANClass.A" />
-                    <RadzenRadioButtonListItem Text="C" Value="LoRaWANClass.C" />
-                </Items>
-            </RadzenRadioButtonList>
-        </RadzenFieldset>
-        <RadzenFieldset Text="Mode">
-            <RadzenRadioButtonList @bind-Value=@Config.Mode TValue="LoRaWANMode">
-                <Items>
-                    <RadzenRadioButtonListItem Text="ABP" Value="LoRaWANMode.ABP" />
-                    <RadzenRadioButtonListItem Text="OTAA" Value="LoRaWANMode.OTAA" />
-                </Items>
-            </RadzenRadioButtonList>
-        </RadzenFieldset>
-        <RadzenFieldset Text="Antenna">
-            <RadzenRadioButtonList @bind-Value=@Config.Antenna TValue="AntennaType">
-                <Items>
-                    <RadzenRadioButtonListItem Text="Internal" Value="AntennaType.Internal" />
-                    <RadzenRadioButtonListItem Text="External" Value="AntennaType.External" />
-                </Items>
-            </RadzenRadioButtonList>
-        </RadzenFieldset>
-        <RadzenFieldset Text="DevAddr">
-            <RadzenTextBox Name="DevAddr" @bind-Value=@Config.DevAddr Placeholder="Enter DevAddr" />
-            <CopyButton TextToCopy="@Config.DevAddr" IsJustIcon="true" />
-            <RadzenRequiredValidator Component="DevAddr" Text="DevAddr is required" />
-            <RadzenCustomValidator Component="DevAddr" Text="Invalid DevAddr. Must be 8 hex characters." Validator=@ValidateDevAddr />   
-       </RadzenFieldset>
-        <RadzenFieldset Text="DevEUI">
-            <RadzenTextBox Name="DevEUI" @bind-Value=@Config.DevEui Placeholder="Enter DevEUI" />
-            <CopyButton TextToCopy="@Config.DevEui" IsJustIcon="true" />
-            <RadzenRequiredValidator Component="DevEUI" Text="DevEUI is required" />
-            <RadzenCustomValidator Component="DevEUI" Text="Invalid DevEUI. Must be 16 hex characters." Validator=@ValidateDevEUI />
-        </RadzenFieldset>
-        <RadzenFieldset Text="JoinEUI">
-            <RadzenTextBox Name="JoinEUI" @bind-Value=@Config.JoinEui Placeholder="Enter JoinEUI" />
-            <CopyButton TextToCopy="@Config.JoinEui" IsJustIcon="true" />
-            <RadzenRequiredValidator Component="JoinEUI" Text="JoinEUI is required" />
-            <RadzenCustomValidator Component="JoinEUI" Text="Invalid JoinEUI. Must be 16 hex characters." Validator=@ValidateJoinEUI />
-        </RadzenFieldset>
-        <RadzenFieldset Text="AppKey">
-            <RadzenTextBox Name="AppKey" @bind-Value=@Config.AppKey Placeholder="Enter AppKey" />
-            <CopyButton TextToCopy="@Config.AppKey" IsJustIcon="true" />
-            <RadzenRequiredValidator Component="AppKey" Text="AppKey is required" />
-            <RadzenCustomValidator Component="AppKey" Text="Invalid AppKey. Must be 32 hex characters." Validator=@ValidateAppKey />
-        </RadzenFieldset>
-        <RadzenFieldset Text="AppSKey">
-            <RadzenTextBox Name="AppSKey" @bind-Value=@Config.AppSKey Placeholder="Enter AppSKey" />
-            <CopyButton TextToCopy="@Config.AppSKey" IsJustIcon="true" />
-            <RadzenRequiredValidator Component="AppSKey" Text="AppSKey is required" />
-            <RadzenCustomValidator Component="AppSKey" Text="Invalid AppSKey. Must be 32 hex characters." Validator=@ValidateAppSKey />
-        </RadzenFieldset>
-        <RadzenFieldset Text="NwkSKey">
-            <RadzenTextBox Name="NwkSKey" @bind-Value=@Config.NwkSKey Placeholder="Enter NwkSKey" />
-            <CopyButton TextToCopy="@Config.NwkSKey" IsJustIcon="true" />
-            <RadzenRequiredValidator Component="NwkSKey" Text="NwkSKey is required" />
-            <RadzenCustomValidator Component="NwkSKey" Text="Invalid NwkSKey. Must be 32 hex characters." Validator=@ValidateNwkSKey />
-        </RadzenFieldset>
+<RadzenCard Style="height: 100%;">
+    <RadzenTemplateForm TItem="LoRaWANConfig" Data="@Config">
+        <RadzenFieldset Text="LoRaWAN Settings">
+            <RadzenRow Style="margin-bottom: 1.5rem;">
+                <RadzenColumn>
+                    <RadzenFieldset Text="Antenna">
+                        <RadzenRadioButtonList @bind-Value=@Config.Antenna TValue="AntennaType">
+                            <Items>
+                                <RadzenRadioButtonListItem Text="Internal" Value="AntennaType.Internal" />
+                                <RadzenRadioButtonListItem Text="External" Value="AntennaType.External" />
+                            </Items>
+                        </RadzenRadioButtonList>
+                    </RadzenFieldset>
+                </RadzenColumn>
+            </RadzenRow>
 
-    </RadzenFieldset>
-</RadzenTemplateForm>
+            <RadzenRow Style="margin-bottom: 1.5rem;">
+                <RadzenColumn>
+                    <RadzenFieldset Text="Network">
+                        <RadzenRadioButtonList @bind-Value=@Config.Network TValue="LoRaWANNetwork">
+                            <Items>
+                                <RadzenRadioButtonListItem Text="Private" Value="LoRaWANNetwork.Private" />
+                                <RadzenRadioButtonListItem Text="Public" Value="LoRaWANNetwork.Public" />
+                            </Items>
+                        </RadzenRadioButtonList>
+                    </RadzenFieldset>
+                </RadzenColumn>
+                <RadzenColumn>
+                    <RadzenFieldset Text="Band">
+                        <RadzenRadioButtonList @bind-Value=@Config.Band TValue="LoRaWANBand">
+                            <Items>
+                                <RadzenRadioButtonListItem Text="EU868" Value="LoRaWANBand.EU868" />
+                                <RadzenRadioButtonListItem Text="US915" Value="LoRaWANBand.US915" />
+                            </Items>
+                        </RadzenRadioButtonList>
+                    </RadzenFieldset>
+                </RadzenColumn>
+            </RadzenRow>
 
+            <RadzenRow Style="margin-bottom: 1.5rem;">
+                <RadzenColumn>
+                    <RadzenFieldset Text="Class">
+                        <RadzenRadioButtonList @bind-Value=@Config.Class TValue="LoRaWANClass">
+                            <Items>
+                                <RadzenRadioButtonListItem Text="A" Value="LoRaWANClass.A" />
+                                <RadzenRadioButtonListItem Text="C" Value="LoRaWANClass.C" />
+                            </Items>
+                        </RadzenRadioButtonList>
+                    </RadzenFieldset>
+                </RadzenColumn>
+                <RadzenColumn>
+                    <RadzenFieldset Text="Mode">
+                        <RadzenRadioButtonList @bind-Value=@Config.Mode TValue="LoRaWANMode">
+                            <Items>
+                                <RadzenRadioButtonListItem Text="ABP" Value="LoRaWANMode.ABP" />
+                                <RadzenRadioButtonListItem Text="OTAA" Value="LoRaWANMode.OTAA" />
+                            </Items>
+                        </RadzenRadioButtonList>
+                    </RadzenFieldset>
+                </RadzenColumn>
+            </RadzenRow>
+            
+            <RadzenRow Style="margin-bottom: 1.5rem;">
+                <RadzenColumn>
+                    <RadzenFieldset Text="DevAddr">
+                        <RadzenTextBox Name="DevAddr" @bind-Value=@Config.DevAddr Placeholder="Enter DevAddr" Style="width:auto;" />
+                        <CopyButton TextToCopy="@Config.DevAddr" IsJustIcon="true" />
+                        <RadzenRequiredValidator Component="DevAddr" Text="DevAddr is required" />
+                        <RadzenCustomValidator Component="DevAddr" Text="Invalid DevAddr. Must be 8 hex characters." Validator=@ValidateDevAddr />   
+                   </RadzenFieldset>
+                </RadzenColumn>
+                <RadzenColumn>
+                    <RadzenFieldset Text="DevEUI">
+                        <RadzenTextBox Name="DevEUI" @bind-Value=@Config.DevEui Placeholder="Enter DevEUI" Style="width:auto;" />
+                        <CopyButton TextToCopy="@Config.DevEui" IsJustIcon="true" />
+                        <RadzenRequiredValidator Component="DevEUI" Text="DevEUI is required" />
+                        <RadzenCustomValidator Component="DevEUI" Text="Invalid DevEUI. Must be 16 hex characters." Validator=@ValidateDevEUI />
+                    </RadzenFieldset>
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenRow Style="margin-bottom: 1.5rem;">
+                <RadzenColumn>
+                    <RadzenFieldset Text="JoinEUI">
+                        <RadzenTextBox Name="JoinEUI" @bind-Value=@Config.JoinEui Placeholder="Enter JoinEUI" Style="width:auto;" />
+                        <CopyButton TextToCopy="@Config.JoinEui" IsJustIcon="true" />
+                        <RadzenRequiredValidator Component="JoinEUI" Text="JoinEUI is required" />
+                        <RadzenCustomValidator Component="JoinEUI" Text="Invalid JoinEUI. Must be 16 hex characters." Validator=@ValidateJoinEUI />
+                    </RadzenFieldset>
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenRow Style="margin-bottom: 1.5rem;">
+                <RadzenColumn>
+                    <RadzenFieldset Text="AppKey">
+                        <RadzenTextBox Name="AppKey" @bind-Value=@Config.AppKey Placeholder="Enter AppKey" Style="width:auto; min-width:24rem;" />
+                        <CopyButton TextToCopy="@Config.AppKey" IsJustIcon="true" />
+                        <RadzenRequiredValidator Component="AppKey" Text="AppKey is required" />
+                        <RadzenCustomValidator Component="AppKey" Text="Invalid AppKey. Must be 32 hex characters." Validator=@ValidateAppKey />
+                    </RadzenFieldset>
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenRow Style="margin-bottom: 1.5rem;">
+                <RadzenColumn>
+                    <RadzenFieldset Text="AppSKey">
+                        <RadzenTextBox Name="AppSKey" @bind-Value=@Config.AppSKey Placeholder="Enter AppSKey" Style="width:auto; min-width:24rem;" />
+                        <CopyButton TextToCopy="@Config.AppSKey" IsJustIcon="true" />
+                        <RadzenRequiredValidator Component="AppSKey" Text="AppSKey is required" />
+                        <RadzenCustomValidator Component="AppSKey" Text="Invalid AppSKey. Must be 32 hex characters." Validator=@ValidateAppSKey />
+                    </RadzenFieldset>
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenRow Style="margin-bottom: 1.5rem;">
+                <RadzenColumn>
+                    <RadzenFieldset Text="NwkSKey">
+                        <RadzenTextBox Name="NwkSKey" @bind-Value=@Config.NwkSKey Placeholder="Enter NwkSKey" Style="width:auto; min-width:24rem;" />
+                        <CopyButton TextToCopy="@Config.NwkSKey" IsJustIcon="true" />
+                        <RadzenRequiredValidator Component="NwkSKey" Text="NwkSKey is required" />
+                        <RadzenCustomValidator Component="NwkSKey" Text="Invalid NwkSKey. Must be 32 hex characters." Validator=@ValidateNwkSKey />
+                    </RadzenFieldset>
+                </RadzenColumn>
+            </RadzenRow>
+
+        </RadzenFieldset>
+    </RadzenTemplateForm>
+</RadzenCard>
 @code {
     [Parameter] public LoRaWANConfig Config { get; set; } = new LoRaWANConfig();
 
