@@ -75,6 +75,8 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         public async Task FindAndConnectPPK()
         {
+            OnIsBusy?.Invoke(this, true);
+            await Task.Delay(10);
             var devices = PPK2_DeviceManager.ListAvailablePPK2Devices();
 
             if (devices.Count == 0)
@@ -91,6 +93,8 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             ppk2 = new PPK2_Driver(selectedDevice.PortName);
 
             OnIsPPKConnected?.Invoke(this, true);
+            OnIsBusy?.Invoke(this, false);
+            await Task.Delay(10);
         }
 
         public async Task SetPPK2Voltage(int voltage)
@@ -227,6 +231,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         public async Task StartListening()
         {
             OnIsBusy?.Invoke(this, true);
+            await Task.Delay(10);
             // Get all available connected JLinks
             Console.WriteLine("Searching for available JLinks...");
             var connected_jlinks = JLinkDriver.GetConnectedJLinks();
@@ -309,6 +314,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             IsConsoleListening = true;
 
             OnIsBusy?.Invoke(this, false);
+            await Task.Delay(10);
             OnIsJLinkConnected?.Invoke(this, true);
 
             await Task.WhenAny(new Task[] { listeningTask });
