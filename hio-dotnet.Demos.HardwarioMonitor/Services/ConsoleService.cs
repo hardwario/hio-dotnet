@@ -73,7 +73,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             }
         }
 
-        public async Task FindAndConnectPPK()
+        public async Task FindAndConnectPPK(bool doNotTurnBusy = false)
         {
             OnIsBusy?.Invoke(this, true);
             await Task.Delay(10);
@@ -93,8 +93,11 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             ppk2 = new PPK2_Driver(selectedDevice.PortName);
 
             OnIsPPKConnected?.Invoke(this, true);
-            OnIsBusy?.Invoke(this, false);
-            await Task.Delay(10);
+            if (!doNotTurnBusy)
+            {
+                OnIsBusy?.Invoke(this, false);
+                await Task.Delay(10);
+            }
         }
 
         public async Task SetPPK2Voltage(int voltage)
@@ -264,7 +267,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
             if (ppk2 == null)
             {
-                await FindAndConnectPPK();
+                await FindAndConnectPPK(true);
                 await SetPPK2Voltage(3300);
                 await TurnOnPower();
             }
@@ -280,33 +283,8 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
             // Subscribe to NewRTTMessageLineReceived event to get RTT messages and set output to console
 
-            MCUConsole.NewRTTMessageLineReceived += (sender, data) =>
-            {
-                if (data?.Item2.Channel == 0)
-                {
-                    var line = $"{data.Item1}";
-                    ConsoleOutputShell.Add(line);
-
-                    if (line.Contains("config"))
-                    {
-                        if (line.Contains("lrw "))
-                        {
-                            LoRaWANConfig.ParseLine(line);
-                        }
-                        else if (line.Contains("lte "))
-                        {
-                            LTEConfig.ParseLine(line);
-                        }
-                    }
-                }
-                else if (data?.Item2.Channel == 1)
-                {
-                    var line = $"[{DateTime.UtcNow}][Log]: {data.Item1}";
-                    ConsoleOutputLog.Add(data.Item1);
-                }
-
-                NewRTTMessageLineReceived.Invoke(sender, data);
-            };
+            MCUConsole.NewRTTMessageLineReceived -= ProcessNewRTTLine;
+            MCUConsole.NewRTTMessageLineReceived += ProcessNewRTTLine;
 
             cts = new CancellationTokenSource();
             Task listeningTask = MCUConsole.StartListening(cts.Token);
@@ -322,6 +300,34 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             await Task.WhenAny(new Task[] { listeningTask });
 
         }
+
+        private void ProcessNewRTTLine(object sender, Tuple<string, MultiRTTClientBase>? data)
+        {
+            if (data?.Item2.Channel == 0)
+            {
+                var line = $"{data.Item1}";
+                ConsoleOutputShell.Add(line);
+                if (line.Contains("config"))
+                {
+                    if (line.Contains("lrw "))
+                    {
+                        LoRaWANConfig.ParseLine(line);
+                    }
+                    else if (line.Contains("lte "))
+                    {
+                        LTEConfig.ParseLine(line);
+                    }
+                }
+            }
+            else if (data?.Item2.Channel == 1)
+            {
+                var line = $"[{DateTime.UtcNow}][Log]: {data.Item1}";
+                ConsoleOutputLog.Add(data.Item1);
+            }
+
+            NewRTTMessageLineReceived?.Invoke(sender, data);
+        }
+
         public async Task SendCommand(string command)
         {
             ConsoleOutputShell.Add("> " + command.Replace("\n", string.Empty));

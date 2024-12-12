@@ -72,16 +72,35 @@
                 </RadzenStack>
             </RadzenColumn>
         </RadzenRow>
+        <hr style="margin-top: 5px; width: 100%;" />
+        <RadzenRow Style="margin-top: 5px; width: 100%;">
+            <RadzenColumn>
+                <RadzenLabel Text="Shell Auto Scroll" Component="shellScrollOption" />
+                <RadzenSwitch @bind-Value="isShellScrollingAutomatically" Name="shellScrollOption"/>
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow Style="margin-top: 5px; width: 100%;">
+            <RadzenColumn>
+                <RadzenLabel Text="Log Auto Scroll" Component="logScrollOption" />
+                <RadzenSwitch @bind-Value="isLogScrollingAutomatically" Name="logScrollOption" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow Style="margin-top: 5px; width: 100%;">
+            <RadzenColumn>
+                <RadzenLabel Text="Console Font Size" Component="consoleFontSize" />
+                <RadzenNumeric @bind-Value="ConsoleFontSize" Min="6" Max="24" Step="1" Name="consoleFontSize" />
+            </RadzenColumn>
+        </RadzenRow>
     </RadzenSidebar>
     <RadzenBody>
         <RadzenRow Style="height: 100%;">
             <RadzenColumn Style="height: 100%;">
                 <RadzenRow>
                     <RadzenColumn>
-                        <ConsoleComponent @ref=consoleComponentRef TextSize="12" Output="@ConsoleService.ConsoleOutputShell" IsSendButtonDisabled="@isDisabled" OnSendCommand="HandleSendCommand" />
+                        <ConsoleComponent @ref=consoleComponentRef TextSize="@ConsoleFontSize" Output="@ConsoleService.ConsoleOutputShell" IsSendButtonDisabled="@isDisabled" OnSendCommand="HandleSendCommand" />
                     </RadzenColumn>
                     <RadzenColumn>
-                        <ConsoleComponent @ref=consoleComponentLogRef TextSize="12" Headline="Log" Output="@ConsoleService.ConsoleOutputLog" HideCommandLine="true" />
+                        <ConsoleComponent @ref=consoleComponentLogRef TextSize="@ConsoleFontSize" Headline="Log" Output="@ConsoleService.ConsoleOutputLog" HideCommandLine="true" />
                     </RadzenColumn>
                 </RadzenRow>
 
@@ -93,11 +112,15 @@
 @code {
     private bool isBusy = false;
     private bool isDisabled = false;
+    private bool isLogScrollingAutomatically = true;
+    private bool isShellScrollingAutomatically = true;
 
     private List<string> outputConfig = new List<string>();
     private List<string> output = new List<string>();
     ConsoleComponent? consoleComponentRef;
     ConsoleComponent? consoleComponentLogRef;
+
+    public int ConsoleFontSize { get; set; } = 12;
 
     public int Voltage { get; set; } = 3300;
 
@@ -203,6 +226,14 @@
         InvokeAsync(async () =>
         {
             await InvokeAsync(StateHasChanged);
+            if (isShellScrollingAutomatically && consoleComponentRef != null)
+            {
+                await consoleComponentRef.Refresh();
+            }
+            if (isLogScrollingAutomatically && consoleComponentLogRef != null)
+            {
+                await consoleComponentLogRef.Refresh();
+            }
         });
     }
 
