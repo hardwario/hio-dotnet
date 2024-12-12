@@ -7,9 +7,11 @@ HARDWARIO .NET SDK project is here to help you with creating your custom applica
 
 This SDK focuses to .NET C# developers mainly, but thanks to the simplicity and readibility of the C# it can help to programmers who uses different languages as well. 
 
-SDK consists of several libraries and example projects which will be described below. 
+SDK consists of several libraries and example projects which will be described below. Here is screenshot of one of the example application you can find in this SDK:
 
-Please note that HARDWARIO .NET SDK is still under the development. We are happy to receive tips and bugreports if you would like to help us.
+![HIO-Monitor-new-netsdk](https://github.com/user-attachments/assets/f1bfe323-8c6a-47cf-882d-a8c9f2f09119)
+
+*Please note that HARDWARIO .NET SDK is still under the development. We are happy to receive tips and bugreports if you would like to help us.*
 
 ## Requirements
 
