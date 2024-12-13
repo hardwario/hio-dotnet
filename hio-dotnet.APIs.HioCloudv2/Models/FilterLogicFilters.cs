@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace hio_dotnet.APIs.HioCloudv2.Models
+namespace hio_dotnet.APIs.HioCloud.Models
 {
     public static class FilterLogicFilters
     {

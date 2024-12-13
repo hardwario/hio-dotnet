@@ -1,11 +1,11 @@
-﻿using hio_dotnet.APIs.HioCloudv2.Models;
+﻿using hio_dotnet.APIs.HioCloud.Models;
 using System.Data;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
-namespace hio_dotnet.APIs.HioCloudv2
+namespace hio_dotnet.APIs.HioCloud
 {
     public class HioCloudDriver
     {
@@ -97,7 +97,15 @@ namespace hio_dotnet.APIs.HioCloudv2
                 var credentials = new { email = email, password = password };
                 var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(credentials), Encoding.UTF8, "application/json");
 
-                var response = await httpClient.PostAsync("/v2/auth/login", content);
+                HttpResponseMessage? response = null;
+                try
+                {
+                    response = await httpClient.PostAsync("/v2/auth/login", content);
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
                 response.EnsureSuccessStatusCode();
 
                 var responseBody = await response.Content.ReadAsStringAsync();

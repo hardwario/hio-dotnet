@@ -1,4 +1,4 @@
-﻿using hio_dotnet.APIs.HioCloudv2.Models;
+﻿using hio_dotnet.APIs.HioCloud.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace hio_dotnet.APIs.HioCloudv2
+namespace hio_dotnet.APIs.HioCloud
 {
     public class SimpleCloudMessageGrabber : CloudMessagesGrabberBase
     {

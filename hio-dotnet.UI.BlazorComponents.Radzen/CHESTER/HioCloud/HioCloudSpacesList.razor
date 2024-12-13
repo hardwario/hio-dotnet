@@ -1,0 +1,35 @@
+﻿@using Services
+@using hio_dotnet.APIs.HioCloud.Models
+
+@inject DialogService DialogService
+@inject HioCloudService HioCloudService
+@inject NotificationService NotificationService
+
+
+<RadzenButton Text="Get Spaced" Disabled="@(!HioCloudService.IsLoggedIn)" Style="@Style" class="@Class" ButtonStyle="@ButtonStyle" />
+
+@foreach (var space in spaces)
+{
+    <RadzenCard>
+        <RadzenHeading Text="@space.Name"></RadzenHeading>
+        <RadzenText Text="@space.Id.ToString()"></RadzenText>
+        <RadzenButton Text="Select" Click="@(() => OnSpaceSelected.InvokeAsync(space.Id))"></RadzenButton>
+        <RadzenButton Text="Get Devices" Click="@(() => OnGetSpaceDevices.InvokeAsync(space.Id))"></RadzenButton>
+    </RadzenCard>
+}
+
+@code {
+    [Parameter] public string Style { get; set; } = string.Empty;
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public ButtonStyle ButtonStyle { get; set; } = ButtonStyle.Primary;
+    [Parameter] public EventCallback<Guid?> OnSpaceSelected { get; set; }
+    [Parameter] public EventCallback<Guid?> OnGetSpaceDevices { get; set; }
+
+    private List<HioCloudSpace> spaces = new List<HioCloudSpace>();
+
+    private async Task GetSpaces()
+    {
+        spaces = await HioCloudService.GetSpaces() ?? new List<HioCloudSpace>();
+        await InvokeAsync(StateHasChanged);
+    }
+}

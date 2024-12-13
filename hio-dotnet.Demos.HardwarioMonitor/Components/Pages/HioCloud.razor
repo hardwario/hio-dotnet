@@ -1,0 +1,55 @@
+﻿@using Services
+@using hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.HioCloud
+
+@page "/hiocloud"
+
+@inject ConsoleService ConsoleService
+
+<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+    <!-- Loading overlay -->
+    @if (isBusy)
+    {
+        <RadzenCard Style="z-index: 3; text-align: center; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, .5)">
+            <div style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%;">
+                <RadzenProgressBarCircular ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+                    <Template>Wait</Template>
+                </RadzenProgressBarCircular>
+            </div>
+        </RadzenCard>
+    }
+</RadzenStack>
+
+<RadzenLayout Style="height: 100%; grid-template-rows: 1fr; grid-template-columns: 1fr auto; grid-template-areas: 'rz-body rz-sidebar'">
+    <RadzenSidebar Style="padding: 5px;">
+        <HioCloudLoginButton />
+    </RadzenSidebar>
+    <RadzenBody>
+        <RadzenRow Style="height: 100%;">
+            <RadzenColumn Style="height: 100%;">
+
+                <RadzenRow>
+                    <RadzenColumn>
+                        <HioCloudSpacesList />
+                    </RadzenColumn>
+                </RadzenRow>
+
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenBody>
+</RadzenLayout>
+
+
+@code {
+    private bool isBusy = false;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    public async Task Refresh()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+}

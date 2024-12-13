@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace hio_dotnet.APIs.HioCloudv2.Models
+namespace hio_dotnet.APIs.HioCloud.Models
 {
 
     public class HioCloudConnector

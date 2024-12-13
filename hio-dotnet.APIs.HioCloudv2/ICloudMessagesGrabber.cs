@@ -1,11 +1,11 @@
-﻿using hio_dotnet.APIs.HioCloudv2.Models;
+﻿using hio_dotnet.APIs.HioCloud.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace hio_dotnet.APIs.HioCloudv2
+namespace hio_dotnet.APIs.HioCloud
 {
     public interface ICloudMessagesGrabber
     {
