@@ -1,0 +1,20 @@
+﻿@using CHESTER.HioCloud.Models
+
+<h3>Device Details</h3>
+
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenLabel Text="Name: " />
+        <RadzenText Text="@Device.Name" />
+    </RadzenColumn>
+</RadzenRow>
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenLabel Text="Id: " />
+        <RadzenText Text="@Device.Id.ToString()" />
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    [Parameter] public Device Device { get; set; } = new Device();
+}

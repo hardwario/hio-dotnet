@@ -1,0 +1,98 @@
+﻿@using CHESTER.HioCloud.Models
+
+<RadzenRow Style="height:100%;">
+    <RadzenColumn Style="height:100%;">
+        <RadzenCard Style="height:100%;">
+            <RadzenTabs TabPosition="@tabPosition" RenderMode="TabRenderMode.Client" SelectedIndex="@SelectedIndex" SelectedIndexChanged="OnSelectedChangedHandler">
+                <Tabs>
+                    @for (int i = 0; i < Tabs.Count; i++)
+                    {
+                        var tab = Tabs[i];
+                        @if (tab.Visible)
+                        {
+                            <RadzenTabsItem>
+                                <Template>
+                                    <span style="display: flex; gap: 6px;">
+                                        @(GetTabTitle(tab.Title))
+                                        <RadzenButton Icon="close" @onclick:stopPropagation Click="@(async () => await RemoveTab(tab.Id))" Size="ButtonSize.ExtraSmall" />
+                                    </span>
+                                </Template>
+                                <ChildContent>
+                                    <RadzenCard>
+                                        @if (tab.Content != null)
+                                        {
+                                            @tab.Content
+                                        }
+                                        else 
+                                        {
+                                            <div> @tab.Id is Loading...</div>
+                                        }
+                                    </RadzenCard>
+                                </ChildContent>
+                            </RadzenTabsItem>
+                        }
+                    }
+                </Tabs>
+            </RadzenTabs>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
+@code {
+    public List<OpenedTab> Tabs { get; set; } = new List<OpenedTab>();
+
+    TabPosition tabPosition = TabPosition.Top;
+    int SelectedIndex = 0;
+
+    public string GetTabTitle(string title)
+    {
+        if (title.Length > 7)
+        {
+            title = title.Substring(0, 7) + "...";
+        }
+        return title;
+    }
+
+    public async Task AddTab(OpenedTab tab)
+    {
+        if (Tabs.Any(t => t.Id == tab.Id))
+        {
+            return;
+        }
+        if (tab.Type == OpenedTabType.Message)
+        {
+            tab.Content = @<MessageTabContent Message="@(tab.Data as Message)" />;
+        }
+        else if (tab.Type == OpenedTabType.Device)
+        {
+            tab.Content = @<DeviceTabContent Device="@(tab.Data as Device)" />;
+        }
+        else if (tab.Type == OpenedTabType.Space)
+        {
+            tab.Content = @<SpaceTabContent Space="@(tab.Data as Space)" />;
+        }
+
+        Tabs.Add(tab);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RemoveTab(Guid id)
+    {
+        var tab = Tabs.FirstOrDefault(t => t.Id == id);
+        if (tab != null)
+        {
+            Tabs.Remove(tab);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task OnSelectedChangedHandler(int index)
+    {
+        SelectedIndex = index;
+        if (Tabs.Count > index)
+        {
+            Tabs.ForEach(tab => tab.IsSelected = false);
+            Tabs[index].IsSelected = true;
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+}

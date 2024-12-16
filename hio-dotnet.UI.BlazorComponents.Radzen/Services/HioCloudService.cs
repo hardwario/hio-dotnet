@@ -22,25 +22,31 @@ namespace hio_dotnet.UI.BlazorComponents.Radzen.Services
 
         public bool IsLoggedIn { get; set; } = false;
 
-        public void InitHioCloudDriver(string username = null, string password = null)
+        public async Task InitHioCloudDriver(string username = null, string password = null)
         {
             if (hioCloudDriver == null)
             {
-                hioCloudDriver = new HioCloudDriver(HioCloudDriver.DefaultHardwarioCloudUrl, username, password);
-                IsInitializedWithUsername = true;
-                IsInitializedWithApiToken = false;
-                IsLoggedIn = true;
+                await Task.Run(() =>
+                {
+                    hioCloudDriver = new HioCloudDriver(HioCloudDriver.DefaultHardwarioCloudUrl, username, password);
+                    IsInitializedWithUsername = true;
+                    IsInitializedWithApiToken = false;
+                    IsLoggedIn = true;
+                });
             }
         }
 
-        public void InitHioCloudDriver(string apitoken = null)
+        public async Task InitHioCloudDriver(string apitoken = null)
         {
             if (hioCloudDriver == null)
             {
-                hioCloudDriver = new HioCloudDriver(HioCloudDriver.DefaultHardwarioCloudUrl, apitoken, useapitoken:true);
-                IsInitializedWithUsername = false;
-                IsInitializedWithApiToken = true;
-                IsLoggedIn = true;
+                await Task.Run(() =>
+                {
+                    hioCloudDriver = new HioCloudDriver(HioCloudDriver.DefaultHardwarioCloudUrl, apitoken, useapitoken: true);
+                    IsInitializedWithUsername = false;
+                    IsInitializedWithApiToken = true;
+                    IsLoggedIn = true;
+                });
             }
         }
 
@@ -91,6 +97,17 @@ namespace hio_dotnet.UI.BlazorComponents.Radzen.Services
                 return null;
             }
             return await hioCloudDriver.GetAllDeviceMessages(Guid.Parse(spaceId), Guid.Parse(deviceId));
+        }
+
+        public async Task<HioCloudMessage?> GetHioCloudMessage(Guid spaceId, Guid messageId)
+        {
+            if (hioCloudDriver == null)
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "HioCloudDriver not initialized");
+                return null;
+            }
+
+            return await hioCloudDriver.GetMessage(spaceId, messageId);
         }
     }
 }

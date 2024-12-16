@@ -517,6 +517,38 @@ namespace hio_dotnet.APIs.HioCloud
         }
 
         /// <summary>
+        /// Get one specific message
+        /// </summary>
+        /// <param name="space_id">Guid of space</param>
+        /// <param name="message_id">Guid of message</param>
+        /// <returns>Message List</returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
+        public async Task<HioCloudMessage?> GetMessage(Guid space_id,
+                                                       Guid message_id)
+        {
+            using (var httpClient = GetHioClient())
+            {
+                var url = $"/v2/spaces/{space_id}/messages/{message_id}";
+
+                try
+                {
+                    var response = await httpClient.GetAsync(url);
+                    var cnt = response.Content.ReadAsStringAsync().Result;
+
+                    CheckResponse(response);
+
+                    var devices = System.Text.Json.JsonSerializer.Deserialize<HioCloudMessage?>(cnt);
+                    return devices;
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while fetching spaces data.", ex);
+                }
+            }
+        }
+
+        /// <summary>
         /// Send downlink message to cloud to the specific device
         /// This version will send message_body as string
         /// </summary>

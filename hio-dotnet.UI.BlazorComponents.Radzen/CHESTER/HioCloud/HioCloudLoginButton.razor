@@ -20,6 +20,7 @@ else
     [Parameter] public string Class { get; set; } = string.Empty;
     [Parameter] public ButtonStyle ButtonStyle { get; set; } = ButtonStyle.Primary;
     [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public EventCallback<bool> OnLoggedIn { get; set; }
 
     private string login = string.Empty;
 
@@ -60,7 +61,7 @@ else
         if (result == true)
         {
             
-            HioCloudService.InitHioCloudDriver(login, password);
+            await HioCloudService.InitHioCloudDriver(login, password);
             await Task.Delay(1000);
 
             if (!HioCloudService.IsLoggedIn)
@@ -70,6 +71,8 @@ else
             else
             {
                 ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Login Successfull", Detail = "Logged to the Hardwario Cloud.", Duration = 4000 });
+                await InvokeAsync(StateHasChanged);
+                await OnLoggedIn.InvokeAsync(true);
             }
         }
     }

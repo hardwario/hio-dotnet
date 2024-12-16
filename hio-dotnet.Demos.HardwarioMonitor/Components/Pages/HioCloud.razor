@@ -1,4 +1,5 @@
 ﻿@using Services
+@using hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.HioCloud.Models
 @using hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.HioCloud
 
 @page "/hiocloud"
@@ -21,15 +22,20 @@
 
 <RadzenLayout Style="height: 100%; grid-template-rows: 1fr; grid-template-columns: 1fr auto; grid-template-areas: 'rz-body rz-sidebar'">
     <RadzenSidebar Style="padding: 5px;">
-        <HioCloudLoginButton />
+        <HioCloudLoginButton OnLoggedIn="@OnLoggedInHandler" />
     </RadzenSidebar>
     <RadzenBody>
         <RadzenRow Style="height: 100%;">
             <RadzenColumn Style="height: 100%;">
 
                 <RadzenRow>
-                    <RadzenColumn>
-                        <HioCloudSpacesList />
+                    <RadzenColumn Size="3">
+                        <HioCloudTreeView @ref=hioCloudTreeViewRef OnOpenMessageRequest="@OnOpenMessageHandler" 
+                                                                   OnOpenDeviceRequest="@OnOpenDeviceHandler"
+                                                                   OnOpenSpaceRequest="@OnOpenSpaceHandler"/>
+                    </RadzenColumn>
+                    <RadzenColumn Size="9">
+                        <HioCloudTabs @ref=hioCloudTabsRef />
                     </RadzenColumn>
                 </RadzenRow>
 
@@ -41,6 +47,8 @@
 
 @code {
     private bool isBusy = false;
+    HioCloudTreeView? hioCloudTreeViewRef;
+    HioCloudTabs? hioCloudTabsRef;
 
     protected override void OnInitialized()
     {
@@ -52,4 +60,54 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    public async Task OnLoggedInHandler(bool isLoggedIn)
+    {
+        isBusy = false;
+        if (hioCloudTreeViewRef != null)
+        {
+            await hioCloudTreeViewRef.GetSpaces();
+        }
+    }
+
+    public async Task OnOpenMessageHandler(Message msg)
+    {
+        if (hioCloudTabsRef != null)
+        {
+            await hioCloudTabsRef.AddTab(new OpenedTab()
+                    {
+                        Data = msg,
+                        Type = OpenedTabType.Message,
+                        Id = msg.Id,
+                        Title = msg.Text
+                    });
+        }
+    }
+
+    public async Task OnOpenDeviceHandler(Device device)
+    {
+        if (hioCloudTabsRef != null)
+        {
+            await hioCloudTabsRef.AddTab(new OpenedTab()
+                {
+                    Data = device,
+                    Type = OpenedTabType.Device,
+                    Id = device.Id,
+                    Title = device.Name
+                });
+        }
+    }
+
+    public async Task OnOpenSpaceHandler(Space space)
+    {
+        if (hioCloudTabsRef != null)
+        {
+            await hioCloudTabsRef.AddTab(new OpenedTab()
+                {
+                    Data = space,
+                    Type = OpenedTabType.Space,
+                    Id = space.Id,
+                    Title = space.Name
+                });
+        }
+    }
 }

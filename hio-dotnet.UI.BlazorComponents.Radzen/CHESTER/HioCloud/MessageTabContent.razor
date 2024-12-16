@@ -1,0 +1,52 @@
+﻿@using Services
+@using CHESTER.HioCloud.Models
+@using hio_dotnet.APIs.HioCloud.Models
+
+@inject HioCloudService HioCloudService
+
+<h3>Message Details</h3>
+
+<p></p>
+
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenLabel Text="Received At: " />
+        <RadzenText Text="@Message.Text" />
+    </RadzenColumn>
+</RadzenRow>
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenLabel Text="Id: " />
+        <RadzenText Text="@Message.Id.ToString()" />
+    </RadzenColumn>
+</RadzenRow>
+
+<hr />
+
+<h4>Message Body Content</h4>
+<hio_dotnet.UI.BlazorComponents.Radzen.Common.JSON.JSONViewer @ref=jSONViewerRef />
+
+@code {
+    [Parameter] public Message Message { get; set; } = new Message();
+
+    private HioCloudMessage? hioCloudMessage;
+    private hio_dotnet.UI.BlazorComponents.Radzen.Common.JSON.JSONViewer? jSONViewerRef;
+
+    protected override async Task OnInitializedAsync()
+    {
+        hioCloudMessage = await HioCloudService.GetHioCloudMessage(Message.SpaceId, Message.Id);
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (jSONViewerRef != null)
+        {
+            if (hioCloudMessage != null)
+            {
+                await jSONViewerRef.Load(hioCloudMessage.Body);
+            }
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+}

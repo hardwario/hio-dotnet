@@ -1,0 +1,115 @@
+﻿@using Services
+@using CHESTER.HioCloud.Models
+@using hio_dotnet.APIs.HioCloud.Models
+
+@inject DialogService DialogService
+@inject HioCloudService HioCloudService
+@inject NotificationService NotificationService
+
+@if (IsButtonDisplayed)
+{
+    <RadzenButton Click="@GetSpaces" Text="Get Spaced" Disabled="@(!HioCloudService.IsLoggedIn)" Style="@Style" class="@Class" ButtonStyle="@ButtonStyle" />
+}
+
+<RadzenRow Style="height:100%; margin-top:5px;">
+    <RadzenColumn Size="12" Style="height:100%;">
+        <RadzenCard>
+            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-0">Spaces, Devices and Messages</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2" class="rz-mb-2">Search scope of your available objects</RadzenText>
+            <RadzenTree Style="height: 100%;" Data=@Spaces Expand="@OnExpand" ValueChanged="ObjectClickedHandler" >
+                <RadzenTreeLevel TextProperty="@nameof(Space.Name)" ChildrenProperty="Devices" />
+                <RadzenTreeLevel TextProperty="@nameof(Device.Name)" ChildrenProperty="Messages" />
+                <RadzenTreeLevel TextProperty="@nameof(Message.Text)" HasChildren="@(message => false)" />
+            </RadzenTree>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+
+    [Parameter] public string Style { get; set; } = string.Empty;
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public bool IsButtonDisplayed { get; set; } = false;
+    [Parameter] public ButtonStyle ButtonStyle { get; set; } = ButtonStyle.Primary;
+    [Parameter] public EventCallback<Space> OnOpenSpaceRequest { get; set; }
+    [Parameter] public EventCallback<Device> OnOpenDeviceRequest { get; set; }
+    [Parameter] public EventCallback<Message> OnOpenMessageRequest { get; set; }
+
+    private List<HioCloudSpace> spaces = new List<HioCloudSpace>();
+    private List<Space> Spaces = new List<Space>();
+
+    public async Task GetSpaces()
+    {
+        spaces = await HioCloudService.GetSpaces() ?? new List<HioCloudSpace>();
+        foreach(var space in spaces)
+        {
+            Spaces.Add(new Space { Id = space.Id ?? Guid.NewGuid(), Name = space.Name });
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task OnExpand(TreeExpandEventArgs args)
+    {
+        if (args.Value is Space space)
+        {
+            await GetSpaceDevices(space.Id.ToString());
+        }
+        else if (args.Value is Device device)
+        {
+            await GetDeviceMessages(device.SpaceId.ToString(), device.Id.ToString());
+        }
+    }
+
+    private async Task GetSpaceDevices(string spaceId)
+    {
+        var devices = await HioCloudService.GetDevices(spaceId) ?? new List<HioCloudDevice>();
+        foreach (var device in devices)
+        {
+            var space = Spaces.FirstOrDefault(s => s.Id == Guid.Parse(spaceId));
+            if (space != null)
+            {
+                if (!space.Devices.Any(d => d.Id == device.Id))
+                {
+                    space.Devices.Add(new Device { Id = device.Id ?? Guid.NewGuid(), SpaceId = space.Id, Name = device.Name });
+                }
+            }
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task GetDeviceMessages(string spaceId, string deviceId)
+    {
+        var messages = await HioCloudService.HioCloudMessages(spaceId, deviceId) ?? new List<HioCloudMessage>();
+        foreach (var message in messages)
+        {
+            var device = Spaces.SelectMany(s => s.Devices).FirstOrDefault(d => d.Id == Guid.Parse(deviceId));
+            if (device != null)
+            {
+                if (!device.Messages.Any(m => m.Id == message.Id))
+                {
+                    device.Messages.Add(new Message { Id = message.Id, DeviceId = device.Id, SpaceId = device.SpaceId, Text = message.CreatedAt.ToString() });
+                }
+            }
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ObjectClickedHandler(object obj)
+    {
+        if (obj is Space space)
+        {
+            if (OnOpenSpaceRequest.HasDelegate)
+                await OnOpenSpaceRequest.InvokeAsync(space);
+        }
+        else if (obj is Device device)
+        {
+            if (OnOpenDeviceRequest.HasDelegate)
+                await OnOpenDeviceRequest.InvokeAsync(device);
+        }
+        else if (obj is Message message)
+        {
+            if (OnOpenMessageRequest.HasDelegate)
+                await OnOpenMessageRequest.InvokeAsync(message);
+        }
+    }
+}
