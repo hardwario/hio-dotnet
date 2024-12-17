@@ -1,30 +1,103 @@
 ﻿@using Services
 @using CHESTER.HioCloud.Models
 @using hio_dotnet.APIs.HioCloud.Models
+@using hio_dotnet.Common.Models.CatalogApps
+@using Microsoft.JSInterop
 
+@inject IJSRuntime JSRuntime
 @inject HioCloudService HioCloudService
 
 <h3>Message Details</h3>
 
 <p></p>
 
-<RadzenRow>
+<RadzenRow Style="margin-top:1rem;">
     <RadzenColumn>
-        <RadzenLabel Text="Received At: " />
-        <RadzenText Text="@Message.Text" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
+            <RadzenLabel Text="Space Name: " />
+            <RadzenText Text="@Message.SpaceName" />
+        </RadzenStack>
     </RadzenColumn>
 </RadzenRow>
-<RadzenRow>
+<RadzenRow Style="margin-top:1rem;">
     <RadzenColumn>
-        <RadzenLabel Text="Id: " />
-        <RadzenText Text="@Message.Id.ToString()" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
+            <RadzenLabel Text="Device Name: " />
+            <RadzenText Text="@Message.DeviceName" />
+        </RadzenStack>
+    </RadzenColumn>
+</RadzenRow>
+<RadzenRow Style="margin-top:1rem;">
+    <RadzenColumn>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
+            <RadzenLabel Text="Device Id: " />
+            <RadzenText Text="@Message.DeviceId.ToString()" />
+            <hio_dotnet.UI.BlazorComponents.Radzen.Common.Buttons.CopyButton IsJustIcon="true" TextToCopy="@Message.DeviceId.ToString()" />
+        </RadzenStack>
+    </RadzenColumn>
+</RadzenRow>
+<RadzenRow Style="margin-top:1rem;">
+    <RadzenColumn>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center" >
+            <RadzenLabel Text="Received At: " />
+            <RadzenText Text="@Message.Text" />
+        </RadzenStack>
+    </RadzenColumn>
+</RadzenRow>
+<RadzenRow Style="margin-top:1rem;">
+    <RadzenColumn>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center" >
+            <RadzenLabel Text="Id: " />
+            <RadzenText Text="@Message.Id.ToString()" />
+            <hio_dotnet.UI.BlazorComponents.Radzen.Common.Buttons.CopyButton IsJustIcon="true" TextToCopy="@Message.Id.ToString()" />
+        </RadzenStack>
+    </RadzenColumn>
+</RadzenRow>
+<RadzenRow Style="margin-top:1rem;">
+    <RadzenColumn>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center" >
+            <RadzenLabel Text="Recognized Message Type: " />
+            <RadzenText Text="@GetMessageType()" />
+        </RadzenStack>
     </RadzenColumn>
 </RadzenRow>
 
 <hr />
 
-<h4>Message Body Content</h4>
-<hio_dotnet.UI.BlazorComponents.Radzen.Common.JSON.JSONViewer @ref=jSONViewerRef />
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenRow>
+            <RadzenColumn Size="4">
+                <h4>Message Body Content</h4>
+            </RadzenColumn>
+            <RadzenColumn Size="8">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" >
+                    <RadzenButton Click="ExpandAll" Text="Expand All" />
+                    <RadzenButton Click="ColapseAll" Text="Colapse All" />
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenColumn>
+                <hio_dotnet.UI.BlazorComponents.Radzen.Common.JSON.JSONViewer @ref=jSONViewerRef />
+            </RadzenColumn>
+        </RadzenRow>
+        
+        
+    </RadzenColumn>
+</RadzenRow>
+
+<RadzenRow Style="margin-top:5px;">
+    @if (hioCloudMessage != null)
+    {
+        <RadzenColumn>
+            <hio_dotnet.UI.BlazorComponents.Radzen.Common.Buttons.CopyButton ButtonText="Copy JSON" Style="width:100%;" TextToCopy="@hioCloudMessage.Body" />
+        </RadzenColumn>
+        <RadzenColumn>
+            <RadzenButton Click="SaveAsText" Text="Save JSON" Style="width:100%;" />
+        </RadzenColumn>
+    }
+</RadzenRow>
 
 @code {
     [Parameter] public Message Message { get; set; } = new Message();
@@ -48,5 +121,61 @@
             }
         }
         await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task ExpandAll()
+    {
+        if (jSONViewerRef != null)
+        {
+            if (hioCloudMessage != null)
+            {
+                await jSONViewerRef.ExpandAll();
+            }
+        }
+    }
+
+    private async Task ColapseAll()
+    {
+        if (jSONViewerRef != null)
+        {
+            if (hioCloudMessage != null)
+            {
+                await jSONViewerRef.CollapseAll();
+            }
+        }
+    }
+
+    public string GetMessageType()
+    {
+        if (hioCloudMessage != null)
+        {
+            Type guessedType = ChesterCloudMessageAutoIdentifier.FindTypeByMessageStructure(hioCloudMessage.Body);
+            return guessedType.Name;
+        }
+        return "Unknown";
+    }
+
+    private async Task SaveAsText()
+    {
+        if (hioCloudMessage != null)
+        {
+            if (hioCloudMessage.Type == HioCloudMessageType.Data)
+            {
+                Type guessedType = ChesterCloudMessageAutoIdentifier.FindTypeByMessageStructure(hioCloudMessage.Body);
+                var parsed = System.Text.Json.JsonSerializer.Deserialize(hioCloudMessage.Body, guessedType);
+                if (parsed != null)
+                {
+                    dynamic deserializedObject = parsed;
+                    //Console.WriteLine($"Guessed Type of the data message: {deserializedObject}");
+
+                    string jsonContent = System.Text.Json.JsonSerializer.Serialize(parsed, new System.Text.Json.JsonSerializerOptions
+                        {
+                            WriteIndented = true // Print output nicely formatted
+                        });
+
+                    await JSRuntime.InvokeVoidAsync("hiodotnet.downloadText", jsonContent, $"JSONMessage_{Message.Id}.json");
+                }
+            }
+        }
     }
 }

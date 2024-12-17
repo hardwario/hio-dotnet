@@ -6,7 +6,7 @@
 {
     @if (!IsJustIcon)
     {
-        <RadzenButton Click="copyCodeToClipboard" >@ButtonText</RadzenButton>
+        <RadzenButton Click="copyCodeToClipboard" Style="@Style">@ButtonText</RadzenButton>
     }
     else
     {
@@ -17,7 +17,7 @@ else
 {
     @if (!IsJustIcon)
     {
-        <RadzenButton>Copied <RadzenIcon Icon="check" /></RadzenButton>
+        <RadzenButton Style="@Style">Copied <RadzenIcon Icon="check" /></RadzenButton>
     }
     else
     {
@@ -27,6 +27,7 @@ else
 
 @code {
     [Parameter] public bool IsJustIcon { get; set; } = false;
+    [Parameter] public string Style { get; set; } = string.Empty;
 
     [Parameter]
     public string TextToCopy

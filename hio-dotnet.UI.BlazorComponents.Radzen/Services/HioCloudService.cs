@@ -1,5 +1,6 @@
 ﻿using hio_dotnet.APIs.HioCloud;
 using hio_dotnet.APIs.HioCloud.Models;
+using hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.HioCloud.Models;
 using Radzen;
 
 namespace hio_dotnet.UI.BlazorComponents.Radzen.Services
@@ -21,6 +22,11 @@ namespace hio_dotnet.UI.BlazorComponents.Radzen.Services
         public bool IsInitializedWithApiToken { get; set; } = false;
 
         public bool IsLoggedIn { get; set; } = false;
+
+        public List<HioCloudSpace> HioCloudSpaces = new List<HioCloudSpace>();
+        public List<Space> Spaces = new List<Space>();
+
+        public List<OpenedTab> Tabs { get; set; } = new List<OpenedTab>();
 
         public async Task InitHioCloudDriver(string username = null, string password = null)
         {
@@ -108,6 +114,64 @@ namespace hio_dotnet.UI.BlazorComponents.Radzen.Services
             }
 
             return await hioCloudDriver.GetMessage(spaceId, messageId);
+        }
+
+        public async Task LoadSpaces()
+        {
+            HioCloudSpaces = await GetSpaces() ?? new List<HioCloudSpace>();
+            foreach (var space in HioCloudSpaces)
+            {
+                Spaces.Add(new Space 
+                { 
+                    Id = space.Id ?? Guid.NewGuid(), 
+                    Name = space.Name 
+                });
+            }
+        }
+
+        public async Task LoadSpaceDevices(string spaceId)
+        {
+            var devices = await GetDevices(spaceId) ?? new List<HioCloudDevice>();
+            foreach (var device in devices)
+            {
+                var space = Spaces.FirstOrDefault(s => s.Id == Guid.Parse(spaceId));
+                if (space != null)
+                {
+                    if (!space.Devices.Any(d => d.Id == device.Id))
+                    {
+                        space.Devices.Add(new Device 
+                        { 
+                            Id = device.Id ?? Guid.NewGuid(), 
+                            SpaceId = space.Id, 
+                            Name = device.Name, 
+                            SpaceName = space.Name });
+                    }
+                }
+            }
+        }
+
+        public async Task LoadDeviceMessages(string spaceId, string deviceId)
+        {
+            var messages = await HioCloudMessages(spaceId, deviceId) ?? new List<HioCloudMessage>();
+            foreach (var message in messages)
+            {
+                var device = Spaces.SelectMany(s => s.Devices).FirstOrDefault(d => d.Id == Guid.Parse(deviceId));
+                if (device != null)
+                {
+                    if (!device.Messages.Any(m => m.Id == message.Id))
+                    {
+                        device.Messages.Add(new Message 
+                        { 
+                            Id = message.Id, 
+                            DeviceId = device.Id, 
+                            SpaceId = device.SpaceId, 
+                            Text = message.CreatedAt.ToString(),
+                            DeviceName = device.Name,
+                            SpaceName = device.SpaceName
+                        });
+                    }
+                }
+            }
         }
     }
 }

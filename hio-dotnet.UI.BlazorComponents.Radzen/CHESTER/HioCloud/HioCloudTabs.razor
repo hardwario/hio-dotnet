@@ -1,13 +1,16 @@
 ﻿@using CHESTER.HioCloud.Models
+@using Services
+
+@inject HioCloudService HioCloudService
 
 <RadzenRow Style="height:100%;">
     <RadzenColumn Style="height:100%;">
         <RadzenCard Style="height:100%;">
             <RadzenTabs TabPosition="@tabPosition" RenderMode="TabRenderMode.Client" SelectedIndex="@SelectedIndex" SelectedIndexChanged="OnSelectedChangedHandler">
                 <Tabs>
-                    @for (int i = 0; i < Tabs.Count; i++)
+                    @for (int i = 0; i < HioCloudService.Tabs.Count; i++)
                     {
-                        var tab = Tabs[i];
+                        var tab = HioCloudService.Tabs[i];
                         @if (tab.Visible)
                         {
                             <RadzenTabsItem>
@@ -38,23 +41,22 @@
     </RadzenColumn>
 </RadzenRow>
 @code {
-    public List<OpenedTab> Tabs { get; set; } = new List<OpenedTab>();
-
+    
     TabPosition tabPosition = TabPosition.Top;
     int SelectedIndex = 0;
 
     public string GetTabTitle(string title)
     {
-        if (title.Length > 7)
+        if (title.Length > 12)
         {
-            title = title.Substring(0, 7) + "...";
+            title = title.Substring(0, 12) + "...";
         }
         return title;
     }
 
     public async Task AddTab(OpenedTab tab)
     {
-        if (Tabs.Any(t => t.Id == tab.Id))
+        if (HioCloudService.Tabs.Any(t => t.Id == tab.Id))
         {
             return;
         }
@@ -71,16 +73,30 @@
             tab.Content = @<SpaceTabContent Space="@(tab.Data as Space)" />;
         }
 
-        Tabs.Add(tab);
+        HioCloudService.Tabs.Add(tab);
+        SelectedIndex = HioCloudService.Tabs.Count - 1;
         await InvokeAsync(StateHasChanged);
     }
 
     private async Task RemoveTab(Guid id)
     {
-        var tab = Tabs.FirstOrDefault(t => t.Id == id);
+        var tab = HioCloudService.Tabs.FirstOrDefault(t => t.Id == id);
         if (tab != null)
         {
-            Tabs.Remove(tab);
+            var tabIndex = HioCloudService.Tabs.IndexOf(tab);
+            if (tabIndex == SelectedIndex)
+            {
+                if (tabIndex == 0 && HioCloudService.Tabs.Count >= 2)
+                {
+                    SelectedIndex = 1;
+                }
+                else
+                {
+                    SelectedIndex = tabIndex - 1;
+                }
+            }
+
+            HioCloudService.Tabs.Remove(tab);
             await InvokeAsync(StateHasChanged);
         }
     }
@@ -88,10 +104,10 @@
     private async Task OnSelectedChangedHandler(int index)
     {
         SelectedIndex = index;
-        if (Tabs.Count > index)
+        if (HioCloudService.Tabs.Count > index)
         {
-            Tabs.ForEach(tab => tab.IsSelected = false);
-            Tabs[index].IsSelected = true;
+            HioCloudService.Tabs.ForEach(tab => tab.IsSelected = false);
+            HioCloudService.Tabs[index].IsSelected = true;
         }
         await InvokeAsync(StateHasChanged);
     }
