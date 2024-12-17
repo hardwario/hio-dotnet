@@ -41,7 +41,7 @@
     </RadzenColumn>
 </RadzenRow>
 @code {
-    
+
     TabPosition tabPosition = TabPosition.Top;
     int SelectedIndex = 0;
 
@@ -84,9 +84,13 @@
         if (tab != null)
         {
             var tabIndex = HioCloudService.Tabs.IndexOf(tab);
-            if (tabIndex == SelectedIndex)
+            //if (tabIndex == SelectedIndex)
             {
-                if (tabIndex == 0 && HioCloudService.Tabs.Count >= 2)
+                if (tabIndex == 0 && HioCloudService.Tabs.Count == 2)
+                {
+                    SelectedIndex = 0;
+                }
+                else if (tabIndex == 0 && HioCloudService.Tabs.Count >= 2)
                 {
                     SelectedIndex = 1;
                 }

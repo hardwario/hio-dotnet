@@ -21,6 +21,7 @@ else
     [Parameter] public ButtonStyle ButtonStyle { get; set; } = ButtonStyle.Primary;
     [Parameter] public bool Disabled { get; set; } = false;
     [Parameter] public EventCallback<bool> OnLoggedIn { get; set; }
+    [Parameter] public EventCallback<bool> OnLoggingIn { get; set; }
 
     private string login = string.Empty;
 
@@ -76,9 +77,13 @@ else
 
         if (result == true)
         {
-            
+            if (OnLoggingIn.HasDelegate)
+            {
+                await OnLoggingIn.InvokeAsync(true);
+                await Task.Delay(10);
+            }
             await HioCloudService.InitHioCloudDriver(login, password);
-            await Task.Delay(1000);
+            await Task.Delay(100);
 
             if (!HioCloudService.IsLoggedIn)
             {

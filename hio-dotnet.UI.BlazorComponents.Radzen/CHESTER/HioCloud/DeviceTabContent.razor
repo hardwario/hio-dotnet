@@ -2,16 +2,21 @@
 
 <h3>Device Details</h3>
 
-<RadzenRow>
+<RadzenRow Style="margin-top:1rem;">
     <RadzenColumn>
-        <RadzenLabel Text="Name: " />
-        <RadzenText Text="@Device.Name" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
+            <RadzenLabel Text="Name: " />
+            <RadzenText Text="@Device.Name" />
+        </RadzenStack>
     </RadzenColumn>
 </RadzenRow>
-<RadzenRow>
+<RadzenRow Style="margin-top:1rem;">
     <RadzenColumn>
-        <RadzenLabel Text="Id: " />
-        <RadzenText Text="@Device.Id.ToString()" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
+            <RadzenLabel Text="Id: " />
+            <RadzenText Text="@Device.Id.ToString()" />
+            <hio_dotnet.UI.BlazorComponents.Radzen.Common.Buttons.CopyButton IsJustIcon="true" TextToCopy="@Device.Id.ToString()" />
+        </RadzenStack>
     </RadzenColumn>
 </RadzenRow>
 
