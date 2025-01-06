@@ -1,22 +1,31 @@
 ﻿@using Services
 @using CHESTER.HioCloud.Models
 @using hio_dotnet.APIs.HioCloud.Models
+@using Microsoft.JSInterop
 
 @inject DialogService DialogService
 @inject HioCloudService HioCloudService
 @inject NotificationService NotificationService
+@inject IJSRuntime JSRuntime
 
 @if (IsButtonDisplayed)
 {
     <RadzenButton Click="@GetSpaces" Text="Get Spaced" Disabled="@(!HioCloudService.IsLoggedIn)" Style="@Style" class="@Class" ButtonStyle="@ButtonStyle" />
 }
 
+<RadzenRow>
+    <RadzenColumn Size="12">
+        <RadzenTextBox @bind-Value="FilterText" Placeholder="Enter name to filter..." Style="margin-bottom: 10px;" onkeydown="@(async (KeyboardEventArgs e) => OnKeyDown(e))"  />
+        <RadzenButton Click="@ApplyFilter" Text="Apply Filter" Style="margin-left: 10px;" />
+    </RadzenColumn>
+</RadzenRow>
+
 <RadzenRow Style="height:100%; margin-top:5px;">
     <RadzenColumn Size="12" Style="height:100%;">
         <RadzenCard>
             <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-0">Spaces, Devices and Messages</RadzenText>
             <RadzenText TextStyle="TextStyle.Body2" class="rz-mb-2">Search scope of your available objects</RadzenText>
-            <RadzenTree Style="height: 100%;" Data=@HioCloudService.Spaces Expand="@OnExpand" ValueChanged="ObjectClickedHandler" >
+            <RadzenTree Style="height: 100%;" Data="@filteredSpaces" Expand="@OnExpand" ValueChanged="ObjectClickedHandler">
                 <RadzenTreeLevel TextProperty="@nameof(Space.Name)" ChildrenProperty="Devices" />
                 <RadzenTreeLevel TextProperty="@nameof(Device.Name)" ChildrenProperty="Messages" />
                 <RadzenTreeLevel TextProperty="@nameof(Message.Text)" HasChildren="@(message => false)" />
@@ -26,7 +35,6 @@
 </RadzenRow>
 
 @code {
-
     [Parameter] public string Style { get; set; } = string.Empty;
     [Parameter] public string Class { get; set; } = string.Empty;
     [Parameter] public bool IsButtonDisplayed { get; set; } = false;
@@ -35,9 +43,76 @@
     [Parameter] public EventCallback<Device> OnOpenDeviceRequest { get; set; }
     [Parameter] public EventCallback<Message> OnOpenMessageRequest { get; set; }
 
+    private string FilterText { get; set; } = string.Empty;
+    private List<Space> filteredSpaces = new List<Space>();
+
+    public async Task ApplyFilter()
+    {
+        filteredSpaces = GetFilteredSpaces();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private List<Space> GetFilteredSpaces()
+    {
+        var filteredSp = new List<Space>();
+
+        if (string.IsNullOrEmpty(FilterText) || string.IsNullOrWhiteSpace(FilterText))
+        {
+            foreach (var space in HioCloudService.Spaces)
+            {
+                filteredSp.Add(space);
+            }
+            return filteredSp;
+        }
+
+        var spaces = new List<Space>();
+        foreach (var space in HioCloudService.Spaces)
+        {
+            if (space.Name.ToLower().Contains(FilterText.ToLower(), StringComparison.OrdinalIgnoreCase))
+            {
+                spaces.Add(space);
+                if (space.Devices.Any(d => d.Name.ToLower().Contains(FilterText.ToLower(), StringComparison.OrdinalIgnoreCase)))
+                {
+                    var devs = space.Devices.Where(d => d.Name.ToLower().Contains(FilterText.ToLower(), StringComparison.OrdinalIgnoreCase)).ToList();
+                    var sp = new Space()
+                        {
+                            Id = space.Id,
+                            Name = space.Name,
+                            Devices = devs
+                        };
+                    filteredSp.Add(sp);
+                }
+                else
+                {
+                    filteredSp.Add(space);
+                }
+            }
+        }
+
+        foreach (var space in HioCloudService.Spaces)
+        {
+            if (space.Devices.Any(d => d.Name.ToLower().Contains(FilterText.ToLower(), StringComparison.OrdinalIgnoreCase)))
+            {
+                var devs = space.Devices.Where(d => d.Name.ToLower().Contains(FilterText.ToLower(), StringComparison.OrdinalIgnoreCase)).ToList();
+                var sp = new Space()
+                    {
+                        Id = space.Id,
+                        Name = space.Name,
+                        Devices = devs
+                    };
+                filteredSp.Add(sp);
+            }
+        }
+            
+        return filteredSp;
+        
+    }
+
+
     public async Task GetSpaces()
     {
         await HioCloudService.LoadSpaces();
+        filteredSpaces = HioCloudService.Spaces;
         await InvokeAsync(StateHasChanged);
     }
 
@@ -81,6 +156,16 @@
         {
             if (OnOpenMessageRequest.HasDelegate)
                 await OnOpenMessageRequest.InvokeAsync(message);
+        }
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await JSRuntime.InvokeVoidAsync("document.activeElement.blur");
+            filteredSpaces = GetFilteredSpaces();
+            await InvokeAsync(StateHasChanged);
         }
     }
 }
