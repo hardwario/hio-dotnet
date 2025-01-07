@@ -1,6 +1,6 @@
 using hio_dotnet.APIs.Chirpstack;
-using hio_dotnet.APIs.HioCloudv2;
-using hio_dotnet.APIs.HioCloudv2.Models;
+using hio_dotnet.APIs.HioCloud;
+using hio_dotnet.APIs.HioCloud.Models;
 using hio_dotnet.APIs.ThingsBoard;
 using hio_dotnet.APIs.ThingsBoard.Models.Dashboards;
 using hio_dotnet.APIs.Wmbusmeters;

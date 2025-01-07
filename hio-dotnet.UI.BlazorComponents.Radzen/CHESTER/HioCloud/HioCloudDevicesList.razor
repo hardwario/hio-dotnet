@@ -1,0 +1,39 @@
+﻿@using Services
+@using CHESTER.HioCloud.Models
+@using hio_dotnet.APIs.HioCloud.Models
+
+@inject HioCloudService HioCloudService
+
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenText Text="Devices:" />
+    </RadzenColumn>
+</RadzenRow>
+<RadzenRow Style="margin-top:1rem;">
+    <RadzenColumn>
+        <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="5" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                        Data="@Devices" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or" SelectionMode="DataGridSelectionMode.Single" @bind-Value=@selectedDevices>
+            <Columns>
+                <RadzenDataGridColumn Property="@nameof(Device.Id)" Filterable="false" Title="Device Id" Frozen="true" Width="120px" TextAlign="TextAlign.Center" />
+                <RadzenDataGridColumn Property="@nameof(Device.Name)" Title="Name" Frozen="true" Width="100px" />
+                <RadzenDataGridColumn Title="Action" Frozen="true" Sortable="false" Filterable="false" Width="80px" TextAlign="TextAlign.Center">
+                    <Template Context="data">
+                        <RadzenButton Click="async () => await OnOpenDeviceHandler(data) " Text="Open Device" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    [Parameter] public List<Device> Devices { get; set; } = new List<Device>();
+    [Parameter] public EventCallback<Device> OnOpenDeviceRequest { get; set; }
+
+    IList<Device> selectedDevices = new List<Device>();
+
+    private async Task OnOpenDeviceHandler(Device data)
+    {
+        await OnOpenDeviceRequest.InvokeAsync(data as Device);
+    }
+}

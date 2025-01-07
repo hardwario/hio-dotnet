@@ -3,6 +3,7 @@ using hio_dotnet.HWDrivers.Enums;
 using hio_dotnet.HWDrivers.JLink;
 using hio_dotnet.HWDrivers.MCU;
 using hio_dotnet.HWDrivers.PPK2;
+using Radzen;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,13 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
     public class ConsoleService
     {
+        private readonly NotificationService _notificationService;
+
+        public ConsoleService(NotificationService notificationService)
+        {
+            _notificationService = notificationService;
+        }
+
         public MCUMultiRTTConsole? MCUConsole { get; set; }
         public PPK2_Driver? ppk2 { get; set; }
 
@@ -60,6 +68,11 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         public LoRaWANConfig LoRaWANConfig { get; set; } = new LoRaWANConfig();
         public LTEConfig LTEConfig { get; set; } = new LTEConfig();
 
+        private void ShowNotification(NotificationMessage message)
+        {
+            _notificationService.Notify(message);
+        }
+
         public void InitArrays()
         {
             for (int i = 0; i < dataPoints.Length; i++)
@@ -82,8 +95,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             if (devices.Count == 0)
             {
                 Console.WriteLine("No PPK2 devices found. Exiting program...");
-                Console.WriteLine("Program ends. Goodbye. Press any key to quit...");
-                Console.ReadLine();
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "PPK2 not found", Detail = "No PPK2 devices found.", Duration = 3000 });
                 return;
             }
 
@@ -93,6 +105,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             ppk2 = new PPK2_Driver(selectedDevice.PortName);
 
             OnIsPPKConnected?.Invoke(this, true);
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "PPK2 connected", Detail = "PPK2 is connected.", Duration = 3000 });
             if (!doNotTurnBusy)
             {
                 OnIsBusy?.Invoke(this, false);
@@ -119,6 +132,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
                 await MeasureLoop();
 
             OnIsPPKVoltageOutputConnected?.Invoke(this, true);
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Power On", Detail = "Power supply for device is on.", Duration = 3000 });
         }
 
         public async Task TurnOffPower()
@@ -131,6 +145,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             IsDeviceOn = false;
 
             OnIsPPKVoltageOutputDisconnected?.Invoke(this, true);
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Power Off", Detail = "Power supply for device is off.", Duration = 3000 });
         }
 
         public async Task MeasureLoop()
@@ -241,8 +256,8 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             if (connected_jlinks == null)
             {
                 Console.WriteLine("Cannot find any JLinks.");
-                Console.WriteLine("Program ends. Goodbye. Press any key to quit...");
-                Console.ReadLine();
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "JLink not found", Detail = "Cannot find and JLink", Duration = 3000 });
+                OnIsBusy?.Invoke(this, false);
                 return;
             }
 
@@ -250,8 +265,8 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             if (numofjlinks == 0)
             {
                 Console.WriteLine("Cannot find any JLinks.");
-                Console.WriteLine("Program ends. Goodbye. Press any key to quit...");
-                Console.ReadLine();
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "JLink not found", Detail = "Cannot find and JLink", Duration = 3000 });
+                OnIsBusy?.Invoke(this, false);
                 return;
             }
 
@@ -275,12 +290,21 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             // Create MCUConsole instances for Config and Log RTT channels
             Console.WriteLine("JLink RTT Console is Starting :)\n\n");
 
-            MCUConsole = new MCUMultiRTTConsole(new List<MultiRTTClientBase>()
+            try
+            {
+                MCUConsole = new MCUMultiRTTConsole(new List<MultiRTTClientBase>()
                 {
                     new MultiRTTClientBase(){ Channel = 0, DriverType= RTTDriverType.JLinkRTT, Name = "ConfigConsole" },
                     new MultiRTTClientBase(){ Channel = 1, DriverType= RTTDriverType.JLinkRTT, Name = "LogConsole" }
                 }, "nRF52840_xxAA", 4000, "mcumulticonsole", devsn);
-
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error while creating MCUConsole: {ex.Message}");
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = $"Error while creating MCUConsole: {ex.Message}.", Duration = 5000 });
+                OnIsBusy?.Invoke(this, false);
+                return;
+            }
             // Subscribe to NewRTTMessageLineReceived event to get RTT messages and set output to console
 
             MCUConsole.NewRTTMessageLineReceived -= ProcessNewRTTLine;
@@ -296,6 +320,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             OnIsBusy?.Invoke(this, false);
             await Task.Delay(10);
             OnIsJLinkConnected?.Invoke(this, true);
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "JLink Connected", Detail = "JLink is connected now.", Duration = 3000 });
 
             await Task.WhenAny(new Task[] { listeningTask });
 
@@ -360,6 +385,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             Console.WriteLine("Turning off DUT power...");
             ppk2?.ToggleDUTPower(PPK2_OutputState.OFF);
             OnIsPPKVoltageOutputDisconnected?.Invoke(this, true);
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "JLink disconnected", Detail = "JLink is disconnected and power is off.", Duration = 3000 });
         }
 
         public double[] Downsample(double[] data, int originalRate, int targetRate)
@@ -391,12 +417,14 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         {
             var fileService = new FileService();
             await fileService.SaveFileWithDialogAsync(ConsoleOutputShell, "ConsoleShellOutput.txt");
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "File Saved", Detail = "Console content has been saved to the file.", Duration = 3000 });
         }
 
         public async Task SaveConsoleLogToFile()
         {
             var fileService = new FileService();
             await fileService.SaveFileWithDialogAsync(ConsoleOutputLog, "ConsoleLogOutput.txt");
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "File Saved", Detail = "Console Log content has been saved to the file.", Duration = 3000 });
         }
 
         private async Task SendAllConfigLines(string cfg)
@@ -416,12 +444,14 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         {
             var cfg = LoRaWANConfig.GetWholeConfig();
             await SendAllConfigLines(cfg);
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Settings Applied", Detail = "LoRaWAN settings has been loaded to the device.", Duration = 3000 });
         }
 
         public async Task ApplyLTESettings()
         {
             var cfg = LTEConfig.GetWholeConfig();
             await SendAllConfigLines(cfg);
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Settings Applied", Detail = "LTE settings has been loaded to the device.", Duration = 3000 });
         }
     }
 }

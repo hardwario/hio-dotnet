@@ -1,11 +1,11 @@
-﻿using hio_dotnet.APIs.HioCloudv2.Models;
+﻿using hio_dotnet.APIs.HioCloud.Models;
 using System.Data;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
-namespace hio_dotnet.APIs.HioCloudv2
+namespace hio_dotnet.APIs.HioCloud
 {
     public class HioCloudDriver
     {
@@ -97,7 +97,15 @@ namespace hio_dotnet.APIs.HioCloudv2
                 var credentials = new { email = email, password = password };
                 var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(credentials), Encoding.UTF8, "application/json");
 
-                var response = await httpClient.PostAsync("/v2/auth/login", content);
+                HttpResponseMessage? response = null;
+                try
+                {
+                    response = await httpClient.PostAsync("/v2/auth/login", content);
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
                 response.EnsureSuccessStatusCode();
 
                 var responseBody = await response.Content.ReadAsStringAsync();
@@ -499,6 +507,38 @@ namespace hio_dotnet.APIs.HioCloudv2
                     CheckResponse(response);
 
                     var devices = System.Text.Json.JsonSerializer.Deserialize<List<HioCloudMessage>?>(cnt);
+                    return devices;
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while fetching spaces data.", ex);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get one specific message
+        /// </summary>
+        /// <param name="space_id">Guid of space</param>
+        /// <param name="message_id">Guid of message</param>
+        /// <returns>Message List</returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
+        public async Task<HioCloudMessage?> GetMessage(Guid space_id,
+                                                       Guid message_id)
+        {
+            using (var httpClient = GetHioClient())
+            {
+                var url = $"/v2/spaces/{space_id}/messages/{message_id}";
+
+                try
+                {
+                    var response = await httpClient.GetAsync(url);
+                    var cnt = response.Content.ReadAsStringAsync().Result;
+
+                    CheckResponse(response);
+
+                    var devices = System.Text.Json.JsonSerializer.Deserialize<HioCloudMessage?>(cnt);
                     return devices;
                 }
                 catch (HttpRequestException ex)

@@ -1,0 +1,57 @@
+﻿@using Services
+@using CHESTER.HioCloud.Models
+
+@inject HioCloudService HioCloudService
+
+<h3>Space Details</h3>
+
+<RadzenRow Style="margin-top:1rem;">
+    <RadzenColumn>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
+            <RadzenLabel Text="Name: " />
+            <RadzenText Text="@Space.Name" />
+        </RadzenStack>
+    </RadzenColumn>
+</RadzenRow>
+<RadzenRow Style="margin-top:1rem;">
+    <RadzenColumn>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
+            <RadzenLabel Text="Space Id: " />
+            <RadzenText Text="@Space.Id.ToString()" />
+            <hio_dotnet.UI.BlazorComponents.Radzen.Common.Buttons.CopyButton IsJustIcon="true" TextToCopy="@Space.Id.ToString()" />
+        </RadzenStack>
+    </RadzenColumn>
+</RadzenRow>
+
+@if (Space.Devices.Count == 0)
+{
+    <RadzenRow Style="margin-top:2rem;">
+        <RadzenColumn>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                <RadzenButton Text="Try To load Devices" Click="@LoadDevices" />
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+}
+else
+{
+    <RadzenRow Style="margin-top:2rem;">
+        <RadzenColumn>
+            <HioCloudDevicesList Devices="@Space.Devices" OnOpenDeviceRequest="async (m) => await OnOpenDeviceRequest.InvokeAsync(m)" />
+        </RadzenColumn>
+    </RadzenRow>
+}
+
+@code {
+    [Parameter] public Space Space { get; set; } = new Space();
+    [Parameter] public EventCallback<Device> OnOpenDeviceRequest { get; set; }
+
+    private async Task LoadDevices()
+    {
+        await HioCloudService.LoadSpaceDevices(Space.Id.ToString());
+
+        Space.Devices = HioCloudService.Spaces.Where(s => s.Id == Space.Id).First().Devices.ToList();
+
+        await InvokeAsync(StateHasChanged);
+    }
+}

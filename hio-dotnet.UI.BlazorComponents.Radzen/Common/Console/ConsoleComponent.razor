@@ -14,7 +14,7 @@
                     @for (var i = 0; i < Output.Count; i++)
                     {
                         var line = Output[i];
-                        <div><small style=@GetConsoleTextStyle()>@line</small></div>
+                        <div><small style=@GetConsoleTextStyle(line)>@line</small></div>
                     }
                 </div>
             </RadzenCard>
@@ -84,9 +84,24 @@
     private int historyIndex = -1;
     private List<string> commandHistory = new List<string>();
 
-    private string GetConsoleTextStyle()
+    private string GetConsoleTextStyle(string line)
     {
-        return $"color: #d4d4d4; font-size: {TextSize}px;";
+        if (line.Contains("<err>"))
+        {
+            return $"color: red; font-size: {TextSize}px;";
+        }
+        else if (line.Contains("<wrn>"))
+        {
+            return $"color: yellow; font-size: {TextSize}px;";
+        }
+        else if (line.Contains("<dbg>"))
+        {
+            return $"color: tan; font-size: {TextSize}px;";
+        }
+        else
+        {
+            return $"color: #d4d4d4; font-size: {TextSize}px;";
+        }
     }
 
     private async Task ScrollToBottom()

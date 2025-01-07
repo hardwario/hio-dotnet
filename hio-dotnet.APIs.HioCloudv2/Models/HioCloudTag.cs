@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace hio_dotnet.APIs.HioCloudv2.Models
+namespace hio_dotnet.APIs.HioCloud.Models
 {
     public class HioCloudTag
     {

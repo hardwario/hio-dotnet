@@ -1,4 +1,6 @@
-﻿using hio_dotnet.Demos.HardwarioMonitor.Services;
+﻿using CommunityToolkit.Maui;
+using hio_dotnet.Demos.HardwarioMonitor.Services;
+using hio_dotnet.UI.BlazorComponents.Radzen.Services;
 using Microsoft.Extensions.Logging;
 using Radzen;
 using System.Reflection;
@@ -13,6 +15,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -21,6 +24,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor
             builder.Services.AddMauiBlazorWebView();
             builder.Services.AddRadzenComponents();
             builder.Services.AddScoped<ConsoleService>();
+            builder.Services.AddScoped<HioCloudService>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
