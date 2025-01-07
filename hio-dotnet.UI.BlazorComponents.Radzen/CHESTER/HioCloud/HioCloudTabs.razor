@@ -66,6 +66,18 @@
         await AddTab(tab);
     }
 
+    private async Task onOpenDeviceRequestHandler(Device device)
+    {
+        var tab = new OpenedTab
+                {
+                    Id = Guid.NewGuid(),
+                    Title = device.Name,
+                    Type = OpenedTabType.Device,
+                    Data = device
+                };
+        await AddTab(tab);
+    }
+
     public async Task AddTab(OpenedTab tab)
     {
         if (HioCloudService.Tabs.Any(t => t.Id == tab.Id))
@@ -82,7 +94,7 @@
         }
         else if (tab.Type == OpenedTabType.Space)
         {
-            tab.Content = @<SpaceTabContent Space="@(tab.Data as Space)" />;
+            tab.Content = @<SpaceTabContent Space="@(tab.Data as Space)" OnOpenDeviceRequest="@onOpenDeviceRequestHandler" />;
         }
 
         HioCloudService.Tabs.Add(tab);
