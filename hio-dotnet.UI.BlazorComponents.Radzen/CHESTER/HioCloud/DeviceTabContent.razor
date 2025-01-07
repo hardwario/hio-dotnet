@@ -1,4 +1,7 @@
-﻿@using CHESTER.HioCloud.Models
+﻿@using Services
+@using CHESTER.HioCloud.Models
+
+@inject HioCloudService HioCloudService
 
 <h3>Device Details</h3>
 
@@ -20,6 +23,36 @@
     </RadzenColumn>
 </RadzenRow>
 
+
+@if (Device.Messages.Count == 0)
+{
+    <RadzenRow Style="margin-top:2rem;">
+        <RadzenColumn>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                <RadzenButton Text="Try To load Messages" Click="@LoadMessages" />
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+}
+else 
+{
+    <RadzenRow Style="margin-top:2rem;">
+        <RadzenColumn>
+            <HioCloudMessagesList Messages="@Device.Messages" OnOpenMessageRequest="async (m) => await OnOpenMessageRequest.InvokeAsync(m)" />
+        </RadzenColumn>
+    </RadzenRow>
+}
+
 @code {
     [Parameter] public Device Device { get; set; } = new Device();
+    [Parameter] public EventCallback<Message> OnOpenMessageRequest { get; set; }
+
+    private async Task LoadMessages()
+    {
+        await HioCloudService.LoadDeviceMessages(Device.SpaceId.ToString(), Device.Id.ToString());
+
+        Device.Messages = HioCloudService.Spaces.Where(s => s.Id == Device.SpaceId).First().Devices.Where(d => d.Id == Device.Id).First().Messages.ToList();
+
+        await InvokeAsync(StateHasChanged);
+    }
 }

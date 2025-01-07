@@ -54,6 +54,18 @@
         return title;
     }
 
+    private async Task onOpenMessageRequestHandler(Message message)
+    {
+        var tab = new OpenedTab
+                {
+                    Id = Guid.NewGuid(),
+                    Title = message.Text,
+                    Type = OpenedTabType.Message,
+                    Data = message
+                };
+        await AddTab(tab);
+    }
+
     public async Task AddTab(OpenedTab tab)
     {
         if (HioCloudService.Tabs.Any(t => t.Id == tab.Id))
@@ -66,7 +78,7 @@
         }
         else if (tab.Type == OpenedTabType.Device)
         {
-            tab.Content = @<DeviceTabContent Device="@(tab.Data as Device)" />;
+            tab.Content = @<DeviceTabContent Device="@(tab.Data as Device)" OnOpenMessageRequest="@onOpenMessageRequestHandler" />;
         }
         else if (tab.Type == OpenedTabType.Space)
         {

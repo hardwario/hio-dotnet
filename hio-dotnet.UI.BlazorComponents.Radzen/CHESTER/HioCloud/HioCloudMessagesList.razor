@@ -1,0 +1,39 @@
+﻿@using Services
+@using CHESTER.HioCloud.Models
+@using hio_dotnet.APIs.HioCloud.Models
+
+@inject HioCloudService HioCloudService
+
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenText Text="Messages:" />
+    </RadzenColumn>
+</RadzenRow>
+<RadzenRow Style="margin-top:1rem;">
+    <RadzenColumn>
+         <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="5" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                        Data="@Messages" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or" SelectionMode="DataGridSelectionMode.Single" @bind-Value=@selectedMessages>
+            <Columns>
+                <RadzenDataGridColumn Property="@nameof(Message.DeviceId)" Filterable="false" Title="Device Id" Frozen="true" Width="120px" TextAlign="TextAlign.Center" />
+                <RadzenDataGridColumn Property="@nameof(Message.Text)" Title="Date" Frozen="true" Width="100px" />
+                <RadzenDataGridColumn Title="Action" Frozen="true" Sortable="false" Filterable="false" Width="80px" TextAlign="TextAlign.Center">
+                    <Template Context="data">
+                        <RadzenButton Click="async () => await OnOpenMessageHandler(data) " Text="Open Message" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    [Parameter] public List<Message> Messages { get; set; } = new List<Message>();
+    [Parameter] public EventCallback<Message> OnOpenMessageRequest { get; set; }
+
+    IList<Message> selectedMessages = new List<Message>();
+
+    private async Task OnOpenMessageHandler(Message data)
+    {
+        await OnOpenMessageRequest.InvokeAsync(data as Message);
+    }
+}
