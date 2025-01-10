@@ -2,12 +2,12 @@
 @using hio_dotnet.Common.Enums;
 @using hio_dotnet.Common.Enums.LoRaWAN;
 @using hio_dotnet.Common.Enums.LTE;
-@using hio_dotnet.UI.BlazorComponents.Radzen.Common.Console
-@using hio_dotnet.UI.BlazorComponents.Radzen.CHESTER
-@using hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.Configs.Common
-@using hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.Configs.LoRa
-@using hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.Configs.LTE
-@using hio_dotnet.UI.BlazorComponents.Radzen.Common.Buttons
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.Common.Console
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Configs.Common
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Configs.LoRa
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Configs.LTE
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.Common.Buttons
 
 @inject NotificationService NotificationService
 
@@ -117,7 +117,7 @@ Welcome to your new app.
 
     private List<string> consoleOutput = new List<string>();
 
-    public hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.SearchForChesters? sfcRef;
+    public hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.SearchForChesters? sfcRef;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

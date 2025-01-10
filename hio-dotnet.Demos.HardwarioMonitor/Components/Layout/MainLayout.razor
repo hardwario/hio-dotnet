@@ -18,12 +18,13 @@
             <RadzenColumn>
                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End">
                     <RadzenButton 
-                        Icon="@(isDark ? "dark_mode" : "light_mode")" 
-                        Style="background: none; border: none; cursor: pointer;" 
-                        Click="@ToggleTheme" 
-                        Size="ButtonSize.Small"
-                        Title="Toggle theme"
+                    Icon="@(isDark ? "dark_mode" : "light_mode")" 
+                    Style="background: none; border: none; cursor: pointer;" 
+                    Click="@ToggleTheme" 
+                    Size="ButtonSize.Small"
+                    Title="Toggle theme"
                     />
+
                 </RadzenStack>
             </RadzenColumn>
         </RadzenRow>
@@ -73,21 +74,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-            await JSRuntime.InvokeVoidAsync("toggleThemeStyleSheet", isDark);
-    }
-
-    private void ChangeTheme(bool value)
-    {
-        if (value)
-        {
-            JSRuntime.InvokeVoidAsync("toggleThemeStyleSheet", isDark);
-            StateHasChanged();
-        }
-        else
-        {
-            JSRuntime.InvokeVoidAsync("toggleThemeStyleSheet", isDark);
-            StateHasChanged();
-        }
+        await JSRuntime.InvokeVoidAsync("toggleThemeStyleSheet", isDark);
     }
 
     private async Task ToggleTheme()

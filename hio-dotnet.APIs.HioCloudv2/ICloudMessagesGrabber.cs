@@ -75,6 +75,13 @@ namespace hio_dotnet.APIs.HioCloud
         /// </summary>
         HioCloudDriver? CloudDriver { get; set; }
         /// <summary>
+        /// Login in case of using username and password
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        Task<bool> Login(string username, string password);
+        /// <summary>
         /// Start the data grabbing process
         /// </summary>
         /// <returns></returns>

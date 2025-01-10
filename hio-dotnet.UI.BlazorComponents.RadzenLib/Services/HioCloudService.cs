@@ -32,9 +32,11 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
         {
             if (hioCloudDriver == null)
             {
-                await Task.Run(() =>
+                await Task.Run(async () =>
                 {
                     hioCloudDriver = new HioCloudDriver(HioCloudDriver.DefaultHardwarioCloudUrl, username, password);
+                    
+                    _ = await hioCloudDriver.Login(username, password);
                     IsInitializedWithUsername = true;
                     IsInitializedWithApiToken = false;
                     IsLoggedIn = true;

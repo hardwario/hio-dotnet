@@ -135,6 +135,15 @@ namespace hio_dotnet.APIs.HioCloud
         }
         #endregion
 
+        public override async Task<bool> Login(string username, string password)
+        {
+            var jwt = await CloudDriver?.Login(username, password);
+            if (jwt != null)
+            {
+                return true;
+            }
+            return false;
+        }
         public override HioCloudMessage? GetLastMessage()
         {
             return LastMessage;
