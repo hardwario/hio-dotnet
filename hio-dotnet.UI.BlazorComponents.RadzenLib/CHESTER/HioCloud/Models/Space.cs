@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.HioCloud.Models
+namespace hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.HioCloud.Models
 {
     public class Space
     {

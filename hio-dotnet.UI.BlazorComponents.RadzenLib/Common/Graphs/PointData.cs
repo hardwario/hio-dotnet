@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace hio_dotnet.UI.BlazorComponents.Radzen.Common.Graphs
+namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Common.Graphs
 {
     public class PointData
     {

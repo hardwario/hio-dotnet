@@ -1,4 +1,4 @@
-using hio_dotnet.Demos.BlazorComponents.Radzen.WASM;
+using hio_dotnet.Demos.BlazorComponents.RadzenLib.WASM;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Radzen;

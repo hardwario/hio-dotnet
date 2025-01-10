@@ -69,7 +69,7 @@
     <ItemGroup>
       <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />
       <ProjectReference Include="..\hio-dotnet.PhoneDrivers\hio-dotnet.PhoneDrivers.csproj" />
-      <ProjectReference Include="..\hio-dotnet.UI.BlazorComponents.Radzen\hio-dotnet.UI.BlazorComponents.Radzen.csproj" />
+      <ProjectReference Include="..\hio-dotnet.UI.BlazorComponents.RadzenLib\hio-dotnet.UI.BlazorComponents.RadzenLib.csproj" />
     </ItemGroup>
 
     <ItemGroup>

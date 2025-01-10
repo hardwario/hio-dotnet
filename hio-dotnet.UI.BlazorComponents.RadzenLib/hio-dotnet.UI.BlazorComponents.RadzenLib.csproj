@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>hio_dotnet.UI.BlazorComponents.Radzen</RootNamespace>
+    <RootNamespace>hio_dotnet.UI.BlazorComponents.RadzenLib</RootNamespace>
   </PropertyGroup>
 
 
@@ -13,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.8" />
-    <PackageReference Include="Radzen.Blazor" Version="5.3.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.11" />
+    <PackageReference Include="Radzen.Blazor" Version="5.7.4" />
   </ItemGroup>
 
   <ItemGroup>

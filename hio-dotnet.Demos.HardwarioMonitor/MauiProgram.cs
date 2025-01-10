@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 using hio_dotnet.Demos.HardwarioMonitor.Services;
-using hio_dotnet.UI.BlazorComponents.Radzen.Services;
+using hio_dotnet.UI.BlazorComponents.RadzenLib.Services;
 using Microsoft.Extensions.Logging;
 using Radzen;
 using System.Reflection;

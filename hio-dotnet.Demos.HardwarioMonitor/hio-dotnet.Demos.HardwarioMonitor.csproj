@@ -1,6 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
     <PropertyGroup>
+
+        <UseRidGraph>true</UseRidGraph>
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+        <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
+      
         <!--<TargetFrameworks>net8.0-maccatalyst</TargetFrameworks>-->
         <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.19041.0</TargetFrameworks>
 
@@ -78,7 +83,7 @@
     <ItemGroup>
       <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />
       <ProjectReference Include="..\hio-dotnet.HWDrivers\hio-dotnet.HWDrivers.csproj" />
-      <ProjectReference Include="..\hio-dotnet.UI.BlazorComponents.Radzen\hio-dotnet.UI.BlazorComponents.Radzen.csproj" />
+      <ProjectReference Include="..\hio-dotnet.UI.BlazorComponents.RadzenLib\hio-dotnet.UI.BlazorComponents.RadzenLib.csproj" />
     </ItemGroup>
 
     <ItemGroup>

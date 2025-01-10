@@ -38,7 +38,7 @@
 
                 <RadzenRow>
                     <RadzenColumn>
-                        <hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.Configs.LoRa.LoRaWANConfigCompleteForm @ref=LoRaConfigFormRef Config="@ConsoleService.LoRaWANConfig" />
+                        <hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Configs.LoRa.LoRaWANConfigCompleteForm @ref=LoRaConfigFormRef Config="@ConsoleService.LoRaWANConfig" />
                     </RadzenColumn>
                 </RadzenRow>
                 <RadzenRow>
@@ -52,7 +52,7 @@
 
                 <RadzenRow>
                     <RadzenColumn>
-                        <hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.Configs.LTE.LTEConfigCompleteForm @ref=LTEConfigFormRef Config="@ConsoleService.LTEConfig" />
+                        <hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Configs.LTE.LTEConfigCompleteForm @ref=LTEConfigFormRef Config="@ConsoleService.LTEConfig" />
                     </RadzenColumn>
                 </RadzenRow>
                 <RadzenRow>
@@ -71,8 +71,8 @@
     private bool isBusy = false;
     private bool isDisabled = false;
 
-    hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.Configs.LoRa.LoRaWANConfigCompleteForm? LoRaConfigFormRef;
-    hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.Configs.LTE.LTEConfigCompleteForm? LTEConfigFormRef;
+    hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Configs.LoRa.LoRaWANConfigCompleteForm? LoRaConfigFormRef;
+    hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Configs.LTE.LTEConfigCompleteForm? LTEConfigFormRef;
 
 
     public int Voltage { get; set; } = 3300;

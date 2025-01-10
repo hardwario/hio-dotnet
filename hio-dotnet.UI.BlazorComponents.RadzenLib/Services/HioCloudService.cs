@@ -1,9 +1,9 @@
 ﻿using hio_dotnet.APIs.HioCloud;
 using hio_dotnet.APIs.HioCloud.Models;
-using hio_dotnet.UI.BlazorComponents.Radzen.CHESTER.HioCloud.Models;
+using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.HioCloud.Models;
 using Radzen;
 
-namespace hio_dotnet.UI.BlazorComponents.Radzen.Services
+namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
 {
     public class HioCloudService
     {

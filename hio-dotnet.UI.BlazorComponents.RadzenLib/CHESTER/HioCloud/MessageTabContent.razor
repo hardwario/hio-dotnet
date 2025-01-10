@@ -1,5 +1,4 @@
 ﻿@using Services
-@using CHESTER.HioCloud.Models
 @using hio_dotnet.APIs.HioCloud.Models
 @using hio_dotnet.Common.Models.CatalogApps
 @using Microsoft.JSInterop
@@ -79,7 +78,7 @@
         </RadzenRow>
         <RadzenRow>
             <RadzenColumn>
-                <hio_dotnet.UI.BlazorComponents.Radzen.Common.JSON.JSONViewer @ref=jSONViewerRef />
+                <hio_dotnet.UI.BlazorComponents.RadzenLib.Common.JSON.JSONViewer @ref=jSONViewerRef />
             </RadzenColumn>
         </RadzenRow>
         
@@ -103,7 +102,7 @@
     [Parameter] public Message Message { get; set; } = new Message();
 
     private HioCloudMessage? hioCloudMessage;
-    private hio_dotnet.UI.BlazorComponents.Radzen.Common.JSON.JSONViewer? jSONViewerRef;
+    private hio_dotnet.UI.BlazorComponents.RadzenLib.Common.JSON.JSONViewer? jSONViewerRef;
 
     protected override async Task OnInitializedAsync()
     {

@@ -24,7 +24,7 @@
                 <!-- Input area -->
                 <RadzenRow>
                     <RadzenColumn Width="10">
-                        <RadzenTextBox @bind-Value="@command" Placeholder="Type command" Style="width: 100%;" @onkeydown="HandleKeyDown" @onfocus="() => OnCommandLineGotFocus.InvokeAsync()" @onfocusout="() => OnCommandLineLostFocus.InvokeAsync()" />
+                        <RadzenTextBox @ref="commandTextBoxRef" @bind-Value="@command" Placeholder="Type command" Style="width: 100%;" @onkeydown="HandleKeyDown" @onfocus="() => OnCommandLineGotFocus.InvokeAsync()" @onfocusout="() => OnCommandLineLostFocus.InvokeAsync()" />
                     </RadzenColumn>
                     <RadzenColumn Width="2">
                         <RadzenButton Text="Send" Disabled="@IsSendButtonDisabled" Click="SendCommand" Style="width: 100%;" />
@@ -84,6 +84,8 @@
     private int historyIndex = -1;
     private List<string> commandHistory = new List<string>();
 
+    private RadzenTextBox? commandTextBoxRef;
+
     private string GetConsoleTextStyle(string line)
     {
         if (line.Contains("<err>"))
@@ -115,6 +117,8 @@
         {
             await JSRuntime.InvokeVoidAsync("document.activeElement.blur");
             await SendCommand();
+            if (commandTextBoxRef != null)
+                await commandTextBoxRef.Element.FocusAsync();
         }
         else if (e.Key == "ArrowUp")
         {
