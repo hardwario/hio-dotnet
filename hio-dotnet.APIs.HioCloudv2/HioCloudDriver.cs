@@ -80,10 +80,23 @@ namespace hio_dotnet.APIs.HioCloud
         private string _apitoken = string.Empty;
         private bool _useapitoken = false;
 
-        public async Task<string> Login(string username, string password)
+        public async Task<string?> Login(string username, string password)
         {
-            _jwtToken = await GetAuthTokenAsync(_baseUrl, username, password);
-            return _jwtToken;
+            if (string.IsNullOrEmpty(username))
+                throw new ArgumentException("Username cannot be empty.");
+            if (string.IsNullOrEmpty(password))
+                throw new ArgumentException("Password cannot be empty.");
+
+            try
+            {
+                _jwtToken = await GetAuthTokenAsync(_baseUrl, username, password);
+                return _jwtToken;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Cannot obtain JWT token from ThingsBoard. Error: " + ex.Message);
+                return null;
+            }
         }
 
         /// <summary>

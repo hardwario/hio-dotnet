@@ -20,18 +20,13 @@ namespace hio_dotnet.APIs.ThingsBoard
         /// <param name="password"></param>
         /// <param name="port"></param>
         /// <exception cref="ArgumentException"></exception>
-        public ThingsBoardDriver(string baseUrl, string username, string password, int port = 0)
+        public ThingsBoardDriver(string baseUrl, int port = 0)
         {
             if (string.IsNullOrEmpty(baseUrl))
                 throw new ArgumentException("Base URL cannot be empty.");
-            if (string.IsNullOrEmpty(username))
-                throw new ArgumentException("Username cannot be empty.");
-            if (string.IsNullOrEmpty(password))
-                throw new ArgumentException("Password cannot be empty.");
-
+            
             _baseUrl = port > 0 ? $"{baseUrl}:{port}" : baseUrl;
             _port = port;
-            _jwtToken = GetAuthTokenAsync(_baseUrl, username, password).Result;
         }
 
         /// <summary>
@@ -57,6 +52,65 @@ namespace hio_dotnet.APIs.ThingsBoard
         private int _port = 0;
         private string _jwtToken = string.Empty;
 
+        public async Task<string?> Login(string username, string password)
+        {
+            if (string.IsNullOrEmpty(username))
+                throw new ArgumentException("Username cannot be empty.");
+            if (string.IsNullOrEmpty(password))
+                throw new ArgumentException("Password cannot be empty.");
+
+            try
+            {
+                _jwtToken = await GetAuthTokenAsync(_baseUrl, username, password);
+                return _jwtToken;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Cannot obtain JWT token from ThingsBoard. Error: " + ex.Message);
+                return null;
+            }
+        }
+
+        #region Users
+        public async Task<User> GetActiveUserInfo(string jwtToken = "")
+        {
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                jwtToken = _jwtToken;
+            }
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                throw new ArgumentException("JWT token cannot be empty. If you do not know JWT token use constructor with Username and Password to obtain JWT token automatically.");
+            }
+
+            using (var httpClient = new HttpClient())
+            {
+                httpClient.BaseAddress = new System.Uri(_baseUrl);
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var url = $"/api/auth/user";
+
+                try
+                {
+                    var response = await httpClient.GetAsync(url);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding device. Response: {cnt}");
+                    }
+                    response.EnsureSuccessStatusCode();
+
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<User>(responseBody) ?? null;
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while creating a customer.", ex);
+                }
+            }
+        }
+        #endregion
 
         #region Telemetry
 
@@ -176,6 +230,55 @@ namespace hio_dotnet.APIs.ThingsBoard
             catch (Exception ex)
             {
                 throw new Exception("An error occurred while parsing telemetry data.", ex);
+            }
+        }
+
+        /// <summary>
+        /// Get telemetry data keys from ThingsBoard.
+        /// </summary>
+        /// <param name="deviceId"></param>
+        /// <param name="entityType">Default is DEVICE</param>
+        /// <param name="jwtToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
+        public async Task<List<string>> GetTelemetryDataKeysAsync(string deviceId, string entityType = "DEVICE", string jwtToken = "")
+        {
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                jwtToken = _jwtToken;
+            }
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                throw new ArgumentException("JWT token cannot be empty. If you do not know JWT token use constructor with Username and Password to obtain JWT token automatically.");
+            }
+
+            using (var httpClient = new HttpClient())
+            {
+                httpClient.BaseAddress = new System.Uri(_baseUrl);
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var url = $"/api/plugins/telemetry/DEVICE/{deviceId}/keys/timeseries";
+
+                try
+                {
+                    var response = await httpClient.GetAsync(url);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while getting telemetry data. Response: {cnt}");
+                    }
+                    response.EnsureSuccessStatusCode();
+
+                    var str = await response.Content.ReadAsStringAsync();
+
+                    return JsonSerializer.Deserialize<List<string>>(str) ?? new List<string>();
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while fetching telemetry data.", ex);
+                }
             }
         }
 
@@ -709,6 +812,85 @@ namespace hio_dotnet.APIs.ThingsBoard
         #endregion
 
         #region Devices
+
+        public async Task<ListableDevicesResponse> GetTenantDevicesAsync(int pageSize = 20, int page = 0, string jwtToken = "")
+        {
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                jwtToken = _jwtToken;
+            }
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                throw new ArgumentException("JWT token cannot be empty. If you do not know JWT token use constructor with Username and Password to obtain JWT token automatically.");
+            }
+
+            using (var httpClient = new HttpClient())
+            {
+                httpClient.BaseAddress = new System.Uri(_baseUrl);
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var url = $"/api/tenant/deviceInfos?pageSize={pageSize}&page={page}&sortProperty=createdTime&sortOrder=DESC";
+
+                try
+                {
+                    var response = await httpClient.GetAsync(url);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding device. Response: {cnt}");
+                    }
+                    response.EnsureSuccessStatusCode();
+
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<ListableDevicesResponse>(responseBody) ?? null;
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while creating a customer.", ex);
+                }
+            }
+        }
+
+        public async Task<List<Device>?> GetCustomerDevicesAsync(string customerId, int pageSize = 20, int page = 0, string jwtToken = "")
+        {
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                jwtToken = _jwtToken;
+            }
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                throw new ArgumentException("JWT token cannot be empty. If you do not know JWT token use constructor with Username and Password to obtain JWT token automatically.");
+            }
+
+            using (var httpClient = new HttpClient())
+            {
+                httpClient.BaseAddress = new System.Uri(_baseUrl);
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var url = $"/api/customer/${customerId}/devices?pageSize={pageSize}&page={page}";
+
+                try
+                {
+                    var response = await httpClient.GetAsync(url);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding device. Response: {cnt}");
+                    }
+                    response.EnsureSuccessStatusCode();
+
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<List<Device>>(responseBody) ?? null;
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while creating a customer.", ex);
+                }
+            }
+        }
+
         /// <summary>
         /// Create a new device in ThingsBoard.
         /// </summary>

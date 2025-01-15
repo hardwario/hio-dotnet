@@ -1,0 +1,119 @@
+﻿@using hio_dotnet.UI.BlazorComponents.RadzenLib.ThingsBoard
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.Services
+@using hio_dotnet.APIs.ThingsBoard.Models
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.ThingsBoard.Models
+
+@inject ThingsBoardService ThingsBoardService
+
+@page "/thingsboard"
+
+<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+    <!-- Loading overlay -->
+    @if (isBusy)
+    {
+        <RadzenCard Style="z-index: 3; text-align: center; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, .5)">
+            <div style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%;">
+                <RadzenProgressBarCircular ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+                    <Template>Wait</Template>
+                </RadzenProgressBarCircular>
+            </div>
+        </RadzenCard>
+    }
+</RadzenStack>
+
+<RadzenLayout Style="height: 100%; grid-template-rows: 1fr; grid-template-columns: 1fr auto; grid-template-areas: 'rz-body rz-sidebar'">
+    <RadzenSidebar Style="padding: 5px;">
+        <RadzenRow>
+            <RadzenColumn>
+                <ThingsBoardLoginComponent OnLoggedIn="@OnLoggedInHandler" OnLoggingIn="OnLoggingInHandler" Style="margin-top: 5px; width: 100%;" />
+            </RadzenColumn>
+        </RadzenRow>
+        @if (ThingsBoardService.IsLoggedIn)
+        {
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenText Text="User First Name: " />
+                    <RadzenText Text="@ThingsBoardService.User.FirstName" />
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenText Text="User Last Name: " />
+                    <RadzenText Text="@ThingsBoardService.User.LastName" />
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenText Text="User Id: " />
+                    <RadzenText Text="@(ThingsBoardService.User?.Id?.Id.ToString())" />
+                </RadzenColumn>
+            </RadzenRow>
+        }
+
+    </RadzenSidebar>
+    <RadzenBody>
+        <RadzenRow Style="height: 100%;">
+            <RadzenColumn Style="height: 100%;">
+                <RadzenRow>
+                    <RadzenColumn Size="4">
+                        @if (ThingsBoardService.IsLoggedIn)
+                        {
+                            <ThingsBoardDevicesList OnOpenDevice="onOpenDeviceHandler" />
+                        }
+                    </RadzenColumn>
+                    <RadzenColumn Size="8">
+                        <ThingsBoardTabs @ref=thingsBoardTabsRef />
+                    </RadzenColumn>
+                </RadzenRow>
+
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenBody>
+</RadzenLayout>
+
+
+@code {
+    private bool isBusy = false;
+
+    ThingsBoardTabs? thingsBoardTabsRef;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    public async Task Refresh()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task OnLoggingInHandler(bool busy)
+    {
+        isBusy = busy;
+    }
+
+    public async Task OnLoggedInHandler(bool isLoggedIn)
+    {
+        isBusy = false;
+
+        await ThingsBoardService.GetDevices();
+
+        await InvokeAsync(StateHasChanged);
+
+    }
+
+    private async Task onOpenDeviceHandler(Device device)
+    {
+        if (thingsBoardTabsRef != null)
+        {
+            await thingsBoardTabsRef.AddTab(new OpenedTab()
+                {
+                    Id = Guid.NewGuid(),
+                    Title = device.Name,
+                    Type = OpenedTabType.Device,
+                    Data = device
+                });
+        }
+    }
+
+}

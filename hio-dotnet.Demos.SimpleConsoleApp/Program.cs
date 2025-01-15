@@ -588,7 +588,8 @@ if (THINGSBOARD_TEST)
     var password = "tenant";
 
     Console.WriteLine("Initializing driver and connection...");
-    var thingsBoardDriver = new ThingsBoardDriver(baseUrl, username, password, 8080);
+    var thingsBoardDriver = new ThingsBoardDriver(baseUrl, 8080);
+    _ = await thingsBoardDriver.Login(username, password);
     Console.WriteLine("Connection initialized.");
 
     Console.WriteLine("\nCreating new Customer...");

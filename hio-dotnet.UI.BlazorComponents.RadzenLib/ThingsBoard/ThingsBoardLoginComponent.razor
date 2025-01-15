@@ -1,13 +1,12 @@
 ﻿@using Services
 @using Microsoft.JSInterop
-@using CHESTER.HioCloud.Models
 
 @inject DialogService DialogService
-@inject HioCloudService HioCloudService
+@inject ThingsBoardService ThingsBoardService
 @inject NotificationService NotificationService
 @inject IJSRuntime JSRuntime
 
-@if (!HioCloudService.IsLoggedIn)
+@if (!ThingsBoardService.IsLoggedIn)
 {
     <RadzenButton Text="Login" Disabled="@Disabled" Click="Login" Style="@Style" class="@Class" ButtonStyle="@ButtonStyle" />
 }
@@ -32,42 +31,42 @@ else
     {
         if (firstRender)
         {
-            HioCloudService.OnLoggedIn += (s, e) =>
-            {
-                InvokeAsync(StateHasChanged);
-            };
+            ThingsBoardService.OnLoggedIn += (s, e) =>
+        {
+            InvokeAsync(StateHasChanged);
+        };
         }
     }
 
     private async Task Login()
     {
-        var result = await DialogService.OpenAsync("Login To Cloud", ds =>
+        var result = await DialogService.OpenAsync("Login To ThingsBoard", ds =>
     @<RadzenStack Gap="1.5rem">
         <RadzenStack Orientation="Orientation.Vertical">
-                <RadzenRow>
-                    <RadzenColumn Size="3">
-                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
-                            <RadzenText Text="Login:" />
-                         </RadzenStack>
-                    </RadzenColumn>
-                    <RadzenColumn Size="9">
-                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
-                            <RadzenTextBox Name="loginInput" @bind-Value="@login" Style="width: 100%;" />
-                        </RadzenStack>
-                    </RadzenColumn>
-                </RadzenRow>
-                <RadzenRow>
-                    <RadzenColumn Size="3">
-                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
-                            <RadzenLabel Text="Password:"/>
-                        </RadzenStack>
-                    </RadzenColumn>
-                    <RadzenColumn Size="9">
-                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
-                            <RadzenPassword @bind-Value="@password" Name="passwordinput" Style="width: 100%;" onkeydown="@(async (KeyboardEventArgs e) => OnKeyDown(e, ds))" />
-                        </RadzenStack>
-                    </RadzenColumn>
-                </RadzenRow>
+            <RadzenRow>
+                <RadzenColumn Size="3">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                        <RadzenText Text="Login:" />
+                    </RadzenStack>
+                </RadzenColumn>
+                <RadzenColumn Size="9">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                        <RadzenTextBox Name="loginInput" @bind-Value="@login" Style="width: 100%;" />
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenRow>
+                <RadzenColumn Size="3">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                        <RadzenLabel Text="Password:" />
+                    </RadzenStack>
+                </RadzenColumn>
+                <RadzenColumn Size="9">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                        <RadzenPassword @bind-Value="@password" Name="passwordinput" Style="width: 100%;" onkeydown="@(async (KeyboardEventArgs e) => OnKeyDown(e, ds))" />
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
                 <RadzenButton Text="Login" Click="() => ds.Close(true)" />
                 <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
@@ -83,10 +82,10 @@ else
                 await OnLoggingIn.InvokeAsync(true);
                 await Task.Delay(10);
             }
-            await HioCloudService.InitHioCloudDriver(login, password);
+            await ThingsBoardService.LoginAsync(login, password);
             await Task.Delay(100);
 
-            if (!HioCloudService.IsLoggedIn)
+            if (!ThingsBoardService.IsLoggedIn)
             {
                 ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Login failed", Detail = "Cannot login to the cloud.", Duration = 4000 });
             }
