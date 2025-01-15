@@ -66,6 +66,17 @@
             element.scrollTop = element.scrollHeight;
         }
     }
+
+    downloadFileFromByteArray(file) {
+        const link = document.createElement('a');
+        link.download = file.fileName;
+        link.href = URL.createObjectURL(
+            new Blob([new Uint8Array(file.byteArray)], { type: file.contentType })
+        );
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
 }
 
 class HioHeatmapInterop {

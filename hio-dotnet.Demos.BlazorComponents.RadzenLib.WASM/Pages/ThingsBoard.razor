@@ -21,7 +21,7 @@
     }
 </RadzenStack>
 
-<RadzenLayout Style="height: 100%; grid-template-rows: 1fr; grid-template-columns: 1fr auto; grid-template-areas: 'rz-body rz-sidebar'">
+<RadzenLayout Style="grid-template-rows: 1fr; grid-template-columns: 1fr auto; grid-template-areas: 'rz-body rz-sidebar'">
     <RadzenSidebar Style="padding: 5px;">
         <RadzenRow>
             <RadzenColumn>
@@ -51,21 +51,24 @@
         }
 
     </RadzenSidebar>
-    <RadzenBody>
+    <RadzenBody Style="height: 100%;">
         <RadzenRow Style="height: 100%;">
             <RadzenColumn Style="height: 100%;">
-                <RadzenRow>
-                    <RadzenColumn Size="4">
-                        @if (ThingsBoardService.IsLoggedIn)
-                        {
-                            <ThingsBoardDevicesList OnOpenDevice="onOpenDeviceHandler" />
-                        }
-                    </RadzenColumn>
-                    <RadzenColumn Size="8">
-                        <ThingsBoardTabs @ref=thingsBoardTabsRef />
-                    </RadzenColumn>
-                </RadzenRow>
-
+                <RadzenSplitter Orientation="Orientation.Vertical" style="height:100%; border: 1px solid rgba(0,0,0,.08);">
+                    <RadzenSplitterPane Size="100px">
+                        <RadzenSplitter Style="height:100%;">
+                            <RadzenSplitterPane Size="40%" Min="30px" Max="70%">
+                                @if (ThingsBoardService.IsLoggedIn)
+                                {
+                                    <ThingsBoardDevicesList OnOpenDevice="onOpenDeviceHandler" />
+                                }
+                            </RadzenSplitterPane>
+                            <RadzenSplitterPane Style="height:100%; overflow-y:auto;">
+                                <ThingsBoardTabs @ref=thingsBoardTabsRef />
+                            </RadzenSplitterPane>
+                        </RadzenSplitter>
+                    </RadzenSplitterPane>
+                </RadzenSplitter>
             </RadzenColumn>
         </RadzenRow>
     </RadzenBody>

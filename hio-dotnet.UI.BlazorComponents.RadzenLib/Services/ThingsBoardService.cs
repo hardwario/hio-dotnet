@@ -138,6 +138,30 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
             }
         }
 
+        public async Task<string> GetDataHistory(Guid deviceId, string keys, DateTime start, DateTime end)
+        {
+            if (!IsLoggedIn)
+            {
+                return "User is not authenticated.";
+            }
+            if (deviceId != Guid.Empty)
+            {
+                var telemetry = await _driver.GetTelemetryDataForTimeRangeAsync(deviceId.ToString(), keys, start, end);
+                if (telemetry != null)
+                {
+                    return telemetry;
+                }
+                else
+                {
+                    return "No data";
+                }
+            }
+            else
+            {
+                return "No data";
+            }
+        }
+
         public async Task<bool> GetDeviceKeys(Guid deviceId)
         {
             if (!IsLoggedIn) {

@@ -1,7 +1,13 @@
-﻿@using Services
+﻿@using System.IO;
+@using System.Text.Json
+@using Services
 @using hio_dotnet.APIs.ThingsBoard.Models
 @using hio_dotnet.UI.BlazorComponents.RadzenLib.ThingsBoard.Models
+@using System.Globalization
+@using ClosedXML.Excel
+@using Microsoft.JSInterop;
 
+@inject IJSRuntime JSRuntime
 @inject ThingsBoardService ThingsBoardService
 
 <RadzenRow>
@@ -9,59 +15,195 @@
         <RadzenText Text="Device Name:" />
         <RadzenText Text="@DeviceData.Name" />
     </RadzenColumn>
-</RadzenRow>
-
-<RadzenRow Style="margin-top:1rem">
     <RadzenColumn>
         <RadzenText Text="Device Id:" />
         <RadzenText Text="@DeviceData.Id.Id.ToString()" />
     </RadzenColumn>
 </RadzenRow>
 
-
-<RadzenRow Style="margin-top:2rem">
+<RadzenRow Style="margin-top:2rem;">
     <RadzenColumn>
         <RadzenText Text="Data Keys" />
     </RadzenColumn>
 </RadzenRow>
 
+<RadzenRow Style="margin-top:1rem;">
+    <RadzenColumn>
+        <RadzenListBox Data="@keys" TValue="KeyToCheck" TextProperty="Key" ValueProperty="Checked" Style="width: 100%; max-width: 400px; max-height: 200px; height: 200px;">
+            <Template>
+                <RadzenStack Orientation="Orientation.Horizontal">
+                    <RadzenCheckBox @bind-Value="@((context as KeyToCheck).Checked)" />
+                    <RadzenText Text="@((context as KeyToCheck).Key)" />
+                </RadzenStack>
+            </Template>
+        </RadzenListBox>
+    </RadzenColumn>
+    <RadzenColumn>
+        <RadzenColumn>
+            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" AlignItems="AlignItems.Center" Gap="0.5rem" class="rz-p-6">
+                <RadzenLabel Text="Select Start" Component="RadzenDatePickerBindValue" />
+                <RadzenDatePicker @bind-Value=@start Name="RadzenDatePickerBindValue" ShowCalendarWeek />
+            </RadzenStack>
+        </RadzenColumn>
+        <RadzenColumn>
+            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" AlignItems="AlignItems.Center" Gap="0.5rem" class="rz-p-6">
+                <RadzenLabel Text="Select End" Component="RadzenDatePickerBindValue" />
+                <RadzenDatePicker @bind-Value=@end Name="RadzenDatePickerBindValue" ShowCalendarWeek />
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenColumn>
+</RadzenRow>
+
+<RadzenRow Style="margin-top:1.5rem;">
+    <RadzenColumn>
+        <RadzenButton Text="Get Latest Data" Click="@onGetLatestDataHandler" Style="width:100%;" />
+    </RadzenColumn>
+    <RadzenColumn>
+        <RadzenButton Text="Get History Data" Click="@onGetDataHistoryHandler" Style="width:100%;" />
+    </RadzenColumn>
+</RadzenRow>
+
+
+<RadzenRow Style="margin-top:2rem;">
+    <RadzenColumn>
+        <RadzenText Text="Latest Data" />
+    </RadzenColumn>
+</RadzenRow>
 <RadzenRow Style="margin-top:1rem">
-    <RadzenColumn>
-            @foreach (var key in keys)
-            {
-                <RadzenLabel Component="@key.Key" Text="@key.Key" />
-                <RadzenCheckBox Name="@key.Key" @bind-Value="@key.Checked" Style="margin-right:2rem;"/>
-            }
-    </RadzenColumn>
-</RadzenRow>
-
-<RadzenRow Style="margin-top:1.5rem">
-    <RadzenColumn>
-        <RadzenButton Text="Get Latest Data" Click="@onGetLatestDataHandler" />
-    </RadzenColumn>
-</RadzenRow>
-
-<RadzenRow>
     <RadzenColumn>
         <hio_dotnet.UI.BlazorComponents.RadzenLib.Common.JSON.JSONViewer @ref="JSONViewerRef" />
     </RadzenColumn>
 </RadzenRow>
 
 
+<RadzenRow Style="margin-top:1rem;">
+    <RadzenColumn>
+        <RadzenText Text="Data History" />
+    </RadzenColumn>
+</RadzenRow>
+<RadzenRow Style="margin-top:2rem;">
+    <RadzenColumn>
+        <hio_dotnet.UI.BlazorComponents.RadzenLib.Common.JSON.JSONViewer @ref="JSONViewerHistoryRef" />
+    </RadzenColumn>
+</RadzenRow>
+
+<RadzenRow Style="margin-top:1.5rem;">
+    <RadzenColumn>
+        <RadzenRow>
+            @foreach (var key in keys.Where(k => k.DataPoints != null).OrderBy(k => k.Key))
+            {
+                <RadzenColumn>
+                    <RadzenRow>
+                        <RadzenColumn>
+                            <RadzenText Text="@key.Key" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    @if (key.DataPoints != null)
+                    {
+                        <RadzenRow>
+                            <RadzenColumn>
+                                <RadzenListBox Data="@key.DataPoints" TValue="DataPoint" TextProperty="complete" Style="width: 100%; max-width: 400px; height: 200px">
+                                    <Template>
+                                        <RadzenStack Orientation="Orientation.Horizontal">
+                                            <RadzenText Text="@((context as DataPoint).date)" />
+                                            <RadzenText Text="@("-  " + (context as DataPoint).value.ToString())" />
+
+
+                                        </RadzenStack>
+                                    </Template>
+                                </RadzenListBox>
+
+                            </RadzenColumn>
+                        </RadzenRow>
+                    }
+
+                </RadzenColumn>
+            }
+        </RadzenRow>
+    </RadzenColumn>
+</RadzenRow>
+
+<RadzenRow Style="margin-top:2rem;">
+    <RadzenColumn>
+        @foreach (var key in keys.Where(k => k.DataPoints != null).OrderBy(k => k.Key))
+        {
+            <RadzenRow>
+                <RadzenColumn>
+                    @if (key.DataPoints != null && key.DataPoints.Count > 0)
+                    {
+                        if (key.DataPoints[0].isValueNumeric())
+                        {
+                            <RadzenRow>
+                                <RadzenColumn>
+                                    <RadzenText Text="@key.Key" />
+                                </RadzenColumn>
+                            </RadzenRow>
+                            <RadzenRow>
+                                <RadzenColumn>
+                                    <RadzenChart>
+                                        <RadzenColumnSeries Data="@key.DataPoints" CategoryProperty="date" ValueProperty="asDouble" />
+                                    </RadzenChart>
+                                </RadzenColumn>
+                            </RadzenRow>
+                        }
+                    }
+                </RadzenColumn>
+            </RadzenRow>
+        }
+    </RadzenColumn>
+</RadzenRow>
+
+@if(keys.Any(k => k.DataPoints != null && k.DataPoints.Count > 0))
+{
+    <RadzenRow Style="margin-top:2rem;" >
+        <RadzenColumn>
+            <RadzenButton Text="Export XLSX" Click="@onExportDataHandler" />
+        </RadzenColumn>
+    </RadzenRow>
+}
+
 @code {
     class KeyToCheck
     {
         public string Key { get; set; }
         public bool Checked { get; set; }
+        public List<DataPoint>? DataPoints { get; set; }
+    }
+    class DataPoint 
+    {
+        public long ts { get; set; } 
+        public object value { get; set; }
+
+        public string date { get => $"{hio_dotnet.Common.Helpers.TimeHelpers.UnixTimestampToDateTime(ts)}"; }
+        public string complete { get => $"{hio_dotnet.Common.Helpers.TimeHelpers.UnixTimestampToDateTime(ts)} - {value}"; }
+
+        public double asDouble { get => double.Parse(value.ToString() ?? string.Empty, CultureInfo.InvariantCulture); }
+   
+        public bool isValueNumeric()
+        {
+            try
+            {
+                var v = double.Parse(this.value.ToString() ?? string.Empty, CultureInfo.InvariantCulture);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
     }
 
     [Parameter] public OpenedTab Tab { get; set; }
 
     private hio_dotnet.UI.BlazorComponents.RadzenLib.Common.JSON.JSONViewer JSONViewerRef;
+    private hio_dotnet.UI.BlazorComponents.RadzenLib.Common.JSON.JSONViewer JSONViewerHistoryRef;
 
     private List<KeyToCheck> keys = new List<KeyToCheck>();
 
     private string data = string.Empty;
+
+    private DateTime start = DateTime.UtcNow.AddDays(-1);
+    private DateTime end = DateTime.UtcNow;
 
     public Device DeviceData
     { 
@@ -124,5 +266,96 @@
         {
             await JSONViewerRef.Load(data);
         }
+    }
+
+    private async Task onGetDataHistoryHandler()
+    {
+        var keysToCheck = keys.Where(k => k.Checked).Select(k => k.Key).ToList();
+        var keysString = string.Join(",", keysToCheck);
+        data = await ThingsBoardService.GetDataHistory(DeviceData.Id.Id, keysString, start, end);
+
+        foreach(var key in keys)
+        {
+            key.DataPoints = null;
+        }
+
+        if (JSONViewerHistoryRef != null)
+        {
+            await JSONViewerHistoryRef.Load(data);
+
+            try
+            {
+                var dict = JsonSerializer.Deserialize<Dictionary<string, List<DataPoint>>>(data);
+                foreach (var key in keys)
+                {
+                    if (dict.ContainsKey(key.Key))
+                    {
+                        key.DataPoints = dict[key.Key];
+                    }
+                }
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+    }
+
+    private async Task onExportDataHandler()
+    {
+        var keysWithData = keys
+            .Where(k => k.DataPoints != null && k.DataPoints.Count > 0)
+            .OrderBy(k => k.Key)
+            .ToList();
+
+        if (!keysWithData.Any())
+        {
+            return;
+        }
+
+        using var workbook = new XLWorkbook();
+
+        var worksheet = workbook.Worksheets.Add("ExportedData");
+
+        int colIndex = 1;
+        foreach (var k in keysWithData)
+        {
+            worksheet.Cell(1, colIndex).Value = $"{k.Key}_date";
+            worksheet.Cell(1, colIndex + 1).Value = $"{k.Key}_value";
+            colIndex += 2;
+        }
+
+        int maxRowCount = keysWithData.Max(k => k.DataPoints.Count);
+
+        for (int row = 0; row < maxRowCount; row++)
+        {
+            colIndex = 1;
+            foreach (var k in keysWithData)
+            {
+                if (row < k.DataPoints.Count)
+                {
+                    var dp = k.DataPoints[row];
+                    worksheet.Cell(row + 2, colIndex).Value = dp.date;
+                    worksheet.Cell(row + 2, colIndex + 1).Value = dp.value?.ToString() ?? string.Empty;
+                }
+                colIndex += 2;
+            }
+        }
+
+        worksheet.Columns().AdjustToContents();
+
+        using var memoryStream = new MemoryStream();
+        workbook.SaveAs(memoryStream);
+        var fileContent = memoryStream.ToArray();
+
+        var fileName = $"Export_{DeviceData.Name}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
+
+        await JSRuntime.InvokeVoidAsync("hiodotnet.downloadFileFromByteArray", new
+        {
+            ByteArray = fileContent,
+            FileName = fileName,
+            ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        });
     }
 }
