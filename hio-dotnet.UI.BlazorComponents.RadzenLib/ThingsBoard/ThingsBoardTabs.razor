@@ -1,0 +1,111 @@
+﻿@using Services
+@using ThingsBoard.Models
+@using hio_dotnet.APIs.ThingsBoard.Models
+
+@inject ThingsBoardService ThingsBoardService
+
+<RadzenRow Style="height:100%;">
+    <RadzenColumn Style="height:100%;">
+        <RadzenCard Style="height:100%;">
+            <RadzenTabs TabPosition="@tabPosition" RenderMode="TabRenderMode.Client" SelectedIndex="@SelectedIndex" SelectedIndexChanged="OnSelectedChangedHandler" Style="height:100%;">
+                <Tabs>
+                    @for (int i = 0; i < ThingsBoardService.Tabs.Count; i++)
+                    {
+                        var tab = ThingsBoardService.Tabs[i];
+                        @if (tab.Visible)
+                        {
+                            <RadzenTabsItem>
+                                <Template>
+                                    <span style="display: flex; gap: 6px;">
+                                        @(GetTabTitle(tab.Title))
+                                        <RadzenButton Icon="close" @onclick:stopPropagation Click="@(async () => await RemoveTab(tab.Id))" Size="ButtonSize.ExtraSmall" />
+                                    </span>
+                                </Template>
+                                <ChildContent>
+                                    <RadzenCard>
+                                        @if (tab.Content != null)
+                                        {
+                                            @tab.Content
+                                        }
+                                        else 
+                                        {
+                                            <div> @tab.Id is Loading...</div>
+                                        }
+                                    </RadzenCard>
+                                </ChildContent>
+                            </RadzenTabsItem>
+                        }
+                    }
+                </Tabs>
+            </RadzenTabs>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
+@code {
+
+    TabPosition tabPosition = TabPosition.Top;
+    int SelectedIndex = 0;
+
+    public string GetTabTitle(string title)
+    {
+        if (title.Length > 12)
+        {
+            title = title.Substring(0, 12) + "...";
+        }
+        return title;
+    }
+
+    public async Task AddTab(IOpenedTab tab)
+    {
+        if (ThingsBoardService.Tabs.Any(t => t.Id == tab.Id))
+        {
+            return;
+        }
+        if (tab.Type == OpenedTabType.Device)
+        {
+            tab.Content = @<ThingsBoardDeviceTabContent Tab="@(tab as DeviceOpenedTab)" />;
+        }
+
+        ThingsBoardService.Tabs.Add(tab);
+        SelectedIndex = ThingsBoardService.Tabs.Count - 1;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RemoveTab(Guid id)
+    {
+        var tab = ThingsBoardService.Tabs.FirstOrDefault(t => t.Id == id);
+        if (tab != null)
+        {
+            var tabIndex = ThingsBoardService.Tabs.IndexOf(tab);
+            //if (tabIndex == SelectedIndex)
+            {
+                if (tabIndex == 0 && ThingsBoardService.Tabs.Count == 2)
+                {
+                    SelectedIndex = 0;
+                }
+                else if (tabIndex == 0 && ThingsBoardService.Tabs.Count >= 2)
+                {
+                    SelectedIndex = 1;
+                }
+                else
+                {
+                    SelectedIndex = tabIndex - 1;
+                }
+            }
+
+            ThingsBoardService.Tabs.Remove(tab);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task OnSelectedChangedHandler(int index)
+    {
+        SelectedIndex = index;
+        if (ThingsBoardService.Tabs.Count > index)
+        {
+            ThingsBoardService.Tabs.ForEach(tab => tab.IsSelected = false);
+            ThingsBoardService.Tabs[index].IsSelected = true;
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+}

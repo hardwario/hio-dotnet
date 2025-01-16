@@ -1,10 +1,11 @@
 ﻿using CommunityToolkit.Maui;
 using hio_dotnet.Demos.HardwarioMonitor.Services;
-using hio_dotnet.UI.BlazorComponents.Radzen.Services;
+using hio_dotnet.UI.BlazorComponents.RadzenLib.Services;
 using Microsoft.Extensions.Logging;
 using Radzen;
 using System.Reflection;
 using System.Text.Json;
+using Microsoft.Maui.LifecycleEvents;
 
 namespace hio_dotnet.Demos.HardwarioMonitor
 {
@@ -19,12 +20,25 @@ namespace hio_dotnet.Demos.HardwarioMonitor
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                })
+                .ConfigureLifecycleEvents(lifecycle =>
+                {
+#if WINDOWS
+                    lifecycle.AddWindows(windows =>
+                    {
+                        windows.OnClosed((window, e) =>
+                        {
+                            MainDataContext.StopJLink();
+                        });
+                    });
+#endif
                 });
 
             builder.Services.AddMauiBlazorWebView();
             builder.Services.AddRadzenComponents();
             builder.Services.AddScoped<ConsoleService>();
             builder.Services.AddScoped<HioCloudService>();
+            builder.Services.AddScoped<ThingsBoardService>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
@@ -50,7 +64,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor
                 MainDataContext.Initialize(config);
             }
 
-            return builder.Build();
+            return builder.Build(); ;
         }
 
         public static string LoadEmbeddedResource(string resourceName)

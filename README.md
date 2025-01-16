@@ -65,7 +65,7 @@ There are multiple projects in the solution:
 
 ### Demos
 
-- [hio-dotnet.Demos.BlazorComponents.Radzen.WASM](./hio-dotnet.Demos.BlazorComponents.Radzen.WASM/) - Example WebAssembly app with the UI components with use of the Radzen Component Library
+- [hio-dotnet.Demos.BlazorComponents.RadzenLib.WASM](./hio-dotnet.Demos.BlazorComponents.RadzenLib.WASM/) - Example WebAssembly app with the UI components with use of the Radzen Component Library
 - [hio-dotnet.Demos.BlazorComponents.WASM](./hio-dotnet.Demos.BlazorComponents.WASM/) - Example WebAssembly app with the own basic UI components
 - [hio-dotnet.Demos.HardwarioManager](./hio-dotnet.Demos.HardwarioManager/) - Example MAUI Blazor Hybrid App for phones which can search for and connect to [CHESTER]() device and communicate with it
 - [hio-dotnet.Demos.HardwarioMonitor](./hio-dotnet.Demos.HardwarioMonitor/) - Example MAUI Blazor Hybrid App for desktop which can search and connect [SEGGER JLink programmer](https://www.segger.com/downloads/jlink/), [Nordic Semiconductor Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2) and connect the CHESTER device.
@@ -83,7 +83,7 @@ There are multiple projects in the solution:
 There are two basic UI Components library project in the HARDWARIO .NET SKD. One shows how you can create own wrappers for components to create own component library from scratch. Second (main) uses already existing component library called [Radzen](https://blazor.radzen.com/?theme=material3) to simplify the creating nice smooth responsive UIs.
 
 - [hio-dotnet.UI.BlazorComponents](./hio-dotnet.UI.BlazorComponents/) - own UI components build from scratch
-- [hio-dotnet.UI.BlazorComponents.Radzen](./hio-dotnet.UI.BlazorComponents.Radzen/) - UI components build with use of Radzen component library
+- [hio-dotnet.UI.BlazorComponents.RadzenLib](./hio-dotnet.UI.BlazorComponents.RadzenLib/) - UI components build with use of Radzen component library
 
 ### Other Projects
 

@@ -588,7 +588,8 @@ if (THINGSBOARD_TEST)
     var password = "tenant";
 
     Console.WriteLine("Initializing driver and connection...");
-    var thingsBoardDriver = new ThingsBoardDriver(baseUrl, username, password, 8080);
+    var thingsBoardDriver = new ThingsBoardDriver(baseUrl, 8080);
+    _ = await thingsBoardDriver.Login(username, password);
     Console.WriteLine("Connection initialized.");
 
     Console.WriteLine("\nCreating new Customer...");
@@ -752,9 +753,12 @@ if(HIOCLOUD_TEST)
 
     // you can init the driver with use of email and password
     // you need to use this if you want to list all available spaces because api tokens are just for specific space
-    HioCloudDriver hiocloudJWT = null; 
+    HioCloudDriver hiocloudJWT = null;
     if (email != "YOUR EMAIL" && password != "YOUR PASSWORD")
+    {
         hiocloudJWT = new HioCloudDriver(HioCloudDriver.DefaultHardwarioCloudUrl, email, password);
+        _ = await hiocloudJWT.Login(email, password);
+    }
 
     if (hiocloudJWT == null && apitoken == "YOUR API TOKEN IF YOU HAVE CREATED IT IN HIO CLOUD SPACE")
     {

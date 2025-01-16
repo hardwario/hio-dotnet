@@ -1,0 +1,48 @@
+﻿@using Services
+@using hio_dotnet.APIs.ThingsBoard.Models;
+
+@inject ThingsBoardService ThingsBoardService
+
+@if (ThingsBoardService.DevicesListable == null || ThingsBoardService.DevicesListable.Data == null)
+{
+    <RadzenProgressBarCircular ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+        <Template>Loading...</Template>
+    </RadzenProgressBarCircular>
+}
+else
+{
+    <RadzenDataList AllowVirtualization=@allowVirtualization Style="@(allowVirtualization ? "height:400px;overflow:auto;" : "")"
+                WrapItems="@(!allowVirtualization)" AllowPaging="@(!allowVirtualization)"
+                Data="@ThingsBoardService.DevicesListable.Data" TItem="Device" PageSize="9" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
+    <Template Context="Device">
+        <RadzenCard Variant="Variant.Outlined" class="rz-p-0" Style="width: 100%; overflow: hidden;">
+            <RadzenRow Gap="0">
+                <RadzenColumn Size="8" class="rz-p-4 product-title">
+                    <RadzenText>@(Device.Name)</RadzenText>
+                </RadzenColumn>
+                <RadzenColumn Size="4" class="rz-p-4">
+                    <RadzenButton Text="Open" Click="@(async () => await OpenDevice(Device))" Style="width: 100%" />
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenCard>
+    </Template>
+</RadzenDataList>
+}
+
+<style>
+.product-title {
+    min-height: 32px;
+    background-color: #33adad40;
+}
+</style>
+
+@code {
+    [Parameter] public EventCallback<Device> OnOpenDevice { get; set; }
+
+    bool allowVirtualization;
+
+    private async Task OpenDevice(Device device)
+    {
+        await OnOpenDevice.InvokeAsync(device);
+    }
+}

@@ -3,6 +3,7 @@ using hio_dotnet.HWDrivers.Enums;
 using hio_dotnet.HWDrivers.JLink;
 using hio_dotnet.HWDrivers.MCU;
 using hio_dotnet.HWDrivers.PPK2;
+using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.DataCollection;
 using Radzen;
 using System;
 using System.Collections.Generic;
@@ -21,7 +22,6 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
     public class ConsoleService
     {
         private readonly NotificationService _notificationService;
-
         public ConsoleService(NotificationService notificationService)
         {
             _notificationService = notificationService;
@@ -64,12 +64,13 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         public bool IsDeviceOn { get; set; } = false;
         public int DeviceVoltage { get; set; } = 0;
-        
+
         public LoRaWANConfig LoRaWANConfig { get; set; } = new LoRaWANConfig();
         public LTEConfig LTEConfig { get; set; } = new LTEConfig();
 
         private void ShowNotification(NotificationMessage message)
         {
+            message.Style = MainDataContext.NotificationPosition;
             _notificationService.Notify(message);
         }
 
@@ -86,8 +87,23 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             }
         }
 
+        public void StopAll(object sender, EventArgs e)
+        {
+            if (IsConsoleListening)
+            {
+                StopListening();
+            }
+            if (IsPPK2Connected())
+            {
+                ppk2?.Dispose();
+            }
+        }
+
         public async Task FindAndConnectPPK(bool doNotTurnBusy = false)
         {
+            MainDataContext.OnStopJLink -= StopAll;
+            MainDataContext.OnStopJLink += StopAll;
+
             OnIsBusy?.Invoke(this, true);
             await Task.Delay(10);
             var devices = PPK2_DeviceManager.ListAvailablePPK2Devices();
@@ -283,7 +299,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             if (ppk2 == null)
             {
                 await FindAndConnectPPK(true);
-                await SetPPK2Voltage(3300);
+                await SetPPK2Voltage(3600);
                 await TurnOnPower();
             }
 
@@ -452,6 +468,16 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             var cfg = LTEConfig.GetWholeConfig();
             await SendAllConfigLines(cfg);
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Settings Applied", Detail = "LTE settings has been loaded to the device.", Duration = 3000 });
+        }
+
+        public async Task Dispose()
+        {
+            if (IsConsoleListening)
+            {
+                await StopListening();
+            }
+            ppk2?.Dispose();
+            MCUConsole?.Dispose();
         }
     }
 }

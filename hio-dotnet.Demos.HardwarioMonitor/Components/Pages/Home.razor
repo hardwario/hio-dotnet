@@ -95,12 +95,20 @@
     <RadzenBody>
         <RadzenRow Style="height: 100%;">
             <RadzenColumn Style="height: 100%;">
-                <RadzenRow>
-                    <RadzenColumn>
-                        <ConsoleComponent @ref=consoleComponentRef TextSize="@ConsoleFontSize" Output="@ConsoleService.ConsoleOutputShell" IsSendButtonDisabled="@isDisabled" OnSendCommand="HandleSendCommand" />
-                    </RadzenColumn>
-                    <RadzenColumn>
-                        <ConsoleComponent @ref=consoleComponentLogRef TextSize="@ConsoleFontSize" Headline="Log" Output="@ConsoleService.ConsoleOutputLog" HideCommandLine="true" />
+                <RadzenRow Style="height: 100%;">
+                    <RadzenColumn Style="height: 100%;">
+                        <RadzenSplitter Orientation="Orientation.Vertical" style="height: 100%; border: 1px solid rgba(0,0,0,.08);">
+                            <RadzenSplitterPane Size="100px">
+                                <RadzenSplitter>
+                                    <RadzenSplitterPane Size="50%" Min="30px" Max="70%">
+                                        <ConsoleComponent @ref=consoleComponentRef TextSize="@ConsoleFontSize" Output="@ConsoleService.ConsoleOutputShell" IsSendButtonDisabled="@isDisabled" OnSendCommand="HandleSendCommand" />
+                                    </RadzenSplitterPane>
+                                    <RadzenSplitterPane>
+                                        <ConsoleComponent @ref=consoleComponentLogRef TextSize="@ConsoleFontSize" Headline="Log" Output="@ConsoleService.ConsoleOutputLog" HideCommandLine="true" />
+                                    </RadzenSplitterPane>
+                                </RadzenSplitter>
+                            </RadzenSplitterPane>
+                        </RadzenSplitter>
                     </RadzenColumn>
                 </RadzenRow>
 
@@ -122,7 +130,7 @@
 
     public int ConsoleFontSize { get; set; } = 12;
 
-    public int Voltage { get; set; } = 3300;
+    public int Voltage { get; set; } = 3600;
 
     protected override void OnInitialized()
     {

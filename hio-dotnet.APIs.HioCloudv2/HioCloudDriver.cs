@@ -30,7 +30,7 @@ namespace hio_dotnet.APIs.HioCloud
 
             _baseUrl = port > 0 ? $"{baseUrl}:{port}" : baseUrl;
             _port = port;
-            _jwtToken = GetAuthTokenAsync(_baseUrl, username, password).Result;
+            //_jwtToken = GetAuthTokenAsync(_baseUrl, username, password).Result;
             _useapitoken = false;
         }
 
@@ -79,6 +79,25 @@ namespace hio_dotnet.APIs.HioCloud
         private string _jwtToken = string.Empty;
         private string _apitoken = string.Empty;
         private bool _useapitoken = false;
+
+        public async Task<string?> Login(string username, string password)
+        {
+            if (string.IsNullOrEmpty(username))
+                throw new ArgumentException("Username cannot be empty.");
+            if (string.IsNullOrEmpty(password))
+                throw new ArgumentException("Password cannot be empty.");
+
+            try
+            {
+                _jwtToken = await GetAuthTokenAsync(_baseUrl, username, password);
+                return _jwtToken;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Cannot obtain JWT token from ThingsBoard. Error: " + ex.Message);
+                return null;
+            }
+        }
 
         /// <summary>
         /// This method is used to obtain JWT token from Hardwario Cloud v2.

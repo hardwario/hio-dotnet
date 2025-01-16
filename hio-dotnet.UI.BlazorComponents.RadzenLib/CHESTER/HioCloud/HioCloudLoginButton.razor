@@ -1,0 +1,115 @@
+﻿@using Services
+@using Microsoft.JSInterop
+@using CHESTER.HioCloud.Models
+
+@inject DialogService DialogService
+@inject HioCloudService HioCloudService
+@inject NotificationService NotificationService
+@inject IJSRuntime JSRuntime
+
+@if (!HioCloudService.IsLoggedIn)
+{
+    <RadzenButton Text="Login" Disabled="@Disabled" Click="Login" Style="@Style" class="@Class" ButtonStyle="@ButtonStyle" />
+}
+else
+{
+    <RadzenButton Text="Login" Disabled Style="@Style" class="@Class" ButtonStyle="@ButtonStyle" />
+}
+
+@code {
+    [Parameter] public string Style { get; set; } = string.Empty;
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public ButtonStyle ButtonStyle { get; set; } = ButtonStyle.Primary;
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public EventCallback<bool> OnLoggedIn { get; set; }
+    [Parameter] public EventCallback<bool> OnLoggingIn { get; set; }
+
+    private string login = string.Empty;
+
+    private string password = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            HioCloudService.OnLoggedIn += (s, e) =>
+            {
+                InvokeAsync(StateHasChanged);
+            };
+        }
+    }
+
+    private async Task Login()
+    {
+        var result = await DialogService.OpenAsync("Login To Cloud", ds =>
+    @<RadzenStack Gap="1.5rem">
+        <RadzenStack Orientation="Orientation.Vertical">
+                <RadzenRow>
+                    <RadzenColumn Size="3">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                            <RadzenText Text="Login:" />
+                         </RadzenStack>
+                    </RadzenColumn>
+                    <RadzenColumn Size="9">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                            <RadzenTextBox Name="loginInput" @bind-Value="@login" Style="width: 100%;" />
+                        </RadzenStack>
+                    </RadzenColumn>
+                </RadzenRow>
+                <RadzenRow>
+                    <RadzenColumn Size="3">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                            <RadzenLabel Text="Password:"/>
+                        </RadzenStack>
+                    </RadzenColumn>
+                    <RadzenColumn Size="9">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                            <RadzenPassword @bind-Value="@password" Name="passwordinput" Style="width: 100%;" onkeydown="@(async (KeyboardEventArgs e) => OnKeyDown(e, ds))" />
+                        </RadzenStack>
+                    </RadzenColumn>
+                </RadzenRow>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                <RadzenButton Text="Login" Click="() => ds.Close(true)" />
+                <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenStack>
+    );
+
+        if (result == true)
+        {
+            if (OnLoggingIn.HasDelegate)
+            {
+                await OnLoggingIn.InvokeAsync(true);
+                await Task.Delay(10);
+            }
+            await HioCloudService.InitHioCloudDriver(login, password);
+            await Task.Delay(100);
+
+            if (!HioCloudService.IsLoggedIn)
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Login failed", Detail = "Cannot login to the cloud.", Duration = 4000 });
+            }
+            else
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Login Successfull", Detail = "Logged to the Hardwario Cloud.", Duration = 4000 });
+                await InvokeAsync(StateHasChanged);
+                await OnLoggedIn.InvokeAsync(true);
+            }
+        }
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e, DialogService ds)
+    {
+        if (e.Key == "Enter")
+        {
+            await JSRuntime.InvokeVoidAsync("document.activeElement.blur");
+            ds.Close(true);
+        }
+    }
+
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

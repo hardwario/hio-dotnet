@@ -1,6 +1,8 @@
 ﻿@inherits LayoutComponentBase
 
 @inject TooltipService TooltipService
+@inject ThemeService ThemeService
+@inject IJSRuntime JSRuntime
 
 <RadzenLayout>
     <RadzenHeader>
@@ -9,6 +11,18 @@
                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0" JustifyContent="JustifyContent.Start">
                     <RadzenSidebarToggle Click="@sidebarToggle" Style="margin-left:4px;" />
                     <img src="resources/hw_logo_pos.svg" alt="HARDWARIO" style="width:100px;height:100%;" />
+                </RadzenStack>
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End">
+                    <RadzenButton 
+                    Icon="@(isDark ? "dark_mode" : "light_mode")" 
+                    Style="background: none; border: none; cursor: pointer;" 
+                    Click="@ToggleTheme" 
+                    Size="ButtonSize.Small"
+                    Title="Toggle theme"
+                    />
+
                 </RadzenStack>
             </RadzenColumn>
         </RadzenRow>
@@ -22,6 +36,7 @@
                         <RadzenPanelMenuItem Text="Graph" Icon="monitoring" Path="/graph" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "Counter", Position = TooltipPosition.Right }) )" />
                         <RadzenPanelMenuItem Text="Configs" Icon="manufacturing" Path="/configs" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "Configs", Position = TooltipPosition.Right }) )" />
                         <RadzenPanelMenuItem Text="Cloud" Icon="cloud" Path="/hiocloud" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "Cloud", Position = TooltipPosition.Right }) )" />
+                        <RadzenPanelMenuItem Text="ThingsBoard" Icon="table" Path="/thingsboard" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "ThingsBoard", Position = TooltipPosition.Right }) )" />
                     </RadzenPanelMenu>
                 </RadzenColumn>
             </RadzenRow>
@@ -50,6 +65,27 @@
 @code {
     bool sidebarExpanded = true;
     Footer? footerRef;
+
+    bool isDark = true;
+
+    protected override void OnInitialized()
+    {
+        ThemeService.SetTheme("material-dark");
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await JSRuntime.InvokeVoidAsync("toggleThemeStyleSheet", isDark);
+    }
+
+    private async Task ToggleTheme()
+    {
+        isDark = !isDark;
+        var newTheme = isDark ? "material-dark" : "material";
+        ThemeService.SetTheme(newTheme);
+        await JSRuntime.InvokeVoidAsync("toggleThemeStyleSheet", isDark);
+        StateHasChanged();
+    }
 
     public string GetVersion()
     {

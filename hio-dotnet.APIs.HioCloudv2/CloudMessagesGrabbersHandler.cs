@@ -89,6 +89,23 @@ namespace hio_dotnet.APIs.HioCloud
         }
 
         /// <summary>
+        /// Login to the cloud with the specific grabber in the case you are using username and password.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        public async Task<bool> Login(Guid id, string username, string password)
+        {
+            if (Grabbers.TryGetValue(id, out var grab))
+            {
+                return await grab.Login(username, password);
+
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Start graber if it is not running already.
         /// This function will add Task to the internal GrabbersTasks dictionary.
         /// </summary>
