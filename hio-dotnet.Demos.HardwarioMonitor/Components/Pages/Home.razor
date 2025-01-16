@@ -1,4 +1,5 @@
 ﻿@using Services
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.Common.Models
 @page "/"
 
 @inject ConsoleService ConsoleService
@@ -91,6 +92,8 @@
                 <RadzenNumeric @bind-Value="ConsoleFontSize" Min="6" Max="24" Step="1" Name="consoleFontSize" />
             </RadzenColumn>
         </RadzenRow>
+        <hr style="margin-top: 5px; width: 100%;" />
+        
     </RadzenSidebar>
     <RadzenBody>
         <RadzenRow Style="height: 100%;">
@@ -101,7 +104,14 @@
                             <RadzenSplitterPane Size="100px">
                                 <RadzenSplitter>
                                     <RadzenSplitterPane Size="50%" Min="30px" Max="70%">
-                                        <ConsoleComponent @ref=consoleComponentRef TextSize="@ConsoleFontSize" Output="@ConsoleService.ConsoleOutputShell" IsSendButtonDisabled="@isDisabled" OnSendCommand="HandleSendCommand" />
+                                        <ConsoleComponent @ref=consoleComponentRef 
+                                                          TextSize="@ConsoleFontSize" 
+                                                          Output="@ConsoleService.ConsoleOutputShell" 
+                                                          IsSendButtonDisabled="@isDisabled" 
+                                                          OnSendCommand="HandleSendCommand"
+                                                          IsActionPanelVisible = "true"
+                                                          ActionCommandButtonDataList="@ActionCommandButtonDataList"
+                                                          OnActionSendCommandHandler="onSendCommandHandler" />
                                     </RadzenSplitterPane>
                                     <RadzenSplitterPane>
                                         <ConsoleComponent @ref=consoleComponentLogRef TextSize="@ConsoleFontSize" Headline="Log" Output="@ConsoleService.ConsoleOutputLog" HideCommandLine="true" />
@@ -131,6 +141,70 @@
     public int ConsoleFontSize { get; set; } = 12;
 
     public int Voltage { get; set; } = 3600;
+
+    public List<ActionCommandButtonData> ActionCommandButtonDataList { get; set; } = new List<ActionCommandButtonData>()
+    {
+        new ActionCommandButtonData
+        {
+            ButtonText = "Config Show",
+            Commands = new List<string>{ "config show" },
+            IsWithDialog = false,
+            PositionX = 0,
+            PositionY = 0,
+        },
+        new ActionCommandButtonData
+        {
+            ButtonText = "Info Show",
+            Commands = new List<string>{ "info show" },
+            IsWithDialog = false,
+            PositionX = 1,
+            PositionY = 0,
+        },
+        new ActionCommandButtonData
+        {
+            ButtonText = "LTE Params",
+            Commands = new List<string>{
+                "lte imsi",
+                "lte iccid",
+                "lte imei",
+                "lte fw-version"
+            },
+            IsWithDialog = false,
+            PositionX = 2,
+            PositionY = 0,
+        },
+        new ActionCommandButtonData
+        {
+            ButtonText = "Config Save",
+            Commands = new List<string>{ "config save" },
+            IsWithDialog = true,
+            DialogTitle = "Config save and reboot",
+            DialogDescription = "Are you sure you want to send save config command to the MCU? It will perform reboot",
+            PositionX = 0,
+            PositionY = 1,
+        },
+        new ActionCommandButtonData
+        {
+            ButtonText = "Reboot Cold",
+            Commands = new List<string>{ "kernel reboot cold" },
+            IsWithDialog = true,
+            DialogTitle = "Cold Reboot of MCU",
+            DialogDescription = "Are you sure you want to send reboot command to the MCU?",
+            PositionX = 1,
+            PositionY = 1,
+        },
+        new ActionCommandButtonData
+        {
+            ButtonText = "Reboot Warm",
+            Commands = new List<string>{ "kernel reboot warm" },
+            IsWithDialog = true,
+            DialogTitle = "Warm Reboot of MCU",
+            DialogDescription = "Are you sure you want to send reboot command to the MCU?",
+            PositionX = 2,
+            PositionY = 1,
+        }
+    };
+
 
     protected override void OnInitialized()
     {
@@ -258,6 +332,14 @@
     private async Task SaveShellToFile()
     {
         await ConsoleService.SaveConsoleShellToFile();
+    }
+
+    private async Task onSendCommandHandler(List<string> commands)
+    {
+        foreach(var command in commands)
+        {
+            await ConsoleService.SendCommand(command);
+        }
     }
 
 }

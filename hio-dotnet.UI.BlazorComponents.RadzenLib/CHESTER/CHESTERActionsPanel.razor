@@ -1,0 +1,69 @@
+﻿@using Common.Models
+
+@inject DialogService DialogService
+
+@if (!IsTitleHidden)
+{
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center">
+                <RadzenText Text="MCU Actions" />
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+}
+
+<RadzenRow Style="margin-top:0.5rem;">
+    @foreach (var rowGroup in ActionCommandButtonDataList.GroupBy(b => b.PositionY))
+    {
+        <RadzenRow Style="margin-top:0px; margin-bottom:0px;width:100%;">
+            @foreach (var buttonData in rowGroup.OrderBy(b => b.PositionX))
+            {
+                <RadzenColumn Style="margin-top:0px; margin-bottom:0px; width:100%;">
+                    <RadzenButton Size="ButtonSize.ExtraSmall"
+                    Text="@buttonData.ButtonText"
+                    Click="() => HandleButtonClick(buttonData)"
+                    Style="margin-top:0px; margin-bottom:0px; width:100%;" />
+                </RadzenColumn>
+            }
+        </RadzenRow>
+    }
+</RadzenRow>
+
+@code {
+    [Parameter] public EventCallback<List<string>> SendCommands { get; set; }
+
+    [Parameter] public List<ActionCommandButtonData> ActionCommandButtonDataList { get; set; } = new List<ActionCommandButtonData>();
+    [Parameter] public bool IsTitleHidden { get; set; } = false;
+
+    private async Task<bool> showDialog(string title, string text)
+    {
+        var result = await DialogService.OpenAsync(title, ds =>
+            @<RadzenStack Gap="1.5rem">
+                <p>@text</p>
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <RadzenButton Text="Ok" Click="() => ds.Close(true)" Style="width: 80px;" />
+                        <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenStack>);
+        return result;
+    }
+
+    private async Task HandleButtonClick(ActionCommandButtonData buttonData)
+    {
+        if (buttonData.IsWithDialog)
+        {
+            var result = await showDialog(buttonData.DialogTitle, buttonData.DialogDescription);
+            if (result)
+            {
+                await SendCommands.InvokeAsync(buttonData.Commands);
+            }
+        }
+        else
+        {
+            await SendCommands.InvokeAsync(buttonData.Commands);
+        }
+    }
+}

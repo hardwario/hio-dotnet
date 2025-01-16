@@ -1,5 +1,6 @@
 ﻿@using Radzen
 @using Microsoft.JSInterop
+@using Common.Models
 
 @inject IJSRuntime JSRuntime
 
@@ -33,6 +34,14 @@
             }
         </RadzenColumn>
     </RadzenRow>
+    @if (IsActionPanelVisible)
+    {
+        <RadzenRow>
+            <RadzenColumn>
+                <hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.CHESTERActionsPanel IsTitleHidden="true" ActionCommandButtonDataList="@ActionCommandButtonDataList" SendCommands="@(async (e) => await OnActionSendCommandHandler.InvokeAsync(e))" />
+            </RadzenColumn>
+        </RadzenRow>
+    }
 </div>
 
 <style>
@@ -68,6 +77,9 @@
     [Parameter] public bool HideCommandLine { get; set; } = false;
     [Parameter] public bool IsSendButtonDisabled { get; set; } = false;
     [Parameter] public int TextSize { get; set; } = 8;
+    [Parameter] public EventCallback<List<string>> OnActionSendCommandHandler { get; set; }
+    [Parameter] public bool IsActionPanelVisible { get; set; } = false;
+    [Parameter] public List<ActionCommandButtonData> ActionCommandButtonDataList { get; set; } = new List<ActionCommandButtonData>();
 
     private string id = $"{Guid.NewGuid().ToString().Split('-')[0]}_Console";
 
