@@ -38,6 +38,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor
             builder.Services.AddRadzenComponents();
             builder.Services.AddScoped<ConsoleService>();
             builder.Services.AddScoped<HioCloudService>();
+            builder.Services.AddScoped<ThingsBoardService>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
