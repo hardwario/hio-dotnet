@@ -4,6 +4,7 @@
 @using hio_dotnet.APIs.ThingsBoard.Models
 @using hio_dotnet.UI.BlazorComponents.RadzenLib.ThingsBoard.Models
 @using Microsoft.JSInterop;
+@using System.Globalization
 
 @inject IJSRuntime JSRuntime
 @inject ThingsBoardService ThingsBoardService
@@ -125,28 +126,33 @@
     <RadzenColumn>
         @foreach (var key in Tab.KeysWithDataPoints)
         {
-            <RadzenRow>
-                <RadzenColumn>
-                    @if (key.DataPoints != null && key.DataPoints.Count > 0)
-                    {
-                        if (key.DataPoints[0].isValueNumeric())
-                        {
-                            <RadzenRow>
-                                <RadzenColumn>
-                                    <RadzenText Text="@key.Key" />
-                                </RadzenColumn>
-                            </RadzenRow>
-                            <RadzenRow>
-                                <RadzenColumn>
-                                    <RadzenChart>
-                                        <RadzenColumnSeries Data="@key.DataPoints" CategoryProperty="date" ValueProperty="asDouble" />
-                                    </RadzenChart>
-                                </RadzenColumn>
-                            </RadzenRow>
-                        }
-                    }
-                </RadzenColumn>
-            </RadzenRow>
+            @if (key.DataPoints != null && key.DataPoints.Count > 0)
+            {
+                if (key.DataPoints[0].isValueNumeric())
+                {
+                    <RadzenRow>
+                        <RadzenColumn>
+                            <RadzenText Text="@key.Key" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow>
+                        <RadzenColumn>
+                            <RadzenChart>
+                                <RadzenChartTooltipOptions Shared="@sharedTooltip" />
+                                <RadzenLineSeries Smooth="@smooth" Data="@key.DataPoints" CategoryProperty="date" Title="@key.Key" LineType="LineType.Dashed" ValueProperty="asDouble">
+                                    <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Square" />
+                                    <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                                </RadzenLineSeries>
+                                <RadzenCategoryAxis Padding="20" />
+                                <RadzenValueAxis Formatter="@FormatDouble">
+                                    <RadzenGridLines Visible="true" />
+                                    <RadzenAxisTitle Text="" />
+                                </RadzenValueAxis>
+                            </RadzenChart>
+                        </RadzenColumn>
+                    </RadzenRow>
+                }
+            }
         }
     </RadzenColumn>
 </RadzenRow>
@@ -161,6 +167,20 @@
 }
 
 @code {
+    bool smooth = false;
+    bool sharedTooltip = true;
+    bool showDataLabels = false;
+    bool showMarkers = true;
+
+    string FormatDouble(object value)
+    {
+        if (double.TryParse(value.ToString(), out var result))
+        {
+            return result.ToString("N2", CultureInfo.CreateSpecificCulture("en-US"));
+        }
+        return "";
+    }
+
     [Parameter] public DeviceOpenedTab Tab { get; set; } = new DeviceOpenedTab();
 
     private hio_dotnet.UI.BlazorComponents.RadzenLib.Common.JSON.JSONViewer? JSONViewerRef;
