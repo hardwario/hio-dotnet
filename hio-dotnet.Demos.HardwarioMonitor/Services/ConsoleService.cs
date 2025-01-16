@@ -460,6 +460,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         {
             var cfg = LoRaWANConfig.GetWholeConfig();
             await SendAllConfigLines(cfg);
+            await SendCommand("config save");
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Settings Applied", Detail = "LoRaWAN settings has been loaded to the device.", Duration = 3000 });
         }
 
@@ -467,6 +468,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         {
             var cfg = LTEConfig.GetWholeConfig();
             await SendAllConfigLines(cfg);
+            await SendCommand("config save");
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Settings Applied", Detail = "LTE settings has been loaded to the device.", Duration = 3000 });
         }
 
