@@ -92,30 +92,7 @@
             @foreach (var key in Tab.KeysWithDataPoints)
             {
                 <RadzenColumn>
-                    <RadzenRow>
-                        <RadzenColumn>
-                            <RadzenText Text="@key.Key" />
-                        </RadzenColumn>
-                    </RadzenRow>
-                    @if (key.DataPoints != null)
-                    {
-                        <RadzenRow>
-                            <RadzenColumn>
-                                <RadzenListBox Data="@key.DataPoints" TValue="DataPoint" TextProperty="complete" Style="width: 100%; max-width: 400px; height: 200px">
-                                    <Template>
-                                        <RadzenStack Orientation="Orientation.Horizontal">
-                                            <RadzenText Text="@((context as DataPoint).date)" />
-                                            <RadzenText Text="@("-  " + (context as DataPoint).value.ToString())" />
-
-
-                                        </RadzenStack>
-                                    </Template>
-                                </RadzenListBox>
-
-                            </RadzenColumn>
-                        </RadzenRow>
-                    }
-
+                   <ThingsBoardNumbersDataList Key="@key" />
                 </RadzenColumn>
             }
         </RadzenRow>
