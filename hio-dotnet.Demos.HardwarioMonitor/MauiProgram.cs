@@ -11,7 +11,6 @@ namespace hio_dotnet.Demos.HardwarioMonitor
 {
     public static class MauiProgram
     {
-        public static IServiceProvider Services { get; private set; }
         public static MauiApp CreateMauiApp()
         {
             var builder = MauiApp.CreateBuilder();
@@ -29,8 +28,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor
                     {
                         windows.OnClosed((window, e) =>
                         {
-                            var consoleService = MauiProgram.Services.GetService<ConsoleService>();
-                            consoleService?.Dispose().Wait();
+                            MainDataContext.StopJLink();
                         });
                     });
 #endif
@@ -38,7 +36,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor
 
             builder.Services.AddMauiBlazorWebView();
             builder.Services.AddRadzenComponents();
-            builder.Services.AddSingleton<ConsoleService>();
+            builder.Services.AddScoped<ConsoleService>();
             builder.Services.AddScoped<HioCloudService>();
 
 #if DEBUG
@@ -65,10 +63,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor
                 MainDataContext.Initialize(config);
             }
 
-            var app = builder.Build();
-            Services = app.Services;
-
-            return app;
+            return builder.Build(); ;
         }
 
         public static string LoadEmbeddedResource(string resourceName)

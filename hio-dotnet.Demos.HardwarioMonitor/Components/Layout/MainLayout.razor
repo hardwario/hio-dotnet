@@ -4,8 +4,6 @@
 @inject ThemeService ThemeService
 @inject IJSRuntime JSRuntime
 
-<RadzenComponents />
-
 <RadzenLayout>
     <RadzenHeader>
         <RadzenRow>
@@ -60,6 +58,8 @@
         <Footer @ref=footerRef />
     </RadzenFooter>
 </RadzenLayout>
+
+<RadzenComponents />
 
 @code {
     bool sidebarExpanded = true;
