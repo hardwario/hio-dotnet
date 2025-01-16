@@ -64,7 +64,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         public bool IsDeviceOn { get; set; } = false;
         public int DeviceVoltage { get; set; } = 0;
-        
+
         public LoRaWANConfig LoRaWANConfig { get; set; } = new LoRaWANConfig();
         public LTEConfig LTEConfig { get; set; } = new LTEConfig();
 
@@ -452,6 +452,16 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             var cfg = LTEConfig.GetWholeConfig();
             await SendAllConfigLines(cfg);
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Settings Applied", Detail = "LTE settings has been loaded to the device.", Duration = 3000 });
+        }
+
+        public async Task Dispose()
+        {
+            if (IsConsoleListening)
+            {
+                await StopListening();
+            }
+            ppk2?.Dispose();
+            MCUConsole?.Dispose();
         }
     }
 }

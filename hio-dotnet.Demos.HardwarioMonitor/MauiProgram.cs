@@ -5,11 +5,13 @@ using Microsoft.Extensions.Logging;
 using Radzen;
 using System.Reflection;
 using System.Text.Json;
+using Microsoft.Maui.LifecycleEvents;
 
 namespace hio_dotnet.Demos.HardwarioMonitor
 {
     public static class MauiProgram
     {
+        public static IServiceProvider Services { get; private set; }
         public static MauiApp CreateMauiApp()
         {
             var builder = MauiApp.CreateBuilder();
@@ -19,11 +21,24 @@ namespace hio_dotnet.Demos.HardwarioMonitor
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                })
+                .ConfigureLifecycleEvents(lifecycle =>
+                {
+#if WINDOWS
+                    lifecycle.AddWindows(windows =>
+                    {
+                        windows.OnClosed((window, e) =>
+                        {
+                            var consoleService = MauiProgram.Services.GetService<ConsoleService>();
+                            consoleService?.Dispose().Wait();
+                        });
+                    });
+#endif
                 });
 
             builder.Services.AddMauiBlazorWebView();
             builder.Services.AddRadzenComponents();
-            builder.Services.AddScoped<ConsoleService>();
+            builder.Services.AddSingleton<ConsoleService>();
             builder.Services.AddScoped<HioCloudService>();
 
 #if DEBUG
@@ -50,7 +65,10 @@ namespace hio_dotnet.Demos.HardwarioMonitor
                 MainDataContext.Initialize(config);
             }
 
-            return builder.Build();
+            var app = builder.Build();
+            Services = app.Services;
+
+            return app;
         }
 
         public static string LoadEmbeddedResource(string resourceName)
