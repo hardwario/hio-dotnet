@@ -109,7 +109,7 @@
     {
         if (thingsBoardTabsRef != null)
         {
-            await thingsBoardTabsRef.AddTab(new OpenedTab()
+            await thingsBoardTabsRef.AddTab(new DeviceOpenedTab()
                 {
                     Id = Guid.NewGuid(),
                     Title = device.Name,

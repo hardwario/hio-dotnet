@@ -7,7 +7,7 @@
 <RadzenRow Style="height:100%;">
     <RadzenColumn Style="height:100%;">
         <RadzenCard Style="height:100%;">
-            <RadzenTabs TabPosition="@tabPosition" RenderMode="TabRenderMode.Client" SelectedIndex="@SelectedIndex" SelectedIndexChanged="OnSelectedChangedHandler">
+            <RadzenTabs TabPosition="@tabPosition" RenderMode="TabRenderMode.Client" SelectedIndex="@SelectedIndex" SelectedIndexChanged="OnSelectedChangedHandler" Style="height:100%;">
                 <Tabs>
                     @for (int i = 0; i < ThingsBoardService.Tabs.Count; i++)
                     {
@@ -55,7 +55,7 @@
         return title;
     }
 
-    public async Task AddTab(OpenedTab tab)
+    public async Task AddTab(IOpenedTab tab)
     {
         if (ThingsBoardService.Tabs.Any(t => t.Id == tab.Id))
         {
@@ -63,7 +63,7 @@
         }
         if (tab.Type == OpenedTabType.Device)
         {
-            tab.Content = @<ThingsBoardDeviceTabContent Tab="@tab" />;
+            tab.Content = @<ThingsBoardDeviceTabContent Tab="@(tab as DeviceOpenedTab)" />;
         }
 
         ThingsBoardService.Tabs.Add(tab);

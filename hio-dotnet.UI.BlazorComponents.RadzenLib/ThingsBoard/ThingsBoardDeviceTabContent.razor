@@ -3,8 +3,6 @@
 @using Services
 @using hio_dotnet.APIs.ThingsBoard.Models
 @using hio_dotnet.UI.BlazorComponents.RadzenLib.ThingsBoard.Models
-@using System.Globalization
-@using ClosedXML.Excel
 @using Microsoft.JSInterop;
 
 @inject IJSRuntime JSRuntime
@@ -29,7 +27,7 @@
 
 <RadzenRow Style="margin-top:1rem;">
     <RadzenColumn>
-        <RadzenListBox Data="@keys" TValue="KeyToCheck" TextProperty="Key" ValueProperty="Checked" Style="width: 100%; max-width: 400px; max-height: 200px; height: 200px;">
+        <RadzenListBox Data="@Tab.Keys" TValue="KeyToCheck" TextProperty="Key" ValueProperty="Checked" Style="width: 100%; max-width: 400px; max-height: 200px; height: 200px;">
             <Template>
                 <RadzenStack Orientation="Orientation.Horizontal">
                     <RadzenCheckBox @bind-Value="@((context as KeyToCheck).Checked)" />
@@ -90,7 +88,7 @@
 <RadzenRow Style="margin-top:1.5rem;">
     <RadzenColumn>
         <RadzenRow>
-            @foreach (var key in keys.Where(k => k.DataPoints != null).OrderBy(k => k.Key))
+            @foreach (var key in Tab.KeysWithDataPoints)
             {
                 <RadzenColumn>
                     <RadzenRow>
@@ -125,7 +123,7 @@
 
 <RadzenRow Style="margin-top:2rem;">
     <RadzenColumn>
-        @foreach (var key in keys.Where(k => k.DataPoints != null).OrderBy(k => k.Key))
+        @foreach (var key in Tab.KeysWithDataPoints)
         {
             <RadzenRow>
                 <RadzenColumn>
@@ -153,7 +151,7 @@
     </RadzenColumn>
 </RadzenRow>
 
-@if(keys.Any(k => k.DataPoints != null && k.DataPoints.Count > 0))
+@if(Tab.IsAnyKeyWithDataPoints)
 {
     <RadzenRow Style="margin-top:2rem;" >
         <RadzenColumn>
@@ -163,42 +161,10 @@
 }
 
 @code {
-    class KeyToCheck
-    {
-        public string Key { get; set; }
-        public bool Checked { get; set; }
-        public List<DataPoint>? DataPoints { get; set; }
-    }
-    class DataPoint 
-    {
-        public long ts { get; set; } 
-        public object value { get; set; }
+    [Parameter] public DeviceOpenedTab Tab { get; set; } = new DeviceOpenedTab();
 
-        public string date { get => $"{hio_dotnet.Common.Helpers.TimeHelpers.UnixTimestampToDateTime(ts)}"; }
-        public string complete { get => $"{hio_dotnet.Common.Helpers.TimeHelpers.UnixTimestampToDateTime(ts)} - {value}"; }
-
-        public double asDouble { get => double.Parse(value.ToString() ?? string.Empty, CultureInfo.InvariantCulture); }
-   
-        public bool isValueNumeric()
-        {
-            try
-            {
-                var v = double.Parse(this.value.ToString() ?? string.Empty, CultureInfo.InvariantCulture);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
-        }
-    }
-
-    [Parameter] public OpenedTab Tab { get; set; }
-
-    private hio_dotnet.UI.BlazorComponents.RadzenLib.Common.JSON.JSONViewer JSONViewerRef;
-    private hio_dotnet.UI.BlazorComponents.RadzenLib.Common.JSON.JSONViewer JSONViewerHistoryRef;
-
-    private List<KeyToCheck> keys = new List<KeyToCheck>();
+    private hio_dotnet.UI.BlazorComponents.RadzenLib.Common.JSON.JSONViewer? JSONViewerRef;
+    private hio_dotnet.UI.BlazorComponents.RadzenLib.Common.JSON.JSONViewer? JSONViewerHistoryRef;
 
     private string data = string.Empty;
 
@@ -231,10 +197,10 @@
     {
         if (ThingsBoardService.DevicesDataKeys.ContainsKey(DeviceData.Id.Id))
         {
-            keys.Clear();
+            Tab.Keys.Clear();
             foreach (var key in ThingsBoardService.DevicesDataKeys[DeviceData.Id.Id])
             {
-                keys.Add(new KeyToCheck() { Key = key, Checked = false });
+                Tab.Keys.Add(new KeyToCheck() { Key = key, Checked = false });
             }
             await InvokeAsync(StateHasChanged);
         }
@@ -245,10 +211,10 @@
             {
                 if (ThingsBoardService.DevicesDataKeys.TryGetValue(DeviceData.Id.Id, out var ks))
                 {
-                    keys.Clear();
+                    Tab.Keys.Clear();
                     foreach (var key in ks)
                     {
-                        keys.Add(new KeyToCheck() { Key = key, Checked = false });
+                        Tab.Keys.Add(new KeyToCheck() { Key = key, Checked = false });
                     }
                     await InvokeAsync(StateHasChanged);
                 }
@@ -258,7 +224,7 @@
 
     private async Task onGetLatestDataHandler()
     {
-        var keysToCheck = keys.Where(k => k.Checked).Select(k => k.Key).ToList();
+        var keysToCheck = Tab.Keys.Where(k => k.Checked).Select(k => k.Key).ToList();
         var keysString = string.Join(",", keysToCheck);
         data = await ThingsBoardService.GetLatestData(DeviceData.Id.Id, keysString);
 
@@ -270,85 +236,25 @@
 
     private async Task onGetDataHistoryHandler()
     {
-        var keysToCheck = keys.Where(k => k.Checked).Select(k => k.Key).ToList();
+        var keysToCheck = Tab.Keys.Where(k => k.Checked).Select(k => k.Key).ToList();
         var keysString = string.Join(",", keysToCheck);
         data = await ThingsBoardService.GetDataHistory(DeviceData.Id.Id, keysString, start, end);
 
-        foreach(var key in keys)
-        {
-            key.DataPoints = null;
-        }
+        Tab.ClearDataPoints();
 
         if (JSONViewerHistoryRef != null)
         {
             await JSONViewerHistoryRef.Load(data);
 
-            try
-            {
-                var dict = JsonSerializer.Deserialize<Dictionary<string, List<DataPoint>>>(data);
-                foreach (var key in keys)
-                {
-                    if (dict.ContainsKey(key.Key))
-                    {
-                        key.DataPoints = dict[key.Key];
-                    }
-                }
-                await InvokeAsync(StateHasChanged);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            Tab.ParseHistoryDataPoints(data);
+
+            await InvokeAsync(StateHasChanged);
         }
     }
 
     private async Task onExportDataHandler()
     {
-        var keysWithData = keys
-            .Where(k => k.DataPoints != null && k.DataPoints.Count > 0)
-            .OrderBy(k => k.Key)
-            .ToList();
-
-        if (!keysWithData.Any())
-        {
-            return;
-        }
-
-        using var workbook = new XLWorkbook();
-
-        var worksheet = workbook.Worksheets.Add("ExportedData");
-
-        int colIndex = 1;
-        foreach (var k in keysWithData)
-        {
-            worksheet.Cell(1, colIndex).Value = $"{k.Key}_date";
-            worksheet.Cell(1, colIndex + 1).Value = $"{k.Key}_value";
-            colIndex += 2;
-        }
-
-        int maxRowCount = keysWithData.Max(k => k.DataPoints.Count);
-
-        for (int row = 0; row < maxRowCount; row++)
-        {
-            colIndex = 1;
-            foreach (var k in keysWithData)
-            {
-                if (row < k.DataPoints.Count)
-                {
-                    var dp = k.DataPoints[row];
-                    worksheet.Cell(row + 2, colIndex).Value = dp.date;
-                    worksheet.Cell(row + 2, colIndex + 1).Value = dp.value?.ToString() ?? string.Empty;
-                }
-                colIndex += 2;
-            }
-        }
-
-        worksheet.Columns().AdjustToContents();
-
-        using var memoryStream = new MemoryStream();
-        workbook.SaveAs(memoryStream);
-        var fileContent = memoryStream.ToArray();
-
+        var fileContent = Tab.ExportDataPointsAsExcel();
         var fileName = $"Export_{DeviceData.Name}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
 
         await JSRuntime.InvokeVoidAsync("hiodotnet.downloadFileFromByteArray", new

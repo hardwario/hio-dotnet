@@ -13,7 +13,7 @@ else
 {
     <RadzenDataList AllowVirtualization=@allowVirtualization Style="@(allowVirtualization ? "height:400px;overflow:auto;" : "")"
                 WrapItems="@(!allowVirtualization)" AllowPaging="@(!allowVirtualization)"
-                Data="@ThingsBoardService.DevicesListable.Data" TItem="Device" PageSize="7" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
+                Data="@ThingsBoardService.DevicesListable.Data" TItem="Device" PageSize="9" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
     <Template Context="Device">
         <RadzenCard Variant="Variant.Outlined" class="rz-p-0" Style="width: 100%; overflow: hidden;">
             <RadzenRow Gap="0">

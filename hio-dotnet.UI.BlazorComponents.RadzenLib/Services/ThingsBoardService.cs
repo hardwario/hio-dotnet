@@ -7,6 +7,7 @@ using hio_dotnet.UI.BlazorComponents.RadzenLib.ThingsBoard.Models;
 using hio_dotnet.APIs.HioCloud;
 using hio_dotnet.APIs.ThingsBoard;
 using hio_dotnet.APIs.ThingsBoard.Models;
+using System.Collections.Concurrent;
 
 namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
 {
@@ -28,7 +29,7 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
 
         public User User { get; private set; }
 
-        public List<OpenedTab> Tabs { get; set; } = new List<OpenedTab>();
+        public List<IOpenedTab> Tabs { get; set; } = new List<IOpenedTab>();
 
         public ListableDevicesResponse DevicesListable { get; private set; }
 
