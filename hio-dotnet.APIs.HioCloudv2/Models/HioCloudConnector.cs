@@ -101,11 +101,64 @@ namespace hio_dotnet.APIs.HioCloud.Models
 
         public static string GetConnectorString(string connectionToken, string basedomain = "https://thingsboard.hardwario.com/")
         {
-            var url = $"{basedomain}api/v1/{connectionToken}/telemetry";
+            var url = $"{basedomain}api/v1/{connectionToken}";
 
-            return "function main(job) {\r\n  let body = job.message.body\r\n  return {\r\n    \"method\": \"POST\",\r\n    \"url\": \"" +
-                url
-                + "\",\r\n    \"header\": { \r\n      \"Content-Type\": \"application/json\" \r\n    },\r\n    \"data\": body\r\n  }\r\n}";
+            return "function main(job) {\r\n" + 
+                   "    let body = job.message.body\r\n" +
+                   "    body.uptime = job.message.body.system.uptime;\r\n" +
+                   "    body.voltage_load = job.message.body.system.voltage_load;\r\n" +
+                   "    body.voltage_rest = job.message.body.system.voltage_rest;\r\n" +
+                   "    \r\n" +
+                   "        return {\r\n" + 
+                   "            \"method\": \"POST\",\r\n"+
+                   "            \"url\": \"" + url + "/telemetry\",\r\n" +
+                   "            \"header\": { \r\n" + 
+                   "                \"Content-Type\": \"application/json\" \r\n" + 
+                   "            },\r\n" + 
+                   "            \"data\": body\r\n" + 
+                   "        }\r\n" + 
+                   "}";
+        }
+
+        public static string GetConnectorStringMultipleDevices(Dictionary<string,string> connectionTokens, string basedomain = "https://thingsboard.hardwario.com/")
+        {
+            var url = $"{basedomain}api/v1/";
+
+            var stringBuilder = new StringBuilder();
+            stringBuilder.AppendLine("\tvar snToAccessTokenDict ={\r\n");
+            var item = 0;
+            foreach (var (key, value) in connectionTokens)
+            {
+                if (item < connectionTokens.Count - 1)
+                    stringBuilder.Append($"\t\t\"{key}\": \"{value}\",\r\n");
+                else
+                    stringBuilder.Append($"\t\t\"{key}\": \"{value}\"\r\n");
+                item++;
+            }
+            stringBuilder.AppendLine("\t};\r\n");
+
+            var dictString = stringBuilder.ToString();
+
+
+            return "function main(job) {\r\n" +
+                   "    let body = job.message.body\r\n" +
+                   "    body.uptime = job.message.body.system.uptime;\r\n" +
+                   "    body.voltage_load = job.message.body.system.voltage_load;\r\n" +
+                   "    body.voltage_rest = job.message.body.system.voltage_rest;\r\n" +
+                   "    var accesstoken = '';\r\n" +
+                        dictString     +
+                   "    accesstoken = snToAccessTokenDict[job.device.serial_number];" +
+                   "    var url = " + url + " + accesstoken + '/telemetry';" +
+                   "    \r\n" +
+                   "        return {\r\n" +
+                   "            \"method\": \"POST\",\r\n" +
+                   "            \"url\": url,\r\n" +
+                   "            \"header\": { \r\n" +
+                   "                \"Content-Type\": \"application/json\" \r\n" +
+                   "            },\r\n" +
+                   "            \"data\": body\r\n" +
+                   "        }\r\n" +
+                   "}";
         }
     }
 }

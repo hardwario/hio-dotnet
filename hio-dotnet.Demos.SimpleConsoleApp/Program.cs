@@ -37,6 +37,7 @@ var HIOCLOUD_TEST_SIMPLEGRABBER_HANDLER = false;
 var HIO_WMBUSMETER_TEST = false;
 var HIO_SIMULATOR_TEST = false;
 var HIO_SIMULATOR_HANDLER_TEST = false;
+var HIO_CLOUD_AND_THINGSBOARD_DEPLOY_MULTIPLEDEVICES = false;
 
 #if WINDOWS
 Console.WriteLine("Running on Windows");
@@ -1157,4 +1158,263 @@ if (HIO_SIMULATOR_HANDLER_TEST)
 
 #endregion
 
+#region HioCloudAndThingsBoardDeployMultipleDevicesExample
+if (HIO_CLOUD_AND_THINGSBOARD_DEPLOY_MULTIPLEDEVICES)
+{
+    // Insert your HIO Cloud API token here. It is always related to some specific space
+    var apitoken = "YOUR_API_TOKEN";
+    // Hio Cloud space id of your space where apitoken is related to
+    var wall_space = new Guid("YOUR_SPACE_ID");
+
+
+    // Default localhost ThingsBoard API URL
+    var baseUrl = "http://localhost:8080/";
+    // ThingsBoard login credentials
+    var username = "tenant@thingsboard.org";
+    var password = "tenant";
+
+
+    // Create HioCloudDriver with using of apitoken
+    var hiocloudAPI = new HioCloudDriver(HioCloudDriver.DefaultHardwarioCloudUrl, apitoken, true);
+
+    // You need to have ThingsBoard running on localhost to test this example
+    // Create ThingsBoardDriver and login
+    Console.WriteLine("Initializing driver and connection...");
+    var thingsBoardDriver = new ThingsBoardDriver(baseUrl, 8080);
+    _ = await thingsBoardDriver.Login(username, password);
+    Console.WriteLine("Connection initialized.");
+
+    // load all devices in the space so we can check the tag or add tag where is missing
+    var devices = await hiocloudAPI.GetAllDevicesOfSpace(wall_space);
+    var tagname = "thingsboard-wall-all-data";
+    HioCloudTag? tag = null;
+    var connectionTokens = new Dictionary<Guid, string>();
+    var newDevices = new Dictionary<Guid, hio_dotnet.APIs.ThingsBoard.Models.Device>();
+
+    // load all tags in the space so we can check if the tag exists or create it
+    var tags = await hiocloudAPI.GetTags(wall_space);
+    if (tags != null)
+    {
+        tag = tags.FirstOrDefault(t => t.Name == tagname);
+    }
+
+    if (tag == null)
+    {
+        tag = new HioCloudTag().WithName(tagname).WithColor("#0000FF");
+        Console.WriteLine("Creating new tag...");
+        tag = await hiocloudAPI.CreateTag(wall_space, tag);
+        Console.WriteLine($"Tag created: {tag.Id}");
+    }
+
+    // Add tag to the devices where is it missing
+    if (devices != null)
+    {
+        Console.WriteLine("\n");
+        Console.WriteLine("Devices:");
+        foreach (var d in devices)
+        {
+            var isTag = d.Tags.Any(t => t.Id == tag.Id);
+            if (!isTag)
+            {
+                Console.WriteLine($"Tagging device: {d.Name}");
+                await hiocloudAPI.AddTagToDevice(wall_space, tag, d);
+            }
+
+            Console.WriteLine($"Device: {d.Name}, Id: {d.Id}, SpaceId: {d.SpaceId}, LastSeen: {d.LastSeen}");
+        }
+    }
+    else
+    {
+        Console.WriteLine("No devices found.");
+    }
+
+    // Add new customer in ThingsBoard
+    Console.WriteLine("\nCreating new Customer...");
+    var newCustomer = await thingsBoardDriver.CreateCustomerAsync(new hio_dotnet.APIs.ThingsBoard.Models.CreateCustomerRequest()
+    {
+        Title = "Test all Customer",
+    });
+
+    Console.WriteLine($"New Customer created: {newCustomer.Id.Id}");
+
+    // Load device profiles so we can use one of them for new devices
+    Console.WriteLine("\nGetting device profiles...");
+    var deviceProfiles = await thingsBoardDriver.GetDeviceProfilesAsync();
+    Console.WriteLine("Device profiles obtained.");
+    foreach (var profile in deviceProfiles)
+    {
+        Console.WriteLine($"Device Profile: {profile.Name}, Id: {profile.Id.Id}");
+    }
+
+
+    // If you are running the script for the first time, you can create new devices in ThingsBoard and script will save them to the files
+    // If you run it again it will load it from file.
+    var devicesLoaded = false;
+    var tokensLoaded = false;
+
+    // try to load new devices from the file
+    if (File.Exists("newDevices.json"))
+    {
+        try
+        {
+            var newDevicesJson = File.ReadAllText("newDevices.json");
+            newDevices = JsonSerializer.Deserialize<Dictionary<Guid, hio_dotnet.APIs.ThingsBoard.Models.Device>>(newDevicesJson);
+            devicesLoaded = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading new devices: {ex.Message}");
+        }
+    }
+
+    // try to load connection tokens from the file
+    if (File.Exists("connectionTokens.json"))
+    {
+        try
+        {
+            var connectionTokensJson = File.ReadAllText("connectionTokens.json");
+            connectionTokens = JsonSerializer.Deserialize<Dictionary<Guid, string>>(connectionTokensJson);
+            tokensLoaded = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading connection tokens: {ex.Message}");
+        }
+    }
+
+    var defaultProfile = deviceProfiles.Where(p => p.Name == "default").FirstOrDefault();
+    if (defaultProfile != null)
+    {
+        foreach (var device in devices)
+        {
+            hio_dotnet.APIs.ThingsBoard.Models.Device? newDevice = null;
+            if (newDevices != null && !newDevices.ContainsKey((Guid)device.Id))
+            {
+                // create new device under this customer and deviceProfile
+                Console.WriteLine("\nCreating new device...");
+                newDevice = await thingsBoardDriver.CreateDeviceAsync(new hio_dotnet.APIs.ThingsBoard.Models.CreateDeviceRequest()
+                {
+                    Name = $"{device.Name}_{device.SerialNumber}",
+                    Label = $"{device.SerialNumber}",
+                    CustomerId = newCustomer.Id,
+                    DeviceProfileId = defaultProfile.Id
+                });
+                if (newDevice != null)
+                {
+                    // here it saves the connection between HioCloudDevice Id and ThingsBoard device
+                    newDevices.Add((Guid)device.Id, newDevice);
+                    Console.WriteLine($"Device Created. Device Id: {newDevice.Id.Id}");
+                }
+            }
+
+            if (newDevice != null && device.Id != null && connectionTokens != null && !connectionTokens.ContainsKey((Guid)device.Id))
+            {
+                Console.WriteLine("Getting Connection Info...");
+                var connectionInfo = await thingsBoardDriver.GetDeviceConnectionInfoAsync(newDevice.Id.Id.ToString());
+                var connectionToken = string.Empty;
+                if (connectionInfo != null)
+                {
+                    Console.WriteLine($"\nExample Device Telemetry Request: {connectionInfo.Http.Http}\n");
+                    connectionToken = thingsBoardDriver.ParseConnectionToken(connectionInfo);
+                    Console.WriteLine($"Device Connection Token: {connectionToken}");
+
+                    // here it saves the connection between HioCloudDevice Id and ThingsBoard connectionToken for specific device
+                    if (connectionToken != null)
+                        connectionTokens.Add((Guid)device.Id, connectionToken);
+                }
+            }
+        }
+
+        // this is backup of created devices and its connectionTokens so we do not need to create them again in next run of the script
+        if (!devicesLoaded)
+        {
+            var newDevicesJson = JsonSerializer.Serialize(newDevices);
+            File.WriteAllText("newDevices.json", newDevicesJson);
+        }
+
+        if (!tokensLoaded)
+        {
+            var connectionTokensJson = JsonSerializer.Serialize(connectionTokens);
+            File.WriteAllText("connectionTokens.json", connectionTokensJson);
+        }
+
+        // Loading and creating common dashboard for all devices in the list
+        // Devices will be represented as some EntityAlias in the dashboard.
+        // You must create some dashboard templates with widgets what do you want.
+        var dashboard_filename = "test_multiple.json";
+        if (File.Exists(dashboard_filename))
+        {
+            Console.WriteLine("Loading test dashboard...");
+            var test_dashboard = File.ReadAllText(dashboard_filename);
+            var test_dasboard_serialized = JsonSerializer.Deserialize<CreateDashboardRequest>(test_dashboard);
+            Console.WriteLine("test dashboard loaded. Creating dashboard...");
+            test_dasboard_serialized.CustomerId = newCustomer.Id;
+            test_dasboard_serialized.TenantId = newCustomer.TenantId;
+            test_dasboard_serialized.Name = "New Test Dashboard";
+
+            var aliasId = Guid.NewGuid();
+            test_dasboard_serialized.Configuration.EntityAliases.Add(aliasId.ToString(), new EntityAlias()
+            {
+                Id = aliasId.ToString(),
+                Alias = "All Devices",
+                Filter = new AliasFilter()
+                {
+                    EntityType = "DEVICE",
+                    ResolveMultiple = true,
+                    Type = "entityList",
+                    EntityList = newDevices.Select(d => d.Value.Id.Id.ToString()).ToList()
+                }
+            });
+
+            foreach (var widget in test_dasboard_serialized.Configuration.Widgets)
+            {
+                foreach (var datasource in widget.Value.Config.Datasources)
+                {
+                    datasource.Type = "entity";
+                    datasource.DeviceId = null;
+                    datasource.Name = "all";
+                    datasource.EntityAliasId = aliasId.ToString();
+
+                }
+            }
+
+            var newDashboard = await thingsBoardDriver.CreateDashboardAsync(test_dasboard_serialized);
+            Console.WriteLine($"Dashboard created: {newDashboard.Id.Id}");
+
+        }
+
+
+    }
+
+    // Create list where is connected Hio Cloud Device serial number and ThingsBoard connection token
+    var sntokens = new Dictionary<string, string>();
+    foreach (var device in devices)
+    {
+        if (device.SerialNumber != null && device.Id != null && connectionTokens.ContainsKey((Guid)device.Id))
+        {
+            sntokens.Add(device.SerialNumber, connectionTokens[(Guid)device.Id]);
+        }
+    }
+
+    // create connector for hio cloud for multiple devices
+    var connector = HioCloudConnector.GetConnectorStringMultipleDevices(sntokens, "http://localhost:8080");
+
+    Console.WriteLine("\n\nConnector:\n");
+    Console.WriteLine(connector);
+    Console.WriteLine("\n\n");
+
+    // add connector to the cloud
+    var res = await hiocloudAPI.CreateConnector(wall_space, new HioCloudConnector()
+        .WithDirection("up")
+        .WithName("Test Connector")
+        .WithTag(tag)
+        .WithTrigger("data")
+        .WithThingsBoardConnectionToken(connector));
+
+}
+#endregion
+
 Console.WriteLine("Program ends. Goodbye");
+Console.WriteLine("\nPress key to quit...");
+Console.ReadKey();
+return;
