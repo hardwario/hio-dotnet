@@ -11,16 +11,23 @@
 </RadzenRow>
 <RadzenRow Style="margin-top:1rem;">
     <RadzenColumn>
-        <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="5" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
-                        Data="@Devices" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or" SelectionMode="DataGridSelectionMode.Single" @bind-Value=@selectedDevices>
+        <RadzenDataGrid @ref="dataGridRef" AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="5" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+        Data="@Devices" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or" SelectionMode="@SelectionMode" @bind-Value=@SelectedDevices>
             <Columns>
                 <RadzenDataGridColumn Property="@nameof(Device.Id)" Filterable="false" Title="Device Id" Frozen="true" Width="120px" TextAlign="TextAlign.Center" />
                 <RadzenDataGridColumn Property="@nameof(Device.Name)" Title="Name" Frozen="true" Width="100px" />
-                <RadzenDataGridColumn Title="Action" Frozen="true" Sortable="false" Filterable="false" Width="80px" TextAlign="TextAlign.Center">
-                    <Template Context="data">
-                        <RadzenButton Click="async () => await OnOpenDeviceHandler(data) " Text="Open Device" />
-                    </Template>
-                </RadzenDataGridColumn>
+                @if (IsSNVisible)
+                {
+                    <RadzenDataGridColumn Property="@nameof(Device.SerialNumber)" Title="Name" Frozen="true" Width="100px" />
+                }
+                @if (IsActionVisible)
+                {
+                    <RadzenDataGridColumn Title="Action" Frozen="true" Sortable="false" Filterable="false" Width="80px" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenButton Click="async () => await OnOpenDeviceHandler(data) " Text="Open Device" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                }
             </Columns>
         </RadzenDataGrid>
     </RadzenColumn>
@@ -29,11 +36,29 @@
 @code {
     [Parameter] public List<Device> Devices { get; set; } = new List<Device>();
     [Parameter] public EventCallback<Device> OnOpenDeviceRequest { get; set; }
+    [Parameter] public DataGridSelectionMode SelectionMode { get; set; } = DataGridSelectionMode.Multiple;
+    [Parameter] public bool IsActionVisible { get; set; } = true;
+    [Parameter] public bool IsSNVisible { get; set; } = true;
 
-    IList<Device> selectedDevices = new List<Device>();
+    public IList<Device> SelectedDevices = new List<Device>();
+    private RadzenDataGrid<Device> dataGridRef;
 
     private async Task OnOpenDeviceHandler(Device data)
     {
         await OnOpenDeviceRequest.InvokeAsync(data as Device);
+    }
+
+    public async Task AddSelectedDevices(List<Device> devices)
+    {
+        foreach(var device in devices)
+        {
+            if (!SelectedDevices.Contains(device))
+            {
+                SelectedDevices.Add(device);
+                dataGridRef.SelectRow(device);
+            }
+
+        }
+        await InvokeAsync(StateHasChanged);
     }
 }

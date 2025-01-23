@@ -1,0 +1,589 @@
+﻿@using Microsoft.JSInterop
+@using Services
+@using CHESTER.HioCloud.Models
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.ThingsBoard
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.ThingsBoard.Models
+@using hio_dotnet.APIs.HioCloud.Models
+@using System.Timers
+@using Blazor.AceEditorJs
+@using System.Text.Json
+
+@inject HioCloudService HioCloudService
+@inject ThingsBoardService ThingsBoardService
+@inject DialogService DialogService
+@inject NotificationService NotificationService
+@inject IJSRuntime JSRuntime
+
+<RadzenSteps Change="@OnChange" SelectedIndexChanged="@OnIndexChanged" SelectedIndex="@selectedIndex" >
+    <Steps>
+        <RadzenStepsItem Text="Select Or Create Tag">
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenButton Text="Create Tag" Click="@OnCreateTag" />
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenRow>
+                <RadzenColumn>
+                    <HioCloudTagsList @ref=hioCloudTagsListRef Tags="@Space.Tags" SelectionMode="DataGridSelectionMode.Single" />
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenStepsItem>
+        <RadzenStepsItem Text="Select Devices">
+            <HioCloudDevicesList @ref=hioCloudDevicesListRef Devices="@Space.Devices" IsActionVisible="false" IsSNVisible="true" />
+        </RadzenStepsItem>
+        <RadzenStepsItem Text="Add Devices To ThingsBoard">
+            <RadzenText Text="Add Devices To ThingsBoard" />
+            <RadzenRow>
+                <RadzenColumn>
+                    @if (!ThingsBoardService.IsLoggedIn)
+                    {
+                        <RadzenRow>
+                            <RadzenColumn>
+                                <ThingsBoardLoginComponent OnLoggedIn="@onLoggedInHandler" OnLoggingIn="@onLoggingInHandler" />
+                            </RadzenColumn>
+                        </RadzenRow>
+                    }
+                    <RadzenRow>
+                        <RadzenColumn>
+                            @foreach(var device in selectedDevices)
+                            {
+                                <RadzenRow>
+                                    <RadzenColumn>
+                                        <RadzenText Text="@device.Name" />
+                                    </RadzenColumn>
+                                    <RadzenColumn>
+                                        <RadzenText Text="@getState(device.Id).ToString()" />
+                                    </RadzenColumn>
+                                    <RadzenColumn>
+                                        <RadzenText Text="@getConnectionTokenByDeviceId(device.Id)" />
+                                    </RadzenColumn>
+                                </RadzenRow>
+                            }
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow>
+                        <RadzenColumn>
+                            <RadzenButton Click="@CheckDevicesInThingsBoard" Text="Check If Devices Exists in ThingsBoard" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow>
+                        <RadzenColumn>
+                            <RadzenButton Click="@AddDevicesToThingsBoard" Text="Add Devices to ThingsBoard and obtain tokens" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenStepsItem>
+        <RadzenStepsItem Text="Check and Add the connector">
+            <RadzenText Text="Check and Add the connector" />
+            <RadzenRow>
+                <RadzenColumn>
+                    <AceJsEditor @ref=acejsEditorRef  Style="height:300px" @bind-Value ="@connector" Options="opt"></AceJsEditor>
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenButton Click="@AddConnector" Text="Add Connector" />
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenStepsItem>
+        <RadzenStepsItem Text="Add Tag to Devices In Hio Cloud">
+            <RadzenText Text="Add Tag to Devices In Hio Cloud" />
+            <RadzenRow>
+                <RadzenColumn>
+                    @foreach (var device in selectedDevices)
+                    {
+                        var status = getState(device.Id).ToString();
+                        <RadzenRow>
+                            <RadzenColumn>
+                                <RadzenText Text="@device.Name" />
+                            </RadzenColumn>
+                            <RadzenColumn>
+                                @if (status != "HasTag")
+                                {
+                                    <RadzenText Text="Waiting for tag check" />
+                                }
+                                else 
+                                {
+                                    <RadzenText Text="Device has tag" />
+                                }
+                            </RadzenColumn>
+                        </RadzenRow>
+                    }
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenButton Click="@AddTagToDevicesInHioCloud" Text="Add Tag to Devices In HioCloud" />
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenStepsItem>
+        <RadzenStepsItem Text="Add Dashboard to ThingsBoard">
+            <RadzenText Text="Add Dashboard to ThingsBoard" />
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenButton Click="@AddDashboardForDevices" Text="Add Dashboard for Devices In ThingsBoard" />
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenStepsItem>
+    </Steps>
+</RadzenSteps>
+
+@code {
+    enum States 
+    {
+        None,
+        Checking,
+        AddingDevice,
+        ObtainingToken,
+        DeviceIsNotInThingsBoard,
+        HasToken,
+        HasTag,
+        Done
+    }
+    class DeviceStatusInfo 
+    {
+        public string AccessToken { get; set; } = string.Empty;
+        public States States { get; set; } = States.None;
+    }
+
+    [Parameter] public Space Space { get; set; } = new Space();
+
+    private HioCloudTagsList? hioCloudTagsListRef;
+    private HioCloudDevicesList? hioCloudDevicesListRef;
+    private AceJsEditor? acejsEditorRef;
+
+    private HioCloudTag newTag = new HioCloudTag();
+
+    private HioCloudTag selectedTag = new HioCloudTag();
+    private List<Device> selectedDevices = new List<Device>();
+    private int selectedIndex = 0;
+
+    private Dictionary<Guid, DeviceStatusInfo> DeviceStatusInfos = new Dictionary<Guid, DeviceStatusInfo>();
+    private Dictionary<Guid, hio_dotnet.APIs.ThingsBoard.Models.Device> newDevices = new Dictionary<Guid, hio_dotnet.APIs.ThingsBoard.Models.Device>();
+
+    private bool IsBusy = false;
+
+    private string connector = string.Empty;
+    private AceEditorOptions opt = new() { IsReadOnly = false, Language = AceLanguage.sqlserver, Theme = AceTheme.sqlserver };
+
+    private hio_dotnet.APIs.ThingsBoard.Models.Dashboards.Dashboard selectedDashboard = new hio_dotnet.APIs.ThingsBoard.Models.Dashboards.Dashboard();
+
+    private string getConnectionTokenByDeviceId(Guid deviceId)
+    {
+        if (DeviceStatusInfos.ContainsKey(deviceId))
+        {
+            return DeviceStatusInfos[deviceId].AccessToken;
+        }
+        return string.Empty;
+    }
+
+    private States getState(Guid deviceId)
+    {
+        if (DeviceStatusInfos.ContainsKey(deviceId))
+        {
+            return DeviceStatusInfos[deviceId].States;
+        }
+        return States.None;
+    }
+
+    private async Task onLoggingInHandler(bool isLoggingIn)
+    {
+        IsBusy = isLoggingIn;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task onLoggedInHandler(bool isLoggedIn)
+    {
+        if (isLoggedIn)
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task OnIndexChanged(int index)
+    {
+        if (selectedIndex == 0)
+        {
+            selectedTag = hioCloudTagsListRef?.SelectedTags.FirstOrDefault() ?? new HioCloudTag();
+        }
+        else if (selectedIndex == 1)
+        {
+            selectedDevices = hioCloudDevicesListRef?.SelectedDevices.ToList() ?? new List<Device>();
+        }
+        else if (selectedIndex == 2)
+        {
+
+        }
+        else if (selectedIndex == 3)
+        {
+            CreateConnector();
+            await InvokeAsync(StateHasChanged);
+        }
+
+        selectedIndex = index;
+
+    }
+
+    private Timer timer = new Timer(250);
+
+    private async Task OnChange(int index)
+    {
+        timer = new Timer(250);
+        timer.AutoReset = false;
+        timer.Elapsed += async (sender, e) =>
+        {
+            if (index == 0)
+            {
+                if (hioCloudTagsListRef != null)
+                {
+                    hioCloudTagsListRef?.SelectedTags.Clear();
+                    await hioCloudTagsListRef?.AddSelectedTag(selectedTag);
+                }
+            }
+            else if (index == 1)
+            {
+                if (hioCloudDevicesListRef != null)
+                {
+                    hioCloudDevicesListRef?.SelectedDevices.Clear();
+                    await hioCloudDevicesListRef?.AddSelectedDevices(selectedDevices);
+                }
+            }
+            timer.Stop();
+        };
+        timer.Start();
+
+        Console.WriteLine($"Step changed to {index}");
+    }
+
+    private async Task OnCreateTag()
+    {
+        var result = await DialogService.OpenAsync("Add New Tag", ds =>
+    @<RadzenStack Gap="1.5rem">
+        <RadzenStack Orientation="Orientation.Vertical">
+            <RadzenRow>
+                <RadzenColumn Size="3">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                        <RadzenText Text="Name:" />
+                    </RadzenStack>
+                </RadzenColumn>
+                <RadzenColumn Size="9">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                        <RadzenTextBox Name="name" @bind-Value="@newTag.Name" Style="width: 100%;" />
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenRow>
+                <RadzenColumn Size="3">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                        <RadzenLabel Text="Color:" />
+                    </RadzenStack>
+                </RadzenColumn>
+                <RadzenColumn Size="9">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                        <RadzenTextBox Name="color" @bind-Value="@newTag.Color" Style="width: 100%;" onkeydown="@(async (KeyboardEventArgs e) => OnKeyDown(e, ds))" />
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                <RadzenButton Text="Create Tag" Click="() => ds.Close(true)" />
+                <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenStack>
+    );
+
+        if (result == true)
+        {
+
+            var res = await HioCloudService.AddTag(Space.Id.ToString(), newTag);
+
+            if (!res)
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Add Tag failed", Detail = "Cannot create new Tag in the Hardwario Cloud.", Duration = 4000 });
+            }
+            else
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Add Tag Successfull", Detail = "Created new Tag in the Hardwario Cloud.", Duration = 4000 });
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
+
+    private async Task OnKeyDown(KeyboardEventArgs e, DialogService ds)
+    {
+        if (e.Key == "Enter")
+        {
+            await JSRuntime.InvokeVoidAsync("document.activeElement.blur");
+            ds.Close(true);
+        }
+    }
+
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+
+    private async Task CheckDevicesInThingsBoard()
+    {
+        var devices = ThingsBoardService.GetDevices();
+        foreach (var device in selectedDevices)
+        {
+            if (ThingsBoardService.DevicesListable != null && ThingsBoardService.DevicesListable.Data != null)
+            {
+                if (ThingsBoardService.DevicesListable.Data.Any(d => d.Name == $"{device.Name}_{device.SerialNumber}"))
+                {
+                    if (DeviceStatusInfos.ContainsKey(device.Id))
+                    {
+                        DeviceStatusInfos[device.Id].States = States.ObtainingToken;
+                    }
+                    else
+                    {
+                        DeviceStatusInfos.TryAdd(device.Id, new DeviceStatusInfo { States = States.ObtainingToken });
+                    }
+                }
+                else
+                {
+                    DeviceStatusInfos.TryAdd(device.Id, new DeviceStatusInfo { States = States.AddingDevice });
+                }
+            }
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task AddDevicesToThingsBoard()
+    {
+        await ThingsBoardService.LoadDeviceProfiles();
+        var profile = ThingsBoardService.DeviceProfiles.FirstOrDefault();
+        if (profile == null)
+            return;
+
+        foreach (var status in DeviceStatusInfos)
+        {
+            APIs.ThingsBoard.Models.Device? newDevice = null;
+            var device = selectedDevices.FirstOrDefault(d => d.Id == status.Key);
+            if (status.Value.States == States.AddingDevice)
+            {
+                if (device != null)
+                {
+                    var res = await ThingsBoardService.CreateDevice(new APIs.ThingsBoard.Models.CreateDeviceRequest()
+                        {
+                            Name = $"{device.Name}_{device.SerialNumber}",
+                            Label = device.SerialNumber,
+                            DeviceProfileId = profile.Id,
+                        });
+                    newDevice = res;
+                    status.Value.States = States.ObtainingToken;
+                }
+            }
+
+            if (newDevice == null && ThingsBoardService.DevicesListable != null && ThingsBoardService.DevicesListable.Data != null && device != null)
+            {
+                newDevice = ThingsBoardService.DevicesListable.Data.FirstOrDefault(d => d.Name == $"{device.Name}_{device.SerialNumber}");
+            }
+
+            if (status.Value.States == States.ObtainingToken)
+            {
+                if (newDevice != null && device != null && newDevice.Id != null)
+                {
+                    newDevices.Add((Guid)device.Id, newDevice);
+                    status.Value.States = States.ObtainingToken;
+
+                    if (newDevice != null && newDevice.Id != null)
+                    {
+                        Console.WriteLine("Getting Connection Info...");
+                        var connectionToken = await ThingsBoardService.GetConnectionToken(newDevice.Id.Id.ToString() ?? string.Empty);
+                        if (!string.IsNullOrEmpty(connectionToken))
+                        {
+                            status.Value.AccessToken = connectionToken;
+                            status.Value.States = States.HasToken;
+                        }
+                    }
+                }
+            }
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void CreateConnector()
+    {
+        var sntokens = new Dictionary<string, string>();
+        foreach (var device in selectedDevices)
+        {
+            if (device.SerialNumber != null && DeviceStatusInfos.ContainsKey((Guid)device.Id))
+            {
+                sntokens.Add(device.SerialNumber, DeviceStatusInfos[(Guid)device.Id].AccessToken);
+            }
+        }
+
+        // create connector for hio cloud
+        connector = HioCloudConnector.GetConnectorStringMultipleDevices(sntokens, "http://localhost:8080");
+    }
+
+    private async Task AddConnector()
+    {
+        if (string.IsNullOrEmpty(connector))
+        {
+            CreateConnector();
+        }
+        if (!string.IsNullOrEmpty(connector))
+        {
+            var conn = new HioCloudConnector()
+                            .WithName("ThingsBoard_multi")
+                            .WithDirection("up")
+                            .WithTrigger("data")
+                            .WithTag(selectedTag);
+            conn.Transformation = connector;
+            var res = await HioCloudService.AddConnector(Space.Id.ToString(), conn);
+                if (res)
+                {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Add Connector Successfull", Detail = "Created new Connector in the Hardwario Cloud.", Duration = 4000 });
+                }
+                else
+                {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Add Connector failed", Detail = "Cannot create new Connector in the Hardwario Cloud.", Duration = 4000 });
+            }
+        }
+        if (acejsEditorRef != null)
+        {
+            acejsEditorRef.Value = connector;
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task AddTagToDevicesInHioCloud()
+    {
+        foreach (var status in DeviceStatusInfos)
+        {
+            var device = selectedDevices.FirstOrDefault(d => d.Id == status.Key);
+            if (status.Value.States == States.HasToken)
+            {
+                if (device != null)
+                {
+                    var dev = await HioCloudService.GetDevice(Space.Id.ToString(), device.Id.ToString());
+                    if (dev != null)
+                    {
+                        if (dev.Tags != null && dev.Tags.Any(t => t.Name == selectedTag.Name))
+                        {
+                            status.Value.States = States.HasTag;
+                        }
+                        else 
+                        {
+                            var res = await HioCloudService.AddTagToDevice(Space.Id.ToString(), selectedTag, dev);
+                            if (res)
+                            {
+                                status.Value.States = States.HasTag;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task AddDashboardForDevices()
+    {
+        Console.WriteLine("\nCreating new Customer...");
+        var newCustomer = await ThingsBoardService.CreateCustomer(new hio_dotnet.APIs.ThingsBoard.Models.CreateCustomerRequest()
+        {
+            Title = $"tmp_{Guid.NewGuid().ToString()}",
+        });
+
+        var tenantId = newCustomer.TenantId.Id;
+        var res = await ThingsBoardService.RemoveCustomer(newCustomer.Id.Id);
+
+        await SelectDashboard();
+
+        if (selectedDashboard != null && !string.IsNullOrEmpty(selectedDashboard.Name))
+        {
+            selectedDashboard.TenantId = newCustomer.TenantId;
+            selectedDashboard.Name = "New Test Dashboard";
+
+            var aliasId = Guid.NewGuid();
+            if (selectedDashboard.Configuration.EntityAliases == null)
+            {
+                selectedDashboard.Configuration.EntityAliases = new Dictionary<string, hio_dotnet.APIs.ThingsBoard.Models.Dashboards.EntityAlias>();
+            }
+            selectedDashboard.Configuration.EntityAliases.Add(aliasId.ToString(), new hio_dotnet.APIs.ThingsBoard.Models.Dashboards.EntityAlias()
+                {
+                    Id = aliasId.ToString(),
+                    Alias = "All Devices",
+                    Filter = new hio_dotnet.APIs.ThingsBoard.Models.Dashboards.AliasFilter()
+                    {
+                        EntityType = "DEVICE",
+                        ResolveMultiple = true,
+                        Type = "entityList",
+                        EntityList = newDevices.Select(d => d.Value.Id.Id.ToString()).ToList()
+                    }
+                });
+
+            foreach (var widget in selectedDashboard.Configuration.Widgets)
+            {
+                if (widget.Value.Config.Datasources == null)
+                {
+                    widget.Value.Config.Datasources = new List<hio_dotnet.APIs.ThingsBoard.Models.Dashboards.Datasource>();
+                }
+                foreach (var datasource in widget.Value.Config.Datasources)
+                {
+                    datasource.Type = "entity";
+                    datasource.DeviceId = null;
+                    datasource.Name = "all";
+                    datasource.EntityAliasId = aliasId.ToString();
+
+                }
+            }
+
+            var newDashboard = await ThingsBoardService.CreateDashboard(new APIs.ThingsBoard.Models.Dashboards.CreateDashboardRequest() {
+                        Configuration = selectedDashboard.Configuration,
+                        CustomerId = newCustomer.Id,
+                        Name = selectedDashboard.Name,
+                        TenantId = selectedDashboard.TenantId,
+                        Image = selectedDashboard.Image,
+                        Title = selectedDashboard.Title,
+                         MobileHide = selectedDashboard.MobileHide,
+                        MobileOrder = selectedDashboard.MobileOrder
+            });
+
+            if (newDashboard != null)
+            {
+                Console.WriteLine($"Dashboard created: {newDashboard.Id.Id}");
+            }
+        }
+    }
+
+    private async Task OnOpenDashboard(hio_dotnet.APIs.ThingsBoard.Models.Dashboards.Dashboard dashboard)
+    {
+        var res = await ThingsBoardService.GetDashboard(dashboard.Id.Id.ToString());
+        if (res != null)
+        {
+            selectedDashboard = res;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task SelectDashboard()
+    {
+        var result = await DialogService.OpenAsync("Select Dashboard", ds =>
+            @<RadzenStack Gap="1.5rem">
+                <RadzenStack Orientation="Orientation.Vertical">
+                    <RadzenRow>
+                        <RadzenColumn Size="9">
+                            <ThingsBoardDashboardsList ButtonName="Use Dashboard" IsActionVisible="true" OnOpenDashboard="@OnOpenDashboard" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                        <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenStack>
+            );
+
+    }
+
+}

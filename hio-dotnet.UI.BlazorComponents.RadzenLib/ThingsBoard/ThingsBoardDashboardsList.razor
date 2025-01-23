@@ -1,0 +1,64 @@
+﻿@using Services
+@using hio_dotnet.APIs.ThingsBoard.Models.Dashboards;
+
+@inject ThingsBoardService ThingsBoardService
+
+@if (ThingsBoardService.ListableDashboardResponse == null || ThingsBoardService.ListableDashboardResponse.Data == null)
+{
+    <RadzenProgressBarCircular ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+        <Template>Loading...</Template>
+    </RadzenProgressBarCircular>
+}
+else
+{
+    <RadzenDataList AllowVirtualization=@allowVirtualization Style="@(allowVirtualization ? "height:400px;overflow:auto;" : "")"
+    WrapItems="@(!allowVirtualization)" AllowPaging="@(!allowVirtualization)"
+    Data="@ThingsBoardService.ListableDashboardResponse.Data" TItem="Dashboard" PageSize="9" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
+        <Template Context="Dashboard">
+            <RadzenCard Variant="Variant.Outlined" class="rz-p-0" Style="width: 100%; overflow: hidden;">
+                <RadzenRow Gap="0">
+                    <RadzenColumn Size="8" class="rz-p-4 product-title">
+                        <RadzenText>@(Dashboard.Name)</RadzenText>
+                    </RadzenColumn>
+                    @if (IsActionVisible)
+                    {
+                        <RadzenColumn Size="4" class="rz-p-4">
+                            <RadzenButton Text="@ButtonName" Click="@(async () => await OpenDashboard(Dashboard))" Style="width: 100%" />
+                        </RadzenColumn>
+                    }
+                </RadzenRow>
+            </RadzenCard>
+        </Template>
+    </RadzenDataList>
+}
+
+<style>
+    .product-title {
+    min-height: 32px;
+    background-color: #33adad40;
+    }
+</style>
+
+@code {
+    [Parameter] public EventCallback<Dashboard> OnOpenDashboard { get; set; }
+    [Parameter] public bool IsActionVisible { get; set; }
+    [Parameter] public string ButtonName { get; set; } = "Open";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ThingsBoardService.GetAllDashboards();
+            await InvokeAsync(StateHasChanged);
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    bool allowVirtualization;
+
+    private async Task OpenDashboard(Dashboard device)
+    {
+        await OnOpenDashboard.InvokeAsync(device);
+    }
+}

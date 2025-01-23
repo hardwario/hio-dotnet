@@ -1,0 +1,45 @@
+﻿@using Services
+@using CHESTER.HioCloud.Models
+@using hio_dotnet.APIs.HioCloud.Models
+
+@inject HioCloudService HioCloudService
+
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenText Text="Tags:" />
+    </RadzenColumn>
+</RadzenRow>
+<RadzenRow Style="margin-top:1rem;">
+    <RadzenColumn>
+        <RadzenDataGrid @ref=dataGridRef AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="5" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+        Data="@Tags" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or" SelectionMode="@SelectionMode" @bind-Value=@SelectedTags>
+            <Columns>
+                <RadzenDataGridColumn Property="@nameof(HioCloudTag.Name)" Filterable="false" Title="Name" Frozen="true" Width="120px" TextAlign="TextAlign.Center" />
+                <RadzenDataGridColumn Property="@nameof(HioCloudTag.Color)" Title="Color" Frozen="true" Width="100px" />
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    [Parameter] public List<HioCloudTag> Tags { get; set; } = new List<HioCloudTag>();
+    [Parameter] public EventCallback<List<HioCloudTag>> OnSelectedTags { get; set; }
+    [Parameter] public DataGridSelectionMode SelectionMode { get; set; } = DataGridSelectionMode.Multiple;
+
+    public IList<HioCloudTag> SelectedTags = new List<HioCloudTag>();
+
+    private RadzenDataGrid<HioCloudTag> dataGridRef;
+    private Dictionary<Guid, bool> selected = new Dictionary<Guid, bool>();
+
+    public async Task AddSelectedTag(HioCloudTag tag)
+    {
+        if (!SelectedTags.Contains(tag))
+        {
+            SelectedTags.Add(tag);
+            dataGridRef.SelectRow(tag);
+        }
+        //await OnSelectedTags.InvokeAsync(SelectedTags.ToList());
+        await InvokeAsync(StateHasChanged);
+    }
+
+}

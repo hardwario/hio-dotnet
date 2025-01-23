@@ -39,6 +39,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor
             builder.Services.AddScoped<ConsoleService>();
             builder.Services.AddScoped<HioCloudService>();
             builder.Services.AddScoped<ThingsBoardService>();
+            builder.Services.AddScoped<LoadingOverlayService>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();

@@ -85,6 +85,63 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
             return await hioCloudDriver.GetAllDevicesOfSpace(Guid.Parse(spaceId));
         }
 
+        public async Task<HioCloudDevice?> GetDevice(string spaceId, string deviceId)
+        {
+            if (hioCloudDriver == null)
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "HioCloudDriver not initialized");
+                return null;
+            }
+
+            if (string.IsNullOrEmpty(spaceId))
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "SpaceId is empty");
+                return null;
+            }
+
+            if (string.IsNullOrEmpty(deviceId))
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "DeviceId is empty");
+                return null;
+            }
+
+            return await hioCloudDriver.GetDevice(Guid.Parse(spaceId), Guid.Parse(deviceId));
+        }
+
+        public async Task<List<HioCloudTag>?> LoadTags(string spaceId)
+        {
+            if (hioCloudDriver == null)
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "HioCloudDriver not initialized");
+                return null;
+            }
+
+            if (string.IsNullOrEmpty(spaceId))
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "SpaceId is empty");
+                return null;
+            }
+            var tags = await hioCloudDriver.GetTags(Guid.Parse(spaceId));
+            var space = Spaces.FirstOrDefault(s => s.Id == Guid.Parse(spaceId));
+
+            if (space != null)
+            {
+                if (space.Tags == null)
+                    space.Tags = tags ?? new List<HioCloudTag>();
+                else
+                {
+                    foreach (var tag in tags ?? new List<HioCloudTag>())
+                    {
+                        if (!space.Tags.Any(t => t.Id == tag.Id))
+                        {
+                            space.Tags.Add(tag);
+                        }
+                    }
+                }
+            }
+            return tags;
+        }
+
         public async Task<List<HioCloudMessage>?> HioCloudMessages(string spaceId, string deviceId)
         {
             if (hioCloudDriver == null)
@@ -146,7 +203,9 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
                             Id = device.Id ?? Guid.NewGuid(), 
                             SpaceId = space.Id, 
                             Name = device.Name, 
-                            SpaceName = space.Name });
+                            SerialNumber = device.SerialNumber,
+                            SpaceName = space.Name 
+                        });
                     }
                 }
             }
@@ -173,6 +232,88 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
                         });
                     }
                 }
+            }
+        }
+
+        public async Task<bool> AddTag(string spaceId, HioCloudTag tag)
+        {
+            if (hioCloudDriver == null)
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "HioCloudDriver not initialized");
+                return false;
+            }
+
+            if (tag == null)
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "Tag is empty");
+                return false;
+            }
+            var res = await hioCloudDriver.CreateTag(Guid.Parse(spaceId), tag);
+            if (res == null)
+                return false;
+            else
+            {
+                var space = Spaces.FirstOrDefault(s => s.Id == Guid.Parse(spaceId));
+                if (space != null)
+                {
+                    if (space.Tags == null)
+                        space.Tags = new List<HioCloudTag>();
+                    if (!space.Tags.Any(t => t.Id == res.Id))
+                        space.Tags.Add(res);
+                }
+                return true;
+            }
+        }
+
+        public async Task<bool> AddConnector(string spaceId, HioCloudConnector connector)
+        {
+            if (hioCloudDriver == null)
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "HioCloudDriver not initialized");
+                return false;
+            }
+
+            if (connector == null)
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "Connector is empty");
+                return false;
+            }
+            var res = await hioCloudDriver.CreateConnector(Guid.Parse(spaceId), connector);
+            if (res == null)
+                return false;
+            else
+            {
+                var space = Spaces.FirstOrDefault(s => s.Id == Guid.Parse(spaceId));
+                if (space != null)
+                {
+                    if (space.Connectors == null)
+                        space.Connectors = new List<HioCloudConnector>();
+                    if (!space.Connectors.Any(t => t.Name == res.Name))
+                        space.Connectors.Add(res);
+                }
+                return true;
+            }
+        }
+
+        public async Task<bool> AddTagToDevice(string spaceId, HioCloudTag tag, HioCloudDevice device)
+        {
+            if (hioCloudDriver == null)
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "HioCloudDriver not initialized");
+                return false;
+            }
+
+            if (tag == null)
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "Tag is empty");
+                return false;
+            }
+            var res = await hioCloudDriver.AddTagToDevice(Guid.Parse(spaceId), tag, device);
+            if (res == null)
+                return false;
+            else
+            {
+                return true;
             }
         }
     }
