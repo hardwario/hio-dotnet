@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -88,6 +88,11 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
                 IsLoggedIn = false;
                 return false;
             }
+        }
+
+        public string GetDashboardLink(string dashboardId)
+        {
+            return $"{_baseUrl}/dashboard/{dashboardId}";
         }
 
         public async Task<bool> GetDevices()

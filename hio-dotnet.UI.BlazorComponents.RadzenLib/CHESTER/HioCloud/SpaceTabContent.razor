@@ -60,7 +60,12 @@ else
         </RadzenColumn>
     </RadzenRow>
 }
-<hr />
+<hr style="margin-top:1rem;"/>
+<RadzenRow Style="margin-top:0.5rem;margin-bottom:1rem;">
+    <RadzenColumn>
+        <RadzenText Text="Create Dashboard for batch of devices:" />
+    </RadzenColumn>
+</RadzenRow>
 <HioCloudConnectDevicesWithTBSteps Space="@Space" />
 
 @code {
@@ -68,6 +73,16 @@ else
     [Parameter] public EventCallback<Device> OnOpenDeviceRequest { get; set; }
 
     private HioCloudDevicesList? devicesListRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            await LoadDevices();
+            await LoadTags();
+        }
+    }
 
     private async Task LoadDevices()
     {

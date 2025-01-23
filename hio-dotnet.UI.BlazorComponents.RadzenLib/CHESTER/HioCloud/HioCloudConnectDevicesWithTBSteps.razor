@@ -61,14 +61,14 @@
                             }
                         </RadzenColumn>
                     </RadzenRow>
-                    <RadzenRow>
+                    <RadzenRow Style="margin-top:1rem;">
                         <RadzenColumn>
-                            <RadzenButton Click="@CheckDevicesInThingsBoard" Text="Check If Devices Exists in ThingsBoard" />
+                            <RadzenButton Disabled="@(!ThingsBoardService.IsLoggedIn)" Click="@CheckDevicesInThingsBoard" Text="Check If Devices Exists in ThingsBoard" Style="width:100%;" />
                         </RadzenColumn>
                     </RadzenRow>
-                    <RadzenRow>
+                    <RadzenRow Style="margin-top:1rem;">
                         <RadzenColumn>
-                            <RadzenButton Click="@AddDevicesToThingsBoard" Text="Add Devices to ThingsBoard and obtain tokens" />
+                            <RadzenButton Disabled="@(!ThingsBoardService.IsLoggedIn)" Click="@AddDevicesToThingsBoard" Text="Add Devices to ThingsBoard and obtain tokens" Style="width:100%;" />
                         </RadzenColumn>
                     </RadzenRow>
                 </RadzenColumn>
@@ -81,9 +81,9 @@
                     <AceJsEditor @ref=acejsEditorRef  Style="height:300px" @bind-Value ="@connector" Options="opt"></AceJsEditor>
                 </RadzenColumn>
             </RadzenRow>
-            <RadzenRow>
+            <RadzenRow Style="margin-top:1rem;">
                 <RadzenColumn>
-                    <RadzenButton Click="@AddConnector" Text="Add Connector" />
+                    <RadzenButton Click="@AddConnector" Text="Add Connector" Style="width:100%;"/>
                 </RadzenColumn>
             </RadzenRow>
         </RadzenStepsItem>
@@ -113,19 +113,47 @@
                 </RadzenColumn>
             </RadzenRow>
 
-            <RadzenRow>
+            <RadzenRow Style="margin-top:1rem;">
                 <RadzenColumn>
-                    <RadzenButton Click="@AddTagToDevicesInHioCloud" Text="Add Tag to Devices In HioCloud" />
+                    <RadzenButton Click="@AddTagToDevicesInHioCloud" Text="Add Tag to Devices In HioCloud" Style="width:100%;" />
                 </RadzenColumn>
             </RadzenRow>
         </RadzenStepsItem>
         <RadzenStepsItem Text="Add Dashboard to ThingsBoard">
             <RadzenText Text="Add Dashboard to ThingsBoard" />
-            <RadzenRow>
+            <RadzenRow Style="margin-top:1rem;">
                 <RadzenColumn>
-                    <RadzenButton Click="@AddDashboardForDevices" Text="Add Dashboard for Devices In ThingsBoard" />
+                    <RadzenButton Disabled="@(!ThingsBoardService.IsLoggedIn)" Click="@AddDashboardForDevices" Text="Add Dashboard for Devices In ThingsBoard" Style="width:100%;" />
                 </RadzenColumn>
             </RadzenRow>
+            @if (createdDashboard != null)
+            {
+                <RadzenRow Style="margin-top:1rem;">
+                    <RadzenColumn>
+                        <RadzenText Text="Dashboard Created" />
+                    </RadzenColumn>
+                </RadzenRow>
+                <RadzenRow Style="margin-top:1rem;">
+                    <RadzenColumn>
+                        <RadzenText Text="@($"Name: {createdDashboard.Name}")" />
+                    </RadzenColumn>
+                </RadzenRow>
+                <RadzenRow Style="margin-top:1rem;">
+                    <RadzenColumn>
+                        <RadzenText Text="@($"Id: {createdDashboard.Id.Id}")" />
+                    </RadzenColumn>
+                </RadzenRow>
+                <RadzenRow Style="margin-top:1rem;">
+                    <RadzenColumn>
+                        <RadzenText Text="DashboardLink:" />
+                    </RadzenColumn>
+                </RadzenRow>
+                <RadzenRow Style="margin-top:0.5rem;">
+                    <RadzenColumn>
+                        <a href="@ThingsBoardService.GetDashboardLink(createdDashboard.Id.Id.ToString())">@ThingsBoardService.GetDashboardLink(createdDashboard.Id.Id.ToString())</a>
+                    </RadzenColumn>
+                </RadzenRow>
+            }
         </RadzenStepsItem>
     </Steps>
 </RadzenSteps>
@@ -169,6 +197,7 @@
     private AceEditorOptions opt = new() { IsReadOnly = false, Language = AceLanguage.sqlserver, Theme = AceTheme.sqlserver };
 
     private hio_dotnet.APIs.ThingsBoard.Models.Dashboards.Dashboard selectedDashboard = new hio_dotnet.APIs.ThingsBoard.Models.Dashboards.Dashboard();
+    private hio_dotnet.APIs.ThingsBoard.Models.Dashboards.Dashboard? createdDashboard = null;
 
     private string getConnectionTokenByDeviceId(Guid deviceId)
     {
@@ -328,7 +357,12 @@
 
     private async Task CheckDevicesInThingsBoard()
     {
-        var devices = ThingsBoardService.GetDevices();
+        if (!ThingsBoardService.IsLoggedIn)
+        {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Not Logged In", Detail = "You are not logged in to the ThingsBoard Cloud.", Duration = 4000 });
+            return;
+        }
+        var devices = await ThingsBoardService.GetDevices();
         foreach (var device in selectedDevices)
         {
             if (ThingsBoardService.DevicesListable != null && ThingsBoardService.DevicesListable.Data != null)
@@ -356,6 +390,11 @@
 
     private async Task AddDevicesToThingsBoard()
     {
+        if (!ThingsBoardService.IsLoggedIn)
+        {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Not Logged In", Detail = "You are not logged in to the ThingsBoard Cloud.", Duration = 4000 });
+            return;
+        }
         await ThingsBoardService.LoadDeviceProfiles();
         var profile = ThingsBoardService.DeviceProfiles.FirstOrDefault();
         if (profile == null)
@@ -389,7 +428,7 @@
             {
                 if (newDevice != null && device != null && newDevice.Id != null)
                 {
-                    newDevices.Add((Guid)device.Id, newDevice);
+                    newDevices.TryAdd((Guid)device.Id, newDevice);
                     status.Value.States = States.ObtainingToken;
 
                     if (newDevice != null && newDevice.Id != null)
@@ -406,6 +445,7 @@
             }
         }
 
+        CreateConnector();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -438,6 +478,7 @@
                             .WithTrigger("data")
                             .WithTag(selectedTag);
             conn.Transformation = connector;
+            /*
             var res = await HioCloudService.AddConnector(Space.Id.ToString(), conn);
                 if (res)
                 {
@@ -447,6 +488,7 @@
                 {
                 ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Add Connector failed", Detail = "Cannot create new Connector in the Hardwario Cloud.", Duration = 4000 });
             }
+        */
         }
         if (acejsEditorRef != null)
         {
@@ -489,6 +531,11 @@
 
     private async Task AddDashboardForDevices()
     {
+        if (!ThingsBoardService.IsLoggedIn)
+        {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Not Logged In", Detail = "You are not logged in to the ThingsBoard Cloud.", Duration = 4000 });
+            return;
+        }
         Console.WriteLine("\nCreating new Customer...");
         var newCustomer = await ThingsBoardService.CreateCustomer(new hio_dotnet.APIs.ThingsBoard.Models.CreateCustomerRequest()
         {
@@ -546,18 +593,26 @@
                         TenantId = selectedDashboard.TenantId,
                         Image = selectedDashboard.Image,
                         Title = selectedDashboard.Title,
-                         MobileHide = selectedDashboard.MobileHide,
+                        MobileHide = selectedDashboard.MobileHide,
                         MobileOrder = selectedDashboard.MobileOrder
             });
 
             if (newDashboard != null)
             {
+                createdDashboard = newDashboard;
                 Console.WriteLine($"Dashboard created: {newDashboard.Id.Id}");
+                ShowNotification(new NotificationMessage
+                { 
+                    Severity = NotificationSeverity.Success, 
+                    Summary = "Dashboard Created", 
+                    Detail = "Dashboard created successfully.", 
+                    Duration = 4000 
+                });
             }
         }
     }
 
-    private async Task OnOpenDashboard(hio_dotnet.APIs.ThingsBoard.Models.Dashboards.Dashboard dashboard)
+    private async Task OnOpenDashboard(hio_dotnet.APIs.ThingsBoard.Models.Dashboards.Dashboard dashboard, DialogService ds)
     {
         var res = await ThingsBoardService.GetDashboard(dashboard.Id.Id.ToString());
         if (res != null)
@@ -565,6 +620,7 @@
             selectedDashboard = res;
             await InvokeAsync(StateHasChanged);
         }
+        ds.Close(true);
     }
 
     private async Task SelectDashboard()
@@ -574,7 +630,7 @@
                 <RadzenStack Orientation="Orientation.Vertical">
                     <RadzenRow>
                         <RadzenColumn Size="9">
-                            <ThingsBoardDashboardsList ButtonName="Use Dashboard" IsActionVisible="true" OnOpenDashboard="@OnOpenDashboard" />
+                            <ThingsBoardDashboardsList ButtonName="Use Dashboard" IsActionVisible="true" OnOpenDashboard="@(async (e) => await OnOpenDashboard(e,ds))" />
                         </RadzenColumn>
                     </RadzenRow>
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
