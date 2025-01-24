@@ -121,11 +121,41 @@ namespace hio_dotnet.APIs.HioCloud.Models
                    "}";
         }
 
-        public static string GetConnectorStringMultipleDevices(Dictionary<string,string> connectionTokens, string basedomain = "https://thingsboard.hardwario.com/")
+        public static string GetConnectorStringMultipleDevices(Dictionary<string,string> connectionTokens, Dictionary<string,string> sndata = null, string basedomain = "https://thingsboard.hardwario.com/")
         {
-            var url = $"{basedomain}api/v1/";
+            var burl = basedomain;
+            if (!burl.EndsWith("/"))
+            {
+                burl += "/";
+            }
+
+            var url = $"{burl}api/v1/";
 
             var stringBuilder = new StringBuilder();
+            stringBuilder.AppendLine("\r\n");
+            if (sndata != null)
+            {
+                stringBuilder.AppendLine("\tvar new_body ={};\r\n");
+                stringBuilder.AppendLine("\t\r\n");
+                var index = 0;
+                foreach (var sn in sndata)
+                {
+                    if (index == 0)
+                    {
+                        stringBuilder.AppendLine($"\tif (sn == {sn.Key}) {{\r\n");
+                    }
+                    else
+                    {
+                        stringBuilder.AppendLine($"\telse if (sn == {sn.Key}) {{\r\n");
+                    }
+                    var data = sn.Value.Replace("var data =", "new_body =");
+                    stringBuilder.AppendLine($"\t\t{data}\r\n");
+
+                    stringBuilder.AppendLine("\t}\r\n");
+                }
+            }
+
+            stringBuilder.AppendLine("\r\n");
             stringBuilder.AppendLine("\tvar snToAccessTokenDict ={\r\n");
             var item = 0;
             foreach (var (key, value) in connectionTokens)
@@ -140,6 +170,12 @@ namespace hio_dotnet.APIs.HioCloud.Models
 
             var dictString = stringBuilder.ToString();
 
+            var bodyname = "body";
+
+            if (sndata != null)
+            {
+                bodyname = "new_body";
+            }
 
             return "function main(job) {\r\n" +
                    "    let body = job.message.body\r\n" +
@@ -148,8 +184,8 @@ namespace hio_dotnet.APIs.HioCloud.Models
                    "    body.voltage_rest = job.message.body.system.voltage_rest;\r\n" +
                    "    var accesstoken = '';\r\n" +
                         dictString     +
-                   "    accesstoken = snToAccessTokenDict[job.device.serial_number];" +
-                   "    var url = " + url + " + accesstoken + '/telemetry';" +
+                   "    accesstoken = snToAccessTokenDict[job.device.serial_number];\r\n" +
+                   "    var url = \"" + url + "\" + accesstoken + '/telemetry';\r\n" +
                    "    \r\n" +
                    "        return {\r\n" +
                    "            \"method\": \"POST\",\r\n" +
@@ -157,7 +193,7 @@ namespace hio_dotnet.APIs.HioCloud.Models
                    "            \"header\": { \r\n" +
                    "                \"Content-Type\": \"application/json\" \r\n" +
                    "            },\r\n" +
-                   "            \"data\": body\r\n" +
+                   "            \"data\": " + bodyname + "\r\n" +
                    "        }\r\n" +
                    "}";
         }

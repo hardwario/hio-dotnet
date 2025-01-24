@@ -4,6 +4,7 @@
 @using Blazor.AceEditorJs
 
 @inject HioCloudService HioCloudService
+@inject NotificationService NotificationService
 
 <h3>Connector Details</h3>
 
@@ -69,6 +70,14 @@
 
     private async Task SaveConnector()
     {
-        await HioCloudService.UpdateConnector(Connector.SpaceId ?? string.Empty, Connector);
+        var res = await HioCloudService.UpdateConnector(Connector.SpaceId ?? string.Empty, Connector);
+        if (res)
+        {
+            NotificationService.Notify(NotificationSeverity.Success, "Connector saved successfully", duration: 4000);
+        }
+        else
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Failed to save connector", duration: 4000);
+        }
     }
 }

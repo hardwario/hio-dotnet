@@ -188,7 +188,7 @@ namespace hio_dotnet.Common.Models
             return combinedData;
         }
 
-        public static string GetCombinedTimeStampDataJSCode(object data, List<string>? keysToInclude = null)
+        public static string GetCombinedTimeStampDataJSCode(object data, List<string>? keysToInclude = null, bool usemiliseconds = false)
         {
             var combinedData = GetCombinedTimeStampData(data);
             if (combinedData == null) return string.Empty;
@@ -199,7 +199,12 @@ namespace hio_dotnet.Common.Models
 
             var stringBuilder = new StringBuilder();
             stringBuilder.AppendLine("var data = {");
-            stringBuilder.AppendLine($"\t\tts: {combinedData.Timestamp},");
+
+            var ts = combinedData.Timestamp;
+            if (usemiliseconds)
+                ts *= 1000;
+
+            stringBuilder.AppendLine($"\t\tts: {ts},");
             stringBuilder.AppendLine("\t\tvalues: {");
             foreach (var val in combinedData.Values)
             {
@@ -219,7 +224,7 @@ namespace hio_dotnet.Common.Models
             return result;
         }
 
-        public static string GetTimeStampDataJSCode(object data, List<string>? keysToInclude = null)
+        public static string GetTimeStampDataJSCode(object data, List<string>? keysToInclude = null, bool usemiliseconds = false)
         {
             var combinedDataList = GetTimeStampData(data).ToList();
             if (combinedDataList == null) return string.Empty;
@@ -247,7 +252,12 @@ namespace hio_dotnet.Common.Models
                                     .ToDictionary(x => x.Key, x => x.Value);
 
                 stringBuilder.AppendLine($"\t{{");
-                stringBuilder.AppendLine($"\t\tts: {combinedData.Timestamp},");
+
+                var ts = timestamp;
+                if (usemiliseconds)
+                    ts *= 1000;
+
+                stringBuilder.AppendLine($"\t\tts: {ts},");
                 stringBuilder.AppendLine("\t\tvalues: {");
                 foreach (var val in combinedData.Values)
                 {

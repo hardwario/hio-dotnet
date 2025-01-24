@@ -489,7 +489,7 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
                     var chm2 = System.Text.Json.JsonSerializer.Deserialize(msg.Body, chm2type);
                     if (chm2 == null ) return string.Empty;
 
-                    var tsd = TimeStampFormatDataConverter.GetCombinedTimeStampDataJSCode(chm2, propsToInclude);
+                    var tsd = TimeStampFormatDataConverter.GetCombinedTimeStampDataJSCode(chm2, propsToInclude, true);
 
                     return tsd;
                 }
@@ -549,7 +549,7 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
                     var chm2 = System.Text.Json.JsonSerializer.Deserialize(msg.Body, chm2type);
                     if (chm2 == null) return string.Empty;
 
-                    var tsd = TimeStampFormatDataConverter.GetTimeStampDataJSCode(chm2, propsToInclude);
+                    var tsd = TimeStampFormatDataConverter.GetTimeStampDataJSCode(chm2, propsToInclude, true);
 
                     return tsd;
                 }

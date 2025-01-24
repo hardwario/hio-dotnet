@@ -17,9 +17,11 @@
 <RadzenSteps Change="@OnChange" SelectedIndexChanged="@OnIndexChanged" SelectedIndex="@selectedIndex" >
     <Steps>
         <RadzenStepsItem Text="Select Or Create Tag">
-            <RadzenRow>
-                <RadzenColumn>
-                    <RadzenButton Text="Create Tag" Click="@OnCreateTag" />
+            <RadzenRow Style="width:100%;">
+                <RadzenColumn Style="width:100%;">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End">
+                        <RadzenButton Text="Create Tag" Click="@OnCreateTag" />
+                    </RadzenStack>
                 </RadzenColumn>
             </RadzenRow>
             <RadzenRow>
@@ -47,12 +49,20 @@
                         <RadzenColumn>
                             @foreach(var device in selectedDevices)
                             {
+                                var state = getState(device.Id);
                                 <RadzenRow>
                                     <RadzenColumn>
                                         <RadzenText Text="@device.Name" />
                                     </RadzenColumn>
                                     <RadzenColumn>
-                                        <RadzenText Text="@getState(device.Id).ToString()" />
+                                        @if (state == States.ObtainingToken)
+                                        {
+                                            <RadzenText Text="Added, Waiting for Token" />
+                                        }
+                                        else if (state == States.HasToken)
+                                        {
+                                            <RadzenText Text="Token Obtained" />
+                                        }
                                     </RadzenColumn>
                                     <RadzenColumn>
                                         <RadzenText Text="@getConnectionTokenByDeviceId(device.Id)" />
@@ -75,6 +85,51 @@
             </RadzenRow>
         </RadzenStepsItem>
         <RadzenStepsItem Text="Check and Add the connector">
+            <RadzenText Text="Select Devices Props" />
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenStack Orientation="Orientation.Horizontal" >
+                        <RadzenLabel Text="Use Timestamp Objects" Component="useTimestamp" />
+                        <RadzenCheckBox @bind-Value="@useTimestampValues" TValue="bool" Name="useTimestamp" />
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
+            @if (useTimestampValues)
+            {
+                <RadzenRow>
+                    <RadzenColumn>
+                        <RadzenText Text="Timestamp values will be used for the connector." />
+                    </RadzenColumn>
+                </RadzenRow>
+                <RadzenRow Style="margin-top:1rem;">
+                    <RadzenColumn>
+                        @foreach (var device in selectedDevices)
+                        {
+                            var hasPropsSet = hasConnectorDataFilled(device);
+                            <RadzenRow Style="margin-top:1rem;">
+                                <RadzenColumn>
+                                    <RadzenText Text="@device.Name" />
+                                </RadzenColumn>
+                                <RadzenColumn>
+                                    @if (hasPropsSet)
+                                    {
+                                        <RadzenText Text="Props Set" />
+                                    }
+                                    else
+                                    {
+                                        <RadzenText Text="Props not set" />
+                                    }
+                                </RadzenColumn>
+                                <RadzenColumn>
+                                    <RadzenButton Text="Set Props" Click="@(async (e) => await setPropsHandler(device))" />
+                                </RadzenColumn>
+                            </RadzenRow>
+                        }
+                    </RadzenColumn>
+                </RadzenRow>
+            }
+        </RadzenStepsItem>
+        <RadzenStepsItem Text="Check and Add the connector">
             <RadzenText Text="Check and Add the connector" />
             <RadzenRow>
                 <RadzenColumn>
@@ -94,7 +149,7 @@
                     @foreach (var device in selectedDevices)
                     {
                         var status = getState(device.Id).ToString();
-                        <RadzenRow>
+                        <RadzenRow Style="margin-top:1rem;">
                             <RadzenColumn>
                                 <RadzenText Text="@device.Name" />
                             </RadzenColumn>
@@ -181,6 +236,7 @@
     private HioCloudTagsList? hioCloudTagsListRef;
     private HioCloudDevicesList? hioCloudDevicesListRef;
     private AceJsEditor? acejsEditorRef;
+    private HioCloudFlattenJSONForDevice? flatener;
 
     private HioCloudTag newTag = new HioCloudTag();
 
@@ -192,8 +248,10 @@
     private Dictionary<Guid, hio_dotnet.APIs.ThingsBoard.Models.Device> newDevices = new Dictionary<Guid, hio_dotnet.APIs.ThingsBoard.Models.Device>();
 
     private bool IsBusy = false;
+    private bool useTimestampValues = false;
 
     private string connector = string.Empty;
+    private Dictionary<Guid, string> connectorDeviceDataStructure = new Dictionary<Guid, string>();
     private AceEditorOptions opt = new() { IsReadOnly = false, Language = AceLanguage.javascript, Theme = AceTheme.twilight };
 
     private hio_dotnet.APIs.ThingsBoard.Models.Dashboards.Dashboard selectedDashboard = new hio_dotnet.APIs.ThingsBoard.Models.Dashboards.Dashboard();
@@ -215,6 +273,15 @@
             return DeviceStatusInfos[deviceId].States;
         }
         return States.None;
+    }
+
+    private bool hasConnectorDataFilled(Device device)
+    {
+        if (connectorDeviceDataStructure.ContainsKey(device.Id))
+        {
+            return !string.IsNullOrEmpty(connectorDeviceDataStructure[device.Id]);
+        }
+        return false;
     }
 
     private async Task onLoggingInHandler(bool isLoggingIn)
@@ -456,12 +523,21 @@
         {
             if (device.SerialNumber != null && DeviceStatusInfos.ContainsKey((Guid)device.Id))
             {
-                sntokens.Add(device.SerialNumber, DeviceStatusInfos[(Guid)device.Id].AccessToken);
+                sntokens.TryAdd(device.SerialNumber, DeviceStatusInfos[(Guid)device.Id].AccessToken);
+            }
+        }
+
+        var sndata = new Dictionary<string, string>();
+        foreach (var device in selectedDevices)
+        {
+            if (device.SerialNumber != null && connectorDeviceDataStructure.ContainsKey((Guid)device.Id))
+            {
+                sndata.TryAdd(device.SerialNumber, connectorDeviceDataStructure[(Guid)device.Id]);
             }
         }
 
         // create connector for hio cloud
-        connector = HioCloudConnector.GetConnectorStringMultipleDevices(sntokens, "http://localhost:8080");
+        connector = HioCloudConnector.GetConnectorStringMultipleDevices(sntokens, sndata, "http://localhost:8080");
     }
 
     private async Task AddConnector()
@@ -478,17 +554,17 @@
                             .WithTrigger("data")
                             .WithTag(selectedTag);
             conn.Transformation = connector;
-            /*
+            
             var res = await HioCloudService.AddConnector(Space.Id.ToString(), conn);
-                if (res)
-                {
+            if (res)
+            {
                 ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Add Connector Successfull", Detail = "Created new Connector in the Hardwario Cloud.", Duration = 4000 });
-                }
-                else
-                {
+            }
+            else
+            {
                 ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Add Connector failed", Detail = "Cannot create new Connector in the Hardwario Cloud.", Duration = 4000 });
             }
-        */
+        
         }
         if (acejsEditorRef != null)
         {
@@ -638,8 +714,38 @@
                     </RadzenStack>
                 </RadzenStack>
             </RadzenStack>
-            );
+    );
 
+    }
+
+    private async Task SavePropsForDevice(Device device, DialogService ds)
+    {
+        var conndata = flatener?.GetConnectorData();
+        if (!string.IsNullOrEmpty(conndata))
+        {
+            connectorDeviceDataStructure.TryAdd(device.Id, conndata);
+        }
+
+        ds.Close(true);
+    }
+
+    private async Task setPropsHandler(Device device)
+    {
+        var result = await DialogService.OpenAsync("Select Properties", ds =>
+            @<RadzenStack Gap="1.5rem">
+                <RadzenStack Orientation="Orientation.Vertical">
+                    <RadzenRow>
+                        <RadzenColumn>
+                            <HioCloudFlattenJSONForDevice @ref=flatener Device="@device" HasTitle="true" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                        <RadzenButton Text="Ok" Click="@(async () => await SavePropsForDevice(device, ds))" ButtonStyle="ButtonStyle.Light" />
+                        <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenStack>
+                   ,new DialogOptions() { Resizable = true, Style="width:100%;" } );
     }
 
 }
