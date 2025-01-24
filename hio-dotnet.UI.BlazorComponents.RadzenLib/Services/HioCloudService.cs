@@ -394,26 +394,27 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
             }
         }
 
-        public async Task<List<string>> GetPropertiesNamesForDeviceMessage(string spaceId, string deviceId)
+        public async Task<Tuple<Type, List<string>>> GetPropertiesNamesForDeviceMessage(string spaceId, string deviceId, Type? type, bool useForcedType = false)
         {
             if (hioCloudDriver == null)
             {
                 _notificationService.Notify(NotificationSeverity.Error, "HioCloudDriver not initialized");
-                return new List<string>();
+                return new Tuple<Type, List<string>>(typeof(ChesterCommonCloudMessage), new List<string>());
             }
             if (string.IsNullOrEmpty(deviceId))
             {
                 _notificationService.Notify(NotificationSeverity.Error, "DeviceId is empty");
-                return new List<string>();
+                return new Tuple<Type, List<string>>(typeof(ChesterCommonCloudMessage), new List<string>());
             }
             var msgs = await hioCloudDriver.GetAllDeviceMessages(Guid.Parse(spaceId), Guid.Parse(deviceId), 1);
 
             if (msgs != null)
             {
                 var msg = msgs.FirstOrDefault();
-                if (msg == null) return new List<string>();
+                if (msg == null) return new Tuple<Type, List<string>>(typeof(ChesterCommonCloudMessage), new List<string>());
 
-                var chm2type = ChesterCloudMessageAutoIdentifier.FindTypeByMessageStructure(msg.Body);
+                var chm2type = SetType(type, msg, useForcedType);
+
                 try
                 {
                     var chm2 = System.Text.Json.JsonSerializer.Deserialize(msg.Body, chm2type);
@@ -431,18 +432,18 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
                         }
                     }
 
-                    return names;
+                    return new Tuple<Type, List<string>>(chm2type, names);
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
                 }
             }
-            return new List<string>();
+            return new Tuple<Type, List<string>>(typeof(ChesterCommonCloudMessage), new List<string>());
 
         }
 
-        public async Task<string> GetPropertiesTimestampFormatJSCode(string spaceId, string deviceId, List<string>? propsToInclude = null)
+        public async Task<string> GetPropertiesTimestampFormatJSCode(string spaceId, string deviceId, List<string>? propsToInclude = null, Type? type = null, bool useForcedType = false)
         {
             if (hioCloudDriver == null)
             {
@@ -459,7 +460,7 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
             var device = Spaces.SelectMany(s => s.Devices).FirstOrDefault(d => d.Id == Guid.Parse(deviceId));
             if (device != null && device.PropsToInclude != null && device.PropsToInclude.Count == 0)
             {
-                _ = await GetPropertiesNamesForDeviceMessage(spaceId, deviceId);
+                _ = await GetPropertiesNamesForDeviceMessage(spaceId, deviceId, null);
             }
 
             if (device != null) {
@@ -481,7 +482,8 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
                 var msg = msgs.FirstOrDefault();
                 if (msg == null) return string.Empty;
 
-                var chm2type = ChesterCloudMessageAutoIdentifier.FindTypeByMessageStructure(msg.Body);
+                var chm2type = SetType(type, msg, useForcedType);
+
                 try
                 {
                     var chm2 = System.Text.Json.JsonSerializer.Deserialize(msg.Body, chm2type);
@@ -500,7 +502,7 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
 
         }
 
-        public async Task<string> GetPropertiesTimestampFormatJSCodeSplitted(string spaceId, string deviceId, List<string>? propsToInclude = null)
+        public async Task<string> GetPropertiesTimestampFormatJSCodeSplitted(string spaceId, string deviceId, List<string>? propsToInclude = null, Type? type = null, bool useForcedType = false)
         {
             if (hioCloudDriver == null)
             {
@@ -517,7 +519,7 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
             var device = Spaces.SelectMany(s => s.Devices).FirstOrDefault(d => d.Id == Guid.Parse(deviceId));
             if (device != null && device.PropsToInclude != null && device.PropsToInclude.Count == 0)
             {
-                _ = await GetPropertiesNamesForDeviceMessage(spaceId, deviceId);
+                _ = await GetPropertiesNamesForDeviceMessage(spaceId, deviceId, null);
             }
 
             if (device != null)
@@ -540,7 +542,8 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
                 var msg = msgs.FirstOrDefault();
                 if (msg == null) return string.Empty;
 
-                var chm2type = ChesterCloudMessageAutoIdentifier.FindTypeByMessageStructure(msg.Body);
+                var chm2type = SetType(type, msg, useForcedType);
+
                 try
                 {
                     var chm2 = System.Text.Json.JsonSerializer.Deserialize(msg.Body, chm2type);
@@ -557,6 +560,28 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
             }
             return string.Empty;
 
+        }
+
+        private Type? SetType(Type? type, HioCloudMessage msg, bool useForcedType)
+        {
+            Type? chm2type;
+            if (!useForcedType)
+            {
+                chm2type = ChesterCloudMessageAutoIdentifier.FindTypeByMessageStructure(msg.Body);
+            }
+            else
+            {
+                if (type == null)
+                {
+                    chm2type = ChesterCloudMessageAutoIdentifier.FindTypeByMessageStructure(msg.Body);
+                }
+                else
+                {
+                    chm2type = type;
+                }
+            }
+
+            return chm2type;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿@using Services
 @using CHESTER.HioCloud.Models
 @using Blazor.AceEditorJs
+@using hio_dotnet.Common.Models
 
 @inject HioCloudService HioCloudService
 
@@ -61,9 +62,29 @@ else
                 <RadzenButton Text="Unselect All" Click="@onUnselectAllHandler" Size="ButtonSize.Small" Style="width:100%;" />
             </RadzenColumn>
         </RadzenRow>
+        <RadzenRow Style="margin-top:1rem;">
+            <RadzenColumn>
+                <RadzenText Text="@($"Used class type: {typeOfHioMessage.Name}")" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow Style="margin-top:1rem;">
+            <RadzenColumn Size="9">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Gap="0.5rem">
+                    <RadzenLabel Text="Class" Component="DropDownBindValue" />
+                    <RadzenDropDown TValue="Type" Value=@forcedTypeOfHioMessage TextProperty="@nameof(Type.Name)" ValueChanged="@onForcedTypeOfHioMessageChangedHandler" Data=@allAvailableTypes Style="width: 100%; max-width: 400px;" Name="DropDownBindValue">
+                        <Template>
+                            @((context as Type).Name)
+                        </Template>
+                    </RadzenDropDown>
+                </RadzenStack>
+            </RadzenColumn>
+            <RadzenColumn Size="3">
+                <RadzenButton Text="Reset" Click="@ResetForcedType" Size="ButtonSize.Small" Style="width:100%;margin-top:0.25rem;" />
+            </RadzenColumn>
+        </RadzenRow>
         <RadzenRow>
             <RadzenColumn>
-                <HioCloudMessagePropsList @ref=hioCloudMessagePropsListRef Device="@Device" OnValueChanged="@onValueChanged" />
+                <HioCloudMessagePropsList @ref=hioCloudMessagePropsListRef Device="@Device" OnValueChanged="@onValueChanged" OnTypeFound="@onTypeFoundHandler" />
             </RadzenColumn>
         </RadzenRow>
     </RadzenColumn>
@@ -109,6 +130,18 @@ else
     private string? connector = null;
     private AceEditorOptions opt = new() { IsReadOnly = false, Language = AceLanguage.javascript, Theme = AceTheme.twilight };
     private System.Timers.Timer timer = new System.Timers.Timer(200);
+    private Type typeOfHioMessage = typeof(ChesterCommonCloudMessage);
+    private Type forcedTypeOfHioMessage = typeof(ChesterCommonCloudMessage);
+
+    private List<Type> allAvailableTypes = new List<Type>();
+
+    private bool forceType = false;
+
+    protected override void OnParametersSet()
+    {
+        allAvailableTypes = hio_dotnet.Common.Models.CatalogApps.ChesterCloudMessageFactory.GetAllPossibleTypes();
+        base.OnParametersSet();
+    }
 
     private void onConnectorValueChanged(string value)
     {
@@ -157,9 +190,14 @@ else
         await RefreshConnector();
     }
 
-    private async Task RefreshConnector()
+    private async Task RefreshConnector(Type? type = null)
     {
         string res = null;
+
+        if (type == null && forceType)
+        {
+            type = forcedTypeOfHioMessage;
+        }
 
         if (parseVersion == ParseVersion.OneObject)
         {
@@ -168,7 +206,9 @@ else
                                                 Device.Id.ToString(),
                                                 Device.PropsToInclude.Where(i => i.Value)
                                                                      .Select(t => t.Key)
-                                                                     .ToList());
+                                                                     .ToList(), 
+                                                                     type, 
+                                                                     forceType);
         }
         else if (parseVersion == ParseVersion.SplitObjects)
         {
@@ -177,7 +217,9 @@ else
                                                 Device.Id.ToString(),
                                                 Device.PropsToInclude.Where(i => i.Value)
                                                                      .Select(t => t.Key)
-                                                                     .ToList());
+                                                                     .ToList(), 
+                                                                     type, 
+                                                                     forceType);
         }
 
         if (res != null)
@@ -208,7 +250,7 @@ else
         await RefreshConnector();
         if (hioCloudMessagePropsListRef != null)
         {
-            await hioCloudMessagePropsListRef.Refresh();
+            await hioCloudMessagePropsListRef.Refresh(null);
         }
     }
 
@@ -222,7 +264,41 @@ else
         await RefreshConnector();
         if (hioCloudMessagePropsListRef != null)
         {
-            await hioCloudMessagePropsListRef.Refresh();
+            await hioCloudMessagePropsListRef.Refresh(null);
+        }
+    }
+
+    private async Task onTypeFoundHandler(Type type)
+    {
+        if (type != null && type != typeOfHioMessage)
+        {
+            typeOfHioMessage = type;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task onForcedTypeOfHioMessageChangedHandler(Type type)
+    {
+        if (type != null && type != forcedTypeOfHioMessage)
+        {
+            forcedTypeOfHioMessage = type;
+            forceType = true;
+            await RefreshConnector(forcedTypeOfHioMessage);
+            if (hioCloudMessagePropsListRef != null)
+            {
+                await hioCloudMessagePropsListRef.Refresh(forcedTypeOfHioMessage);
+            }
+        }
+    }
+
+    private async Task ResetForcedType()
+    {
+        forceType = false;
+        forcedTypeOfHioMessage = typeOfHioMessage;
+        await RefreshConnector(typeOfHioMessage);
+        if (hioCloudMessagePropsListRef != null)
+        {
+            await hioCloudMessagePropsListRef.Refresh(typeOfHioMessage);
         }
     }
 }

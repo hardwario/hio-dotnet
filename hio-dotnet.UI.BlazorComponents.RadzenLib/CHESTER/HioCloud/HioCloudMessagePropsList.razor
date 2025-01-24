@@ -1,5 +1,6 @@
 ﻿@using CHESTER.HioCloud.Models
 @using Services
+@using hio_dotnet.Common.Models
 
 @inject HioCloudService HioCloudService
 
@@ -30,35 +31,49 @@
 @code {
     [Parameter] public Device Device { get; set; } = new Device();
     [Parameter] public EventCallback<KeyValuePair<string, bool>> OnValueChanged { get; set; }
+    [Parameter] public EventCallback<Type> OnTypeFound { get; set; }
     [Parameter] public string Title { get; set; } = "Message Properties";
     [Parameter] public bool HasTitle { get; set; } = false;
 
     public Dictionary<string, bool> PropsToInclude => HioCloudService.Spaces.FirstOrDefault(s => s.Id == Device.SpaceId)?.Devices.FirstOrDefault(d => d.Id == Device.Id)?.PropsToInclude ?? new Dictionary<string, bool>();
     private RadzenDataGrid<KeyValuePair<string,bool>>? dataGridRef;
+    private Type typeOfHioMessage = typeof(ChesterCommonCloudMessage);
 
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
-
         if (Device.PropsToInclude.Count == 0)
         {
-            var list = await HioCloudService.GetPropertiesNamesForDeviceMessage(Device.SpaceId.ToString(), Device.Id.ToString());
-            foreach (var item in list)
+            await LoadValues(null);
+        }
+    }
+
+    private async Task LoadValues(Type? type)
+    {
+        var res = await HioCloudService.GetPropertiesNamesForDeviceMessage(Device.SpaceId.ToString(), Device.Id.ToString(), type, true);
+        var list = res.Item2;
+
+        if (res.Item1 != null)
+        {
+            typeOfHioMessage = res.Item1;
+            await OnTypeFound.InvokeAsync(res.Item1);
+        }
+
+        foreach (var item in list)
+        {
+            if (!Device.PropsToInclude.ContainsKey(item))
             {
-                if (!Device.PropsToInclude.ContainsKey(item))
-                {
-                    Device.PropsToInclude.Add(item, true);
-                }
-                var sp = HioCloudService.Spaces.Where(s => s.Id == Device.SpaceId).First();
-                var devs = sp?.Devices?.Where(d => d.Id == Device.Id).First();
-                if (devs != null && !devs.PropsToInclude.ContainsKey(item))
-                {
-                    devs.PropsToInclude.Add(item, true);
-                }
-                if (dataGridRef != null)
-                {
-                    await dataGridRef.Reload();
-                }
+                Device.PropsToInclude.Add(item, true);
+            }
+            var sp = HioCloudService.Spaces.Where(s => s.Id == Device.SpaceId).First();
+            var devs = sp?.Devices?.Where(d => d.Id == Device.Id).First();
+            if (devs != null && !devs.PropsToInclude.ContainsKey(item))
+            {
+                devs.PropsToInclude.Add(item, true);
+            }
+            if (dataGridRef != null)
+            {
+                await dataGridRef.Reload();
             }
         }
     }
@@ -79,10 +94,15 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task Refresh()
+    public async Task Refresh(Type? type)
     {
         if (dataGridRef != null)
         {
+            if (type != null && type != typeOfHioMessage)
+            {
+                typeOfHioMessage = type;
+                await LoadValues(type);
+            }
             await dataGridRef.Reload();
         }
         await InvokeAsync(StateHasChanged);
