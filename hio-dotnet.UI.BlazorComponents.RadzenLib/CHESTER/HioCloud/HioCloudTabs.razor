@@ -13,7 +13,7 @@
                         var tab = HioCloudService.Tabs[i];
                         @if (tab.Visible)
                         {
-                            <RadzenTabsItem>
+                            <RadzenTabsItem Style="height:100%;">
                                 <Template>
                                     <span style="display: flex; gap: 6px;">
                                         @(GetTabTitle(tab.Title))
@@ -21,7 +21,7 @@
                                     </span>
                                 </Template>
                                 <ChildContent>
-                                    <RadzenCard>
+                                    <RadzenCard Style="height:100%;">
                                         @if (tab.Content != null)
                                         {
                                             @tab.Content
@@ -47,11 +47,15 @@
 
     public string GetTabTitle(string title)
     {
-        if (title.Length > 12)
+        if (title != null)
         {
-            title = title.Substring(0, 12) + "...";
+            if (title.Length > 12)
+            {
+                title = title.Substring(0, 12) + "...";
+            }
+            return title;
         }
-        return title;
+        return string.Empty;
     }
 
     private async Task onOpenMessageRequestHandler(Message message)
@@ -78,6 +82,18 @@
         await AddTab(tab);
     }
 
+    private async Task onOpenConnectorRequestHandler(hio_dotnet.APIs.HioCloud.Models.HioCloudConnector connector)
+    {
+        var tab = new OpenedTab
+                {
+                    Id = Guid.NewGuid(),
+                    Title = connector.Name ?? string.Empty,
+                    Type = OpenedTabType.Connector,
+                    Data = connector
+                };
+        await AddTab(tab);
+    }
+
     public async Task AddTab(OpenedTab tab)
     {
         if (HioCloudService.Tabs.Any(t => t.Id == tab.Id))
@@ -94,10 +110,15 @@
         }
         else if (tab.Type == OpenedTabType.Space)
         {
-            tab.Content = @<SpaceTabContent Space="@(tab.Data as Space)" OnOpenDeviceRequest="@onOpenDeviceRequestHandler" />;
+            tab.Content = @<SpaceTabContent Space="@(tab.Data as Space)" OnOpenDeviceRequest="@onOpenDeviceRequestHandler" OnOpenConnectorRequest="@onOpenConnectorRequestHandler" />;
+        }
+        else if (tab.Type == OpenedTabType.Connector)
+        {
+            tab.Content = @<HioCloudConnectorTabContent Connector="@(tab.Data as hio_dotnet.APIs.HioCloud.Models.HioCloudConnector)" />;
         }
 
         HioCloudService.Tabs.Add(tab);
+
         SelectedIndex = HioCloudService.Tabs.Count - 1;
         await InvokeAsync(StateHasChanged);
     }

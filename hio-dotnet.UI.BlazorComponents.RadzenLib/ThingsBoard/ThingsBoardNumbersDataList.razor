@@ -1,0 +1,43 @@
+﻿@using Models
+
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenText Text="@Key.Key" />
+    </RadzenColumn>
+</RadzenRow>
+
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenText Text="@($"Min: {Key.Min.ToString()}")" />
+    </RadzenColumn>
+
+    <RadzenColumn>
+        <RadzenText Text="@($"Max: {Key.Max.ToString()}")" />
+    </RadzenColumn>
+
+    <RadzenColumn>
+        <RadzenText Text="@($"Avg: {Key.Average.ToString()}")" />
+    </RadzenColumn>
+</RadzenRow>
+
+@if (Key.DataPoints != null)
+{
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenListBox Data="@Key.DataPoints" TValue="DataPoint" TextProperty="complete" Style="width: 100%; max-width: 400px; height: 200px">
+                <Template>
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <RadzenText Text="@((context as DataPoint).date)" />
+                        <RadzenText Text="@("-  " + (context as DataPoint).value.ToString())" />
+
+
+                    </RadzenStack>
+                </Template>
+            </RadzenListBox>
+
+        </RadzenColumn>
+    </RadzenRow>
+}
+@code {
+    [Parameter] public KeyToCheck Key { get; set; } = new KeyToCheck();
+}

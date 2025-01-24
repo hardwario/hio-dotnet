@@ -37,14 +37,74 @@ else
 {
     <RadzenRow Style="margin-top:2rem;">
         <RadzenColumn>
-            <HioCloudDevicesList Devices="@Space.Devices" OnOpenDeviceRequest="async (m) => await OnOpenDeviceRequest.InvokeAsync(m)" />
+            <HioCloudDevicesList @ref=devicesListRef Devices="@Space.Devices" OnOpenDeviceRequest="async (m) => await OnOpenDeviceRequest.InvokeAsync(m)" />
         </RadzenColumn>
     </RadzenRow>
 }
 
+@if (Space.Tags.Count == 0)
+{
+    <RadzenRow Style="margin-top:2rem;">
+        <RadzenColumn>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                <RadzenButton Text="Try To load Tags" Click="@LoadTags" />
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+}
+else
+{
+    <RadzenRow Style="margin-top:2rem;">
+        <RadzenColumn>
+            <HioCloudTagsList Tags="@Space.Tags" />
+        </RadzenColumn>
+    </RadzenRow>
+}
+
+@if (Space.Connectors.Count == 0)
+{
+    <RadzenRow Style="margin-top:2rem;">
+        <RadzenColumn>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                <RadzenButton Text="Try To load Connectors" Click="@LoadConnectors" />
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+}
+else
+{
+    <RadzenRow Style="margin-top:2rem;">
+        <RadzenColumn>
+            <HioCloudConnectorsList Connectors="@Space.Connectors" SpaceId="@Space.Id.ToString()" OnOpenConnectorRequest="(async (e) => await OnOpenConnectorRequest.InvokeAsync(e))" />
+        </RadzenColumn>
+    </RadzenRow>
+}
+
+<hr style="margin-top:1rem;"/>
+<RadzenRow Style="margin-top:0.5rem;margin-bottom:1rem;">
+    <RadzenColumn>
+        <RadzenText Text="Create Dashboard for batch of devices:" />
+    </RadzenColumn>
+</RadzenRow>
+<HioCloudConnectDevicesWithTBSteps Space="@Space" />
+
 @code {
     [Parameter] public Space Space { get; set; } = new Space();
     [Parameter] public EventCallback<Device> OnOpenDeviceRequest { get; set; }
+    [Parameter] public EventCallback<hio_dotnet.APIs.HioCloud.Models.HioCloudConnector> OnOpenConnectorRequest { get; set; }
+
+    private HioCloudDevicesList? devicesListRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            await LoadDevices();
+            await LoadTags();
+            await LoadConnectors();
+        }
+    }
 
     private async Task LoadDevices()
     {
@@ -52,6 +112,20 @@ else
 
         Space.Devices = HioCloudService.Spaces.Where(s => s.Id == Space.Id).First().Devices.ToList();
 
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadTags()
+    {
+        await HioCloudService.LoadTags(Space.Id.ToString());
+        Space.Tags = HioCloudService.Spaces.Where(s => s.Id == Space.Id).First().Tags.ToList();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadConnectors()
+    {
+        await HioCloudService.LoadConnectors(Space.Id.ToString());
+        Space.Connectors = HioCloudService.Spaces.Where(s => s.Id == Space.Id).First().Connectors.ToList();
         await InvokeAsync(StateHasChanged);
     }
 }

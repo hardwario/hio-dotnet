@@ -1,0 +1,37 @@
+﻿@using hio_dotnet.Common.Models
+
+<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Gap="0.5rem">
+    @if (HasTitle)
+    {
+        <RadzenLabel Text="@Title" Component="DropDownBindValue" />
+    }
+    <RadzenDropDown TValue="Type" Value=@Value TextProperty="@nameof(Type.Name)" ValueChanged="@onValueChangedHandler" Data=@AllAvailableTypes Style="width: 100%; max-width: 400px;" Name="DropDownBindValue">
+        <Template>
+            @((context as Type).Name)
+        </Template>
+    </RadzenDropDown>
+</RadzenStack>
+
+@code {
+    [Parameter] public Type Value { get; set; } = typeof(ChesterCommonCloudMessage);
+    [Parameter] public EventCallback<Type> ValueChanged { get; set; }
+    [Parameter] public bool HasTitle { get; set; } = false;
+    [Parameter] public string Title { get; set; } = "Message Type";
+
+    public List<Type> AllAvailableTypes = new List<Type>();
+
+    protected override Task OnParametersSetAsync()
+    {
+        AllAvailableTypes = hio_dotnet.Common.Models.CatalogApps.ChesterCloudMessageFactory.GetAllPossibleTypes();
+        return base.OnParametersSetAsync();
+    }
+
+    private async Task onValueChangedHandler(Type type)
+    {
+        if (type != null && Value != type)
+        {
+            Value = type;
+            await ValueChanged.InvokeAsync(type);
+        }
+    }
+}

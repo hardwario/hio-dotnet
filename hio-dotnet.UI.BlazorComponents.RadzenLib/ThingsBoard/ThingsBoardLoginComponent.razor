@@ -4,6 +4,7 @@
 @inject DialogService DialogService
 @inject ThingsBoardService ThingsBoardService
 @inject NotificationService NotificationService
+@inject LoadingOverlayService LoadingOverlayService
 @inject IJSRuntime JSRuntime
 
 @if (!ThingsBoardService.IsLoggedIn)
@@ -77,6 +78,7 @@ else
 
         if (result == true)
         {
+            LoadingOverlayService.Show();
             if (OnLoggingIn.HasDelegate)
             {
                 await OnLoggingIn.InvokeAsync(true);
@@ -88,12 +90,14 @@ else
             if (!ThingsBoardService.IsLoggedIn)
             {
                 ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Login failed", Detail = "Cannot login to the cloud.", Duration = 4000 });
+                LoadingOverlayService.Hide();
             }
             else
             {
                 ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Login Successfull", Detail = "Logged to the Hardwario Cloud.", Duration = 4000 });
                 await InvokeAsync(StateHasChanged);
                 await OnLoggedIn.InvokeAsync(true);
+                LoadingOverlayService.Hide();
             }
         }
     }

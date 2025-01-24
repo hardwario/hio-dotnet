@@ -1052,6 +1052,85 @@ namespace hio_dotnet.APIs.ThingsBoard
 
         #region Dashboards
 
+        public async Task<ListableDashboardResponse?> GetTenantDashboardsAsync(int pageSize = 20, int page = 0, string jwtToken = "")
+        {
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                jwtToken = _jwtToken;
+            }
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                throw new ArgumentException("JWT token cannot be empty. If you do not know JWT token use constructor with Username and Password to obtain JWT token automatically.");
+            }
+
+            using (var httpClient = new HttpClient())
+            {
+                httpClient.BaseAddress = new System.Uri(_baseUrl);
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var url = $"/api/tenant/dashboards?pageSize={pageSize}&page={page}&sortProperty=createdTime&sortOrder=DESC";
+
+                try
+                {
+                    var response = await httpClient.GetAsync(url);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding device. Response: {cnt}");
+                    }
+                    response.EnsureSuccessStatusCode();
+
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<ListableDashboardResponse>(responseBody) ?? null;
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while creating a customer.", ex);
+                }
+            }
+        }
+
+        public async Task<Dashboard?> GetTenantDashboardAsync(string dashboardId, string jwtToken = "")
+        {
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                jwtToken = _jwtToken;
+            }
+            if (string.IsNullOrEmpty(jwtToken))
+            {
+                throw new ArgumentException("JWT token cannot be empty. If you do not know JWT token use constructor with Username and Password to obtain JWT token automatically.");
+            }
+
+            using (var httpClient = new HttpClient())
+            {
+                httpClient.BaseAddress = new System.Uri(_baseUrl);
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var url = $"/api/dashboard/{dashboardId}";
+
+                try
+                {
+                    var response = await httpClient.GetAsync(url);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding device. Response: {cnt}");
+                    }
+                    response.EnsureSuccessStatusCode();
+
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<Dashboard>(responseBody) ?? null;
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while creating a customer.", ex);
+                }
+            }
+        }
+
+
         /// <summary>
         /// Create a new dashboard in ThingsBoard.
         /// </summary>

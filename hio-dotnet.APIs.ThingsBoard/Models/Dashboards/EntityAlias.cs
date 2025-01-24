@@ -16,10 +16,11 @@ namespace hio_dotnet.APIs.ThingsBoard.Models.Dashboards
         [JsonPropertyName("alias")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Alias { get; set; }
-        
+
         [JsonPropertyName("filter")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public AliasFilter? Filter { get; set; }
+
 
     }
 }

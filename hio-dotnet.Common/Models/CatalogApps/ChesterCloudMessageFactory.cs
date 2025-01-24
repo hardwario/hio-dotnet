@@ -92,6 +92,31 @@ namespace hio_dotnet.Common.Models.CatalogApps
         }
 
         /// <summary>
+        /// Get List of all types in the factory.
+        /// </summary>
+        /// <returns></returns>
+        public static List<Type> GetAllPossibleTypes()
+        {
+            List<Type> types = new List<Type>();
+            DeviceType type = DeviceType.None;
+            foreach (var t in Enum.GetValues(typeof(DeviceType)))
+            {
+                type = (DeviceType)t;
+                if (type == DeviceType.None)
+                    continue;
+                var c = GetChesterEmptyMessage(type);
+                if (c != null)
+                {
+                    if (!types.Contains(c.GetType()))
+                        types.Add(c.GetType());
+                }
+
+            }
+
+            return types;
+        }
+
+        /// <summary>
         /// Get Chester message with simulated data based on the device type
         /// </summary>
         /// <param name="deviceType"></param>

@@ -294,7 +294,7 @@ namespace hio_dotnet.APIs.HioCloud
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="Exception"></exception>
         public async Task<List<HioCloudDevice>?> GetAllDevicesOfSpace(Guid space_id, 
-                                                                       int num_of_items = 20, 
+                                                                       int num_of_items = 40, 
                                                                        string filter_logic = "any", 
                                                                        string sort_by = "id", 
                                                                        string order_by = "asc", 
@@ -435,7 +435,42 @@ namespace hio_dotnet.APIs.HioCloud
                 }
                 catch (HttpRequestException ex)
                 {
-                    throw new Exception("An error occurred while fetching spaces data.", ex);
+                    throw new Exception("An error occurred while creating device.", ex);
+                }
+            }
+        }
+
+        public async Task<HioCloudDevice?> UpdateDevice(Guid space_id, Guid device_id, HioCloudDeviceUpdateRequest devupdate)
+        {
+            using (var httpClient = GetHioClient())
+            {
+                var url = $"/v2/spaces/{space_id}/devices/{device_id}";
+
+                var content = new StringContent(JsonSerializer.Serialize(devupdate), Encoding.UTF8, "application/json");
+
+                try
+                {
+                    var response = await httpClient.PutAsync(url, content);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding tag. Response: {cnt}");
+                    }
+                    CheckResponse(response);
+
+                    try
+                    {
+                        var dev = System.Text.Json.JsonSerializer.Deserialize<HioCloudDevice?>(cnt);
+                        return dev;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("Cannot deserialize data from the response to the HioCloudDevice class.", ex);
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while updating device.", ex);
                 }
             }
         }
@@ -462,7 +497,7 @@ namespace hio_dotnet.APIs.HioCloud
         /// <exception cref="Exception"></exception>
         public async Task<List<HioCloudMessage>?> GetAllDeviceMessages(Guid space_id,
                                                                          Guid device_id,
-                                                                         int num_of_items = 20,
+                                                                         int num_of_items = 30,
                                                                          string offset_message_id = "",
                                                                          string direction = "",
                                                                          string tag_id = "",
@@ -697,14 +732,196 @@ namespace hio_dotnet.APIs.HioCloud
                 }
                 catch (HttpRequestException ex)
                 {
-                    throw new Exception("An error occurred while fetching spaces data.", ex);
+                    throw new Exception("An error occurred while creating tag.", ex);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Get all tags in space
+        /// </summary>
+        /// <param name="space_id">Guid of space</param>
+        /// <returns>Device</returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<List<HioCloudTag>?> GetTags(Guid space_id, int num_of_items = 100)
+        {
+
+            using (var httpClient = GetHioClient())
+            {
+                var url = $"/v2/spaces/{space_id}/tags?limit={num_of_items}";
+
+                try
+                {
+                    var response = await httpClient.GetAsync(url);
+                    var cnt = response.Content.ReadAsStringAsync().Result;
+
+                    CheckResponse(response);
+
+                    var device = System.Text.Json.JsonSerializer.Deserialize<List<HioCloudTag>?>(cnt);
+                    return device;
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while getting tags in space.", ex);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get all tags in space
+        /// </summary>
+        /// <param name="space_id">Guid of space</param>
+        /// <returns>Device</returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<HioCloudTag?> GetTag(Guid space_id, Guid tag_id)
+        {
+
+            using (var httpClient = GetHioClient())
+            {
+                var url = $"/v2/spaces/{space_id}/tags{tag_id}";
+
+                try
+                {
+                    var response = await httpClient.GetAsync(url);
+                    var cnt = response.Content.ReadAsStringAsync().Result;
+
+                    CheckResponse(response);
+
+                    var device = System.Text.Json.JsonSerializer.Deserialize<HioCloudTag?>(cnt);
+                    return device;
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while getting tag.", ex);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Add existing tag to exiting device
+        /// </summary>
+        /// <param name="space_id"></param>
+        /// <param name="device_id"></param>
+        /// <param name="tag"></param>
+        /// <param name="devupdate"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<bool> AddTagToDevice(Guid space_id, HioCloudTag tag, HioCloudDevice? device)
+        {
+            if (device == null)
+                throw new ArgumentException("AddTagToDevice>>Device cannot be null.");
+            try
+            {
+                if (!device.Tags.Any(t => t.Id == tag.Id))
+                {
+                    device.Tags.Add(tag);
+                }
+
+                var devupdate = new HioCloudDeviceUpdateRequest()
+                {
+                    Comment = device.Comment,
+                    Name = device.Name,
+                    Label = device.Label,
+                    Tags = device.Tags
+                };
+
+                var dev = await UpdateDevice(space_id,(Guid)device.Id, devupdate);
+                if (dev != null)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new Exception("An error occurred while adding tag to device.", ex);
             }
         }
 
         #endregion
 
         #region Connectors
+
+        /// <summary>
+        /// Get All connectors in the space
+        /// </summary>
+        /// <param name="space_id"></param>
+        /// <param name="num_of_items"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<List<HioCloudConnector>?> GetConnectors(Guid space_id, int num_of_items = 100)
+        {
+
+            using (var httpClient = GetHioClient())
+            {
+                var url = $"/v2/spaces/{space_id}/connectors?limit={num_of_items}";
+
+                try
+                {
+                    var response = await httpClient.GetAsync(url);
+                    var cnt = response.Content.ReadAsStringAsync().Result;
+
+                    CheckResponse(response);
+
+                    try
+                    {
+                        var device = System.Text.Json.JsonSerializer.Deserialize<List<HioCloudConnector>?>(cnt);
+                        return device;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Cannot deserialize data from the response to the HioCloudConnector class.", ex);
+                        return null;
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while getting tags in space.", ex);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get one specific connector
+        /// </summary>
+        /// <param name="space_id"></param>
+        /// <param name="connector_id"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<HioCloudConnector?> GetConnector(Guid space_id, Guid connector_id)
+        {
+
+            using (var httpClient = GetHioClient())
+            {
+                var url = $"/v2/spaces/{space_id}/connectors/{connector_id}";
+
+                try
+                {
+                    var response = await httpClient.GetAsync(url);
+                    var cnt = response.Content.ReadAsStringAsync().Result;
+
+                    CheckResponse(response);
+
+                    try
+                    {
+                        var device = System.Text.Json.JsonSerializer.Deserialize<HioCloudConnector?>(cnt);
+                        return device;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Cannot deserialize data from the response to the HioCloudConnector class.", ex);
+                        return null;
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while getting tags in space.", ex);
+                }
+            }
+        }
 
         /// <summary>
         /// Add new connector
@@ -724,6 +941,41 @@ namespace hio_dotnet.APIs.HioCloud
                 try
                 {
                     var response = await httpClient.PostAsync(url, content);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while adding connector. Response: {cnt}");
+                    }
+                    CheckResponse(response);
+
+                    var connectorResponse = System.Text.Json.JsonSerializer.Deserialize<HioCloudConnector?>(cnt);
+                    return connectorResponse;
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while fetching spaces data.", ex);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update already existing connector
+        /// </summary>
+        /// <param name="space_id"></param>
+        /// <param name="connector"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<HioCloudConnector?> UpdateConnector(Guid space_id, HioCloudConnector connector)
+        {
+            using (var httpClient = GetHioClient())
+            {
+                var url = $"/v2/spaces/{space_id}/connectors";
+
+                var content = new StringContent(JsonSerializer.Serialize(connector), Encoding.UTF8, "application/json");
+
+                try
+                {
+                    var response = await httpClient.PutAsync(url, content);
                     var cnt = await response.Content.ReadAsStringAsync();
                     if (!response.IsSuccessStatusCode)
                     {

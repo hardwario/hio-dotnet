@@ -147,6 +147,9 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             if (withMeasurement)
                 await MeasureLoop();
 
+            if (DeviceVoltage == 0)
+                DeviceVoltage = 3600;
+
             OnIsPPKVoltageOutputConnected?.Invoke(this, true);
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Power On", Detail = "Power supply for device is on.", Duration = 3000 });
         }
@@ -371,21 +374,29 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         public async Task SendCommand(string command)
         {
-            ConsoleOutputShell.Add("> " + command.Replace("\n", string.Empty));
-
-            if (command.Contains("config"))
+            if (IsConsoleListening)
             {
-                if (command.Contains("lrw "))
-                {
-                    LoRaWANConfig.ParseLine(command);
-                }
-                else if (command.Contains("lte "))
-                {
-                    LTEConfig.ParseLine(command);
-                }
-            }
+                ConsoleOutputShell.Add("> " + command.Replace("\n", string.Empty));
 
-            await MCUConsole?.SendCommand(0, command);
+                if (command.Contains("config"))
+                {
+                    if (command.Contains("lrw "))
+                    {
+                        LoRaWANConfig.ParseLine(command);
+                    }
+                    else if (command.Contains("lte "))
+                    {
+                        LTEConfig.ParseLine(command);
+                    }
+                }
+
+                await MCUConsole?.SendCommand(0, command);
+            }
+            else
+            {
+                Console.WriteLine("Console is not listening. Cannot send command.");
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Console is not listening. Cannot send command.", Duration = 3000 });
+            }
         }
 
         public async Task StopListening()
@@ -460,6 +471,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         {
             var cfg = LoRaWANConfig.GetWholeConfig();
             await SendAllConfigLines(cfg);
+            await SendCommand("config save");
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Settings Applied", Detail = "LoRaWAN settings has been loaded to the device.", Duration = 3000 });
         }
 
@@ -467,6 +479,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         {
             var cfg = LTEConfig.GetWholeConfig();
             await SendAllConfigLines(cfg);
+            await SendCommand("config save");
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Settings Applied", Detail = "LTE settings has been loaded to the device.", Duration = 3000 });
         }
 

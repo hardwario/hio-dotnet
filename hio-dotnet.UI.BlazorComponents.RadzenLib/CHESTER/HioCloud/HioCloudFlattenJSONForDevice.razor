@@ -1,0 +1,252 @@
+﻿@using Services
+@using CHESTER.HioCloud.Models
+@using Blazor.AceEditorJs
+@using hio_dotnet.Common.Models
+
+@inject HioCloudService HioCloudService
+
+@if (HasTitle)
+{
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenText Text="@Title" />
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenText Text="@($"Device Name:{Device.Name}")" />
+        </RadzenColumn>
+    </RadzenRow>
+}
+
+<RadzenRow Style="margin-top:1rem;">
+    <RadzenColumn>
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenButton Text="Select All" Click="@onSelectAllHandler" Size="ButtonSize.Small" Style="width:100%;" />
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenButton Text="Unselect All" Click="@onUnselectAllHandler" Size="ButtonSize.Small" Style="width:100%;" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow Style="margin-top:1rem;">
+            <RadzenColumn>
+                <RadzenText Text="@($"Used class type: {typeOfHioMessage.Name}")" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow Style="margin-top:1rem;">
+            <RadzenColumn Size="9">
+                <HioCloudAvailableCloudMessagesTypesDropDown Value="@forcedTypeOfHioMessage"
+                                                             ValueChanged="@onForcedTypeOfHioMessageChangedHandler"
+                                                             HasTitle="true"
+                                                             Title="Class" />
+            </RadzenColumn>
+            <RadzenColumn Size="3">
+                <RadzenButton Text="Reset" Click="@ResetForcedType" Size="ButtonSize.Small" Style="width:100%;margin-top:0.25rem;" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenColumn>
+                <HioCloudMessagePropsList @ref=hioCloudMessagePropsListRef
+                                          Device="@Device"
+                                          OnValueChanged="@onValueChanged"
+                                          OnTypeFound="@onTypeFoundHandler" />
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenColumn>
+    <RadzenColumn>
+        <RadzenRow Style="margin-bottom:1rem;">
+            <RadzenColumn>
+                <RadzenRadioButtonList TValue="ParseVersion" Value="@parseVersion" ValueChanged="@onParseVersionChanged">
+                    <Items>
+                        <RadzenRadioButtonListItem Text="One Object" Value="ParseVersion.OneObject" />
+                        <RadzenRadioButtonListItem Text="Split Objects" Value="ParseVersion.SplitObjects" />
+                    </Items>
+                </RadzenRadioButtonList>
+            </RadzenColumn>
+        </RadzenRow>
+        @if (connector != null)
+        {
+            <AceJsEditor @ref=acejsEditor1Ref Style="height:100%" Value="@connector" ValueChanged="@onConnectorValueChanged" Options="opt" />
+        }
+    </RadzenColumn>
+</RadzenRow>
+
+<RadzenRow Style="margin-top:3rem;">
+    <RadzenColumn>
+        <hio_dotnet.UI.BlazorComponents.RadzenLib.Common.Buttons.CopyButton TextToCopy="@(getListOfKeys())" ButtonText="Copy list of keys to clipboard" Style="width:100%;" />
+    </RadzenColumn>
+    <RadzenColumn>
+        <hio_dotnet.UI.BlazorComponents.RadzenLib.Common.Buttons.CopyButton TextToCopy="@connector" ButtonText="Copy script to clipboard" Style="width:100%;" />
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    public enum ParseVersion
+    {
+        OneObject,
+        SplitObjects
+    };
+
+    [Parameter] public Device Device { get; set; } = new Device();
+    [Parameter] public bool HasTitle { get; set; } = false;
+    [Parameter] public string Title { get; set; } = "Message Properties";
+
+    private AceJsEditor? acejsEditor1Ref;
+    private HioCloudMessagePropsList? hioCloudMessagePropsListRef;
+    private ParseVersion parseVersion = ParseVersion.OneObject;
+
+    private string? connector = null;
+    private AceEditorOptions opt = new() { IsReadOnly = false, Language = AceLanguage.javascript, Theme = AceTheme.twilight };
+    private System.Timers.Timer timer = new System.Timers.Timer(200);
+    private Type typeOfHioMessage = typeof(ChesterCommonCloudMessage);
+    private Type forcedTypeOfHioMessage = typeof(ChesterCommonCloudMessage);
+
+    private bool forceType = false;
+
+    public string GetConnectorData()
+    {
+        return connector ?? string.Empty;
+    }
+
+    private void onConnectorValueChanged(string value)
+    {
+        if (value != null && value != connector)
+            connector = value;
+    }
+
+    private string getListOfKeys()
+    {
+        var sp = HioCloudService.Spaces.Where(s => s.Id == Device.SpaceId).First();
+        var devs = sp?.Devices?.Where(d => d.Id == Device.Id).First();
+        if (devs == null)
+            return string.Empty;
+
+        var res = string.Empty;
+        foreach (var item in devs.PropsToInclude)
+        {
+            if (item.Value)
+            {
+                res += item.Key + "\n";
+            }
+        }
+        return res;
+    }
+
+    private async Task onParseVersionChanged(ParseVersion value)
+    {
+        if (parseVersion == value)
+            return;
+
+        parseVersion = value;
+        await RefreshConnector();
+    }
+
+    private async Task onValueChanged(KeyValuePair<string, bool> data)
+    {
+        await RefreshConnector();
+    }
+
+    private async Task RefreshConnector(Type? type = null)
+    {
+        string res = null;
+
+        if (type == null && forceType)
+        {
+            type = forcedTypeOfHioMessage;
+        }
+
+        if (parseVersion == ParseVersion.OneObject)
+        {
+            res = await HioCloudService.GetPropertiesTimestampFormatJSCode(
+                                                Device.SpaceId.ToString(),
+                                                Device.Id.ToString(),
+                                                Device.PropsToInclude.Where(i => i.Value)
+                                                                     .Select(t => t.Key)
+                                                                     .ToList(),
+                                                                     type,
+                                                                     forceType);
+        }
+        else if (parseVersion == ParseVersion.SplitObjects)
+        {
+            res = await HioCloudService.GetPropertiesTimestampFormatJSCodeSplitted(
+                                                Device.SpaceId.ToString(),
+                                                Device.Id.ToString(),
+                                                Device.PropsToInclude.Where(i => i.Value)
+                                                                     .Select(t => t.Key)
+                                                                     .ToList(),
+                                                                     type,
+                                                                     forceType);
+        }
+
+        if (res != null)
+        {
+            connector = null;
+            await InvokeAsync(StateHasChanged);
+            connector = res.ToString();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task onUnselectAllHandler()
+    {
+        foreach (var item in Device.PropsToInclude)
+        {
+            Device.PropsToInclude[item.Key] = false;
+            HioCloudService.Spaces.Where(s => s.Id == Device.SpaceId).First().Devices.Where(d => d.Id == Device.Id).First().PropsToInclude[item.Key] = false;
+        }
+        await RefreshConnector();
+        if (hioCloudMessagePropsListRef != null)
+        {
+            await hioCloudMessagePropsListRef.Refresh(null);
+        }
+    }
+
+    private async Task onSelectAllHandler()
+    {
+        foreach (var item in Device.PropsToInclude)
+        {
+            Device.PropsToInclude[item.Key] = true;
+            HioCloudService.Spaces.Where(s => s.Id == Device.SpaceId).First().Devices.Where(d => d.Id == Device.Id).First().PropsToInclude[item.Key] = true;
+        }
+        await RefreshConnector();
+        if (hioCloudMessagePropsListRef != null)
+        {
+            await hioCloudMessagePropsListRef.Refresh(null);
+        }
+    }
+
+    private async Task onTypeFoundHandler(Type type)
+    {
+        if (type != null && type != typeOfHioMessage)
+        {
+            typeOfHioMessage = type;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task onForcedTypeOfHioMessageChangedHandler(Type type)
+    {
+        if (type != null && type != forcedTypeOfHioMessage)
+        {
+            forcedTypeOfHioMessage = type;
+            forceType = true;
+            await RefreshConnector(forcedTypeOfHioMessage);
+            if (hioCloudMessagePropsListRef != null)
+            {
+                await hioCloudMessagePropsListRef.Refresh(forcedTypeOfHioMessage);
+            }
+        }
+    }
+
+    private async Task ResetForcedType()
+    {
+        forceType = false;
+        forcedTypeOfHioMessage = typeOfHioMessage;
+        await RefreshConnector(typeOfHioMessage);
+        if (hioCloudMessagePropsListRef != null)
+        {
+            await hioCloudMessagePropsListRef.Refresh(typeOfHioMessage);
+        }
+    }
+}

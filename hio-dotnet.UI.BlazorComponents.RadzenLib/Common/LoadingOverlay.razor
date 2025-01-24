@@ -1,0 +1,34 @@
+﻿@using Services
+
+@inject LoadingOverlayService LoadingOverlayService
+
+<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+    <!-- Loading overlay -->
+    @if (IsBusy)
+    {
+        <RadzenCard Style="z-index: 3; text-align: center; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, .5)">
+            <div style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%;">
+                <RadzenProgressBarCircular ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+                    <Template>Wait</Template>
+                </RadzenProgressBarCircular>
+            </div>
+        </RadzenCard>
+    }
+</RadzenStack>
+
+@code {
+    [Parameter] public bool IsBusy { get; set; } = false;
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            LoadingOverlayService.OnChange += (s, e) =>
+            {
+                IsBusy = e;
+                StateHasChanged();
+            };
+        }
+        return base.OnAfterRenderAsync(firstRender);
+    }
+}

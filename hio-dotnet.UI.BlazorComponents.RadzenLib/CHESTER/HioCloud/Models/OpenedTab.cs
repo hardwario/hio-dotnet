@@ -12,7 +12,9 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.HioCloud.Models
         None,
         Space,
         Device,
-        Message
+        Message,
+        Connector,
+        BatchActionDashboard = 100
     }
 
     public class OpenedTab

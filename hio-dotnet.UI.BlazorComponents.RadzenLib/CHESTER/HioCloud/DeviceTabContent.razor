@@ -1,5 +1,7 @@
 ﻿@using Services
 @using CHESTER.HioCloud.Models
+@using Blazor.AceEditorJs
+@using hio_dotnet.Common.Models
 
 @inject HioCloudService HioCloudService
 
@@ -18,7 +20,7 @@
         <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
             <RadzenLabel Text="Id: " />
             <RadzenText Text="@Device.Id.ToString()" />
-            <hio_dotnet.UI.BlazorComponents.Radzen.Common.Buttons.CopyButton IsJustIcon="true" TextToCopy="@Device.Id.ToString()" />
+            <hio_dotnet.UI.BlazorComponents.RadzenLib.Common.Buttons.CopyButton IsJustIcon="true" TextToCopy="@Device.Id.ToString()" />
         </RadzenStack>
     </RadzenColumn>
 </RadzenRow>
@@ -43,9 +45,23 @@ else
     </RadzenRow>
 }
 
+<hr style="margin-top:2rem;" />
+
+<HioCloudFlattenJSONForDevice Device="@Device" HasTitle="true" />
+
 @code {
+
     [Parameter] public Device Device { get; set; } = new Device();
     [Parameter] public EventCallback<Message> OnOpenMessageRequest { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            await LoadMessages();
+        }
+    }
 
     private async Task LoadMessages()
     {

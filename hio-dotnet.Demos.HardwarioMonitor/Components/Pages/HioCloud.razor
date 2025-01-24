@@ -1,24 +1,13 @@
 ﻿@using Services
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.Services
 @using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.HioCloud
 @using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.HioCloud.Models
 
 @page "/hiocloud"
 
-@inject ConsoleService ConsoleService
+@inject LoadingOverlayService LoadingOverlayService
 
-<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-    <!-- Loading overlay -->
-    @if (isBusy)
-    {
-        <RadzenCard Style="z-index: 3; text-align: center; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, .5)">
-            <div style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%;">
-                <RadzenProgressBarCircular ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
-                    <Template>Wait</Template>
-                </RadzenProgressBarCircular>
-            </div>
-        </RadzenCard>
-    }
-</RadzenStack>
+<LoadingOverlay />
 
 <RadzenLayout Style="height: 100%; grid-template-rows: 1fr; grid-template-columns: 1fr auto; grid-template-areas: 'rz-body rz-sidebar'">
     <RadzenSidebar Style="padding: 5px;">
@@ -63,10 +52,12 @@
     public async Task OnLoggingInHandler(bool busy)
     {
         isBusy = busy;
+        LoadingOverlayService.Show();
     }
 
     public async Task OnLoggedInHandler(bool isLoggedIn)
     {
+        LoadingOverlayService.Hide();
         isBusy = false;
         if (hioCloudTreeViewRef != null)
         {
