@@ -1,0 +1,90 @@
+﻿@using CHESTER.HioCloud.Models
+@using Services
+
+@inject HioCloudService HioCloudService
+
+@if (HasTitle)
+{
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenText Text="@Title" />
+        </RadzenColumn>
+    </RadzenRow>
+}
+
+<RadzenRow Style="margin-top:1rem;">
+    <RadzenColumn>
+        <RadzenDataGrid @ref="dataGridRef" Data="@PropsToInclude" ColumnWidth="350px" AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="20" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
+            <Columns>
+                <RadzenDataGridColumn Property="Key" Title="Property Name" Width="320px" />
+                <RadzenDataGridColumn Title="Include" Frozen="true" Sortable="false" Filterable="false" Width="80px" TextAlign="TextAlign.Center">
+                    <Template Context="data">
+                        <RadzenCheckBox TValue="bool" value="@(data.Value)" ValueChanged="@(async (e) => await onValueChangedHandler(e, data.Key))"/>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    [Parameter] public Device Device { get; set; } = new Device();
+    [Parameter] public EventCallback<KeyValuePair<string, bool>> OnValueChanged { get; set; }
+    [Parameter] public string Title { get; set; } = "Message Properties";
+    [Parameter] public bool HasTitle { get; set; } = false;
+
+    public Dictionary<string, bool> PropsToInclude => HioCloudService.Spaces.FirstOrDefault(s => s.Id == Device.SpaceId)?.Devices.FirstOrDefault(d => d.Id == Device.Id)?.PropsToInclude ?? new Dictionary<string, bool>();
+    private RadzenDataGrid<KeyValuePair<string,bool>>? dataGridRef;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        if (Device.PropsToInclude.Count == 0)
+        {
+            var list = await HioCloudService.GetPropertiesNamesForDeviceMessage(Device.SpaceId.ToString(), Device.Id.ToString());
+            foreach (var item in list)
+            {
+                if (!Device.PropsToInclude.ContainsKey(item))
+                {
+                    Device.PropsToInclude.Add(item, true);
+                }
+                var sp = HioCloudService.Spaces.Where(s => s.Id == Device.SpaceId).First();
+                var devs = sp?.Devices?.Where(d => d.Id == Device.Id).First();
+                if (devs != null && !devs.PropsToInclude.ContainsKey(item))
+                {
+                    devs.PropsToInclude.Add(item, true);
+                }
+                if (dataGridRef != null)
+                {
+                    await dataGridRef.Reload();
+                }
+            }
+        }
+    }
+
+    private async Task onValueChangedHandler(bool value, string key)
+    {
+        var item = Device.PropsToInclude.FirstOrDefault(x => x.Key == key);
+        if (item.Key != null)
+        {
+            Device.PropsToInclude[item.Key] = value;
+            HioCloudService.Spaces.Where(s => s.Id == Device.SpaceId).First().Devices.Where(d => d.Id == Device.Id).First().PropsToInclude[item.Key] = value;
+        }
+        if (dataGridRef != null)
+        {
+            await dataGridRef.Reload();
+        }
+        await OnValueChanged.InvokeAsync(new KeyValuePair<string, bool>(key, value));
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task Refresh()
+    {
+        if (dataGridRef != null)
+        {
+            await dataGridRef.Reload();
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+}

@@ -60,6 +60,26 @@ else
         </RadzenColumn>
     </RadzenRow>
 }
+
+@if (Space.Connectors.Count == 0)
+{
+    <RadzenRow Style="margin-top:2rem;">
+        <RadzenColumn>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                <RadzenButton Text="Try To load Connectors" Click="@LoadConnectors" />
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+}
+else
+{
+    <RadzenRow Style="margin-top:2rem;">
+        <RadzenColumn>
+            <HioCloudConnectorsList Connectors="@Space.Connectors" SpaceId="@Space.Id.ToString()" OnOpenConnectorRequest="(async (e) => await OnOpenConnectorRequest.InvokeAsync(e))" />
+        </RadzenColumn>
+    </RadzenRow>
+}
+
 <hr style="margin-top:1rem;"/>
 <RadzenRow Style="margin-top:0.5rem;margin-bottom:1rem;">
     <RadzenColumn>
@@ -71,6 +91,7 @@ else
 @code {
     [Parameter] public Space Space { get; set; } = new Space();
     [Parameter] public EventCallback<Device> OnOpenDeviceRequest { get; set; }
+    [Parameter] public EventCallback<hio_dotnet.APIs.HioCloud.Models.HioCloudConnector> OnOpenConnectorRequest { get; set; }
 
     private HioCloudDevicesList? devicesListRef;
 
@@ -81,6 +102,7 @@ else
         {
             await LoadDevices();
             await LoadTags();
+            await LoadConnectors();
         }
     }
 
@@ -97,6 +119,13 @@ else
     {
         await HioCloudService.LoadTags(Space.Id.ToString());
         Space.Tags = HioCloudService.Spaces.Where(s => s.Id == Space.Id).First().Tags.ToList();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadConnectors()
+    {
+        await HioCloudService.LoadConnectors(Space.Id.ToString());
+        Space.Connectors = HioCloudService.Spaces.Where(s => s.Id == Space.Id).First().Connectors.ToList();
         await InvokeAsync(StateHasChanged);
     }
 }

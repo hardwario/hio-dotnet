@@ -57,7 +57,8 @@ namespace hio_dotnet.APIs.HioCloud.Models
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Type { get; set; } = "webhook";
 
-
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? SpaceId { get; set; }
         public HioCloudConnector WithTrigger(string trigger)
         {
             if (trigger != "data" && trigger != "session" && trigger != "config" && trigger != "stats" && trigger != "codec")

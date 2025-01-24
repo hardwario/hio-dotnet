@@ -1,0 +1,74 @@
+﻿@using Services
+@using CHESTER.HioCloud.Models
+@using hio_dotnet.APIs.HioCloud.Models
+@using Blazor.AceEditorJs
+
+@inject HioCloudService HioCloudService
+
+<h3>Connector Details</h3>
+
+@if (Connector != null)
+{
+    <RadzenRow Style="margin-top:1rem;">
+        <RadzenColumn>
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
+                <RadzenLabel Text="Name: " />
+                <RadzenText Text="@Connector.Name" />
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow Style="margin-top:1rem;">
+        <RadzenColumn>
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
+                <RadzenLabel Text="Type: " />
+                <RadzenText Text="@(Connector.Type?.ToString() ?? string.Empty)" />
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+
+    @if (Connector.Transformation != null)
+    {
+        <RadzenRow Style="margin-top:1rem; height:100%;">
+            <RadzenColumn Style="height:100%;">
+
+                <RadzenSplitter Orientation="Orientation.Vertical" style="height: 1000px; min-height:1000px; border: 1px solid rgba(0,0,0,.08);">
+                    <RadzenSplitterPane Size="600px">
+                        <AceJsEditor @ref=acejsEditorRef Style="height:100%; min-height:300px" @bind-Value="@Connector.Transformation" Options="opt"></AceJsEditor>
+                    </RadzenSplitterPane>
+                    <RadzenSplitterPane Size="100px">
+                        <RadzenRow Style="min-height:100px;">
+                            <RadzenColumn>
+
+                            </RadzenColumn>
+                        </RadzenRow>
+                    </RadzenSplitterPane>
+                </RadzenSplitter>
+            </RadzenColumn>
+        </RadzenRow>
+
+    }
+
+    <RadzenRow Style="margin-top:1rem;">
+        <RadzenColumn>
+            <RadzenButton Text="Save Connector" Click="@SaveConnector" Style="width:100%;" />
+        </RadzenColumn>
+    </RadzenRow>
+}
+
+
+
+@code {
+    [Parameter] public HioCloudConnector Connector { get; set; } = new HioCloudConnector();
+    [Parameter] public EventCallback<Message> OnOpenMessageRequest { get; set; }
+    [Parameter] public string SpaceId { get; set; } = string.Empty;
+
+    private AceEditorOptions opt = new() { IsReadOnly = false, Language = AceLanguage.javascript, Theme = AceTheme.twilight };
+
+    private AceJsEditor? acejsEditorRef;
+
+
+    private async Task SaveConnector()
+    {
+        await HioCloudService.UpdateConnector(Connector.SpaceId ?? string.Empty, Connector);
+    }
+}

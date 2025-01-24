@@ -1,5 +1,9 @@
 ﻿using hio_dotnet.APIs.HioCloud;
 using hio_dotnet.APIs.HioCloud.Models;
+using hio_dotnet.APIs.ThingsBoard.Models;
+using hio_dotnet.Common.Models;
+using hio_dotnet.Common.Models.CatalogApps;
+using hio_dotnet.Common.Models.Common;
 using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.HioCloud.Models;
 using Radzen;
 
@@ -35,7 +39,7 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
                 await Task.Run(async () =>
                 {
                     hioCloudDriver = new HioCloudDriver(HioCloudDriver.DefaultHardwarioCloudUrl, username, password);
-                    
+
                     _ = await hioCloudDriver.Login(username, password);
                     IsInitializedWithUsername = true;
                     IsInitializedWithApiToken = false;
@@ -142,7 +146,7 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
             return tags;
         }
 
-        public async Task<List<HioCloudMessage>?> HioCloudMessages(string spaceId, string deviceId)
+        public async Task<List<HioCloudMessage>?> HioCloudMessages(string spaceId, string deviceId, int num_of_items = 20)
         {
             if (hioCloudDriver == null)
             {
@@ -161,7 +165,7 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
                 _notificationService.Notify(NotificationSeverity.Error, "DeviceId is empty");
                 return null;
             }
-            return await hioCloudDriver.GetAllDeviceMessages(Guid.Parse(spaceId), Guid.Parse(deviceId));
+            return await hioCloudDriver.GetAllDeviceMessages(Guid.Parse(spaceId), Guid.Parse(deviceId), num_of_items);
         }
 
         public async Task<HioCloudMessage?> GetHioCloudMessage(Guid spaceId, Guid messageId)
@@ -180,10 +184,10 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
             HioCloudSpaces = await GetSpaces() ?? new List<HioCloudSpace>();
             foreach (var space in HioCloudSpaces)
             {
-                Spaces.Add(new Space 
-                { 
-                    Id = space.Id ?? Guid.NewGuid(), 
-                    Name = space.Name 
+                Spaces.Add(new Space
+                {
+                    Id = space.Id ?? Guid.NewGuid(),
+                    Name = space.Name
                 });
             }
         }
@@ -198,13 +202,13 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
                 {
                     if (!space.Devices.Any(d => d.Id == device.Id))
                     {
-                        space.Devices.Add(new Device 
-                        { 
-                            Id = device.Id ?? Guid.NewGuid(), 
-                            SpaceId = space.Id, 
-                            Name = device.Name, 
+                        space.Devices.Add(new CHESTER.HioCloud.Models.Device
+                        {
+                            Id = device.Id ?? Guid.NewGuid(),
+                            SpaceId = space.Id,
+                            Name = device.Name,
                             SerialNumber = device.SerialNumber,
-                            SpaceName = space.Name 
+                            SpaceName = space.Name
                         });
                     }
                 }
@@ -221,11 +225,11 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
                 {
                     if (!device.Messages.Any(m => m.Id == message.Id))
                     {
-                        device.Messages.Add(new Message 
-                        { 
-                            Id = message.Id, 
-                            DeviceId = device.Id, 
-                            SpaceId = device.SpaceId, 
+                        device.Messages.Add(new CHESTER.HioCloud.Models.Message
+                        {
+                            Id = message.Id,
+                            DeviceId = device.Id,
+                            SpaceId = device.SpaceId,
                             Text = message.CreatedAt.ToString(),
                             DeviceName = device.Name,
                             SpaceName = device.SpaceName
@@ -265,6 +269,71 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
             }
         }
 
+        public async Task<bool> AddTagToDevice(string spaceId, HioCloudTag tag, HioCloudDevice device)
+        {
+            if (hioCloudDriver == null)
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "HioCloudDriver not initialized");
+                return false;
+            }
+
+            if (tag == null)
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "Tag is empty");
+                return false;
+            }
+            var res = await hioCloudDriver.AddTagToDevice(Guid.Parse(spaceId), tag, device);
+            if (res == null)
+                return false;
+            else
+            {
+                return true;
+            }
+        }
+
+        public async Task<List<HioCloudConnector>?> LoadConnectors(string spaceId)
+        {
+            if (hioCloudDriver == null)
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "HioCloudDriver not initialized");
+                return null;
+            }
+
+            if (string.IsNullOrEmpty(spaceId))
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "SpaceId is empty");
+                return null;
+            }
+
+            var conns = await hioCloudDriver.GetConnectors(Guid.Parse(spaceId));
+            if (conns != null)
+            {
+                foreach (var conn in conns)
+                {
+                    var space = Spaces.FirstOrDefault(s => s.Id.ToString() == spaceId);
+                    if (space != null)
+                    {
+                        if (!space.Connectors.Any(c => c.Name == conn.Name))
+                        {
+                            space.Connectors.Add(new HioCloudConnector
+                            {
+                                Direction = conn.Direction,
+                                RetryDelays = conn.RetryDelays,
+                                State = conn.State,
+                                Tags = conn.Tags,
+                                Transformation = conn.Transformation,
+                                Triggers = conn.Triggers,
+                                Type = conn.Type,
+                                Name = conn.Name
+                            });
+                        }
+                    }
+                }
+            }
+            return conns;
+        }
+
+
         public async Task<bool> AddConnector(string spaceId, HioCloudConnector connector)
         {
             if (hioCloudDriver == null)
@@ -295,7 +364,7 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
             }
         }
 
-        public async Task<bool> AddTagToDevice(string spaceId, HioCloudTag tag, HioCloudDevice device)
+        public async Task<bool> UpdateConnector(string spaceId, HioCloudConnector connector)
         {
             if (hioCloudDriver == null)
             {
@@ -303,18 +372,191 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
                 return false;
             }
 
-            if (tag == null)
+            if (connector == null)
             {
-                _notificationService.Notify(NotificationSeverity.Error, "Tag is empty");
+                _notificationService.Notify(NotificationSeverity.Error, "Connector is empty");
                 return false;
             }
-            var res = await hioCloudDriver.AddTagToDevice(Guid.Parse(spaceId), tag, device);
+            var res = await hioCloudDriver.UpdateConnector(Guid.Parse(spaceId), connector);
             if (res == null)
                 return false;
             else
             {
+                var space = Spaces.FirstOrDefault(s => s.Id == Guid.Parse(spaceId));
+                if (space != null)
+                {
+                    if (space.Connectors == null)
+                        space.Connectors = new List<HioCloudConnector>();
+                    if (!space.Connectors.Any(t => t.Name == res.Name))
+                        space.Connectors.Add(res);
+                }
                 return true;
             }
+        }
+
+        public async Task<List<string>> GetPropertiesNamesForDeviceMessage(string spaceId, string deviceId)
+        {
+            if (hioCloudDriver == null)
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "HioCloudDriver not initialized");
+                return new List<string>();
+            }
+            if (string.IsNullOrEmpty(deviceId))
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "DeviceId is empty");
+                return new List<string>();
+            }
+            var msgs = await hioCloudDriver.GetAllDeviceMessages(Guid.Parse(spaceId), Guid.Parse(deviceId), 1);
+
+            if (msgs != null)
+            {
+                var msg = msgs.FirstOrDefault();
+                if (msg == null) return new List<string>();
+
+                var chm2type = ChesterCloudMessageAutoIdentifier.FindTypeByMessageStructure(msg.Body);
+                try
+                {
+                    var chm2 = System.Text.Json.JsonSerializer.Deserialize(msg.Body, chm2type);
+                    var names = TimeStampFormatDataConverter.GetCombinedKeys(chm2);
+
+                    var device = Spaces.SelectMany(s => s.Devices).FirstOrDefault(d => d.Id == Guid.Parse(deviceId));
+                    if (device != null)
+                    {
+                        foreach (var name in names)
+                        {
+                            if (!device.PropsToInclude.ContainsKey(name))
+                            {
+                                device.PropsToInclude.Add(name, true);
+                            }
+                        }
+                    }
+
+                    return names;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+            return new List<string>();
+
+        }
+
+        public async Task<string> GetPropertiesTimestampFormatJSCode(string spaceId, string deviceId, List<string>? propsToInclude = null)
+        {
+            if (hioCloudDriver == null)
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "HioCloudDriver not initialized");
+                return string.Empty;
+            }
+            if (string.IsNullOrEmpty(deviceId))
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "DeviceId is empty");
+                return string.Empty;
+            }
+            var msgs = await hioCloudDriver.GetAllDeviceMessages(Guid.Parse(spaceId), Guid.Parse(deviceId), 1);
+
+            var device = Spaces.SelectMany(s => s.Devices).FirstOrDefault(d => d.Id == Guid.Parse(deviceId));
+            if (device != null && device.PropsToInclude != null && device.PropsToInclude.Count == 0)
+            {
+                _ = await GetPropertiesNamesForDeviceMessage(spaceId, deviceId);
+            }
+
+            if (device != null) {
+                if (propsToInclude == null)
+                {
+                    propsToInclude = new List<string>();
+                    foreach (var name in device.PropsToInclude.Where(p => p.Value))
+                    {
+                        if (!propsToInclude.Contains(name.Key))
+                        {
+                            propsToInclude.Add(name.Key);
+                        }
+                    }
+                }
+            }
+
+            if (msgs != null)
+            {
+                var msg = msgs.FirstOrDefault();
+                if (msg == null) return string.Empty;
+
+                var chm2type = ChesterCloudMessageAutoIdentifier.FindTypeByMessageStructure(msg.Body);
+                try
+                {
+                    var chm2 = System.Text.Json.JsonSerializer.Deserialize(msg.Body, chm2type);
+                    if (chm2 == null ) return string.Empty;
+
+                    var tsd = TimeStampFormatDataConverter.GetCombinedTimeStampDataJSCode(chm2, propsToInclude);
+
+                    return tsd;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+            return string.Empty;
+
+        }
+
+        public async Task<string> GetPropertiesTimestampFormatJSCodeSplitted(string spaceId, string deviceId, List<string>? propsToInclude = null)
+        {
+            if (hioCloudDriver == null)
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "HioCloudDriver not initialized");
+                return string.Empty;
+            }
+            if (string.IsNullOrEmpty(deviceId))
+            {
+                _notificationService.Notify(NotificationSeverity.Error, "DeviceId is empty");
+                return string.Empty;
+            }
+            var msgs = await hioCloudDriver.GetAllDeviceMessages(Guid.Parse(spaceId), Guid.Parse(deviceId), 1);
+
+            var device = Spaces.SelectMany(s => s.Devices).FirstOrDefault(d => d.Id == Guid.Parse(deviceId));
+            if (device != null && device.PropsToInclude != null && device.PropsToInclude.Count == 0)
+            {
+                _ = await GetPropertiesNamesForDeviceMessage(spaceId, deviceId);
+            }
+
+            if (device != null)
+            {
+                if (propsToInclude == null)
+                {
+                    propsToInclude = new List<string>();
+                    foreach (var name in device.PropsToInclude.Where(p => p.Value))
+                    {
+                        if (!propsToInclude.Contains(name.Key))
+                        {
+                            propsToInclude.Add(name.Key);
+                        }
+                    }
+                }
+            }
+
+            if (msgs != null)
+            {
+                var msg = msgs.FirstOrDefault();
+                if (msg == null) return string.Empty;
+
+                var chm2type = ChesterCloudMessageAutoIdentifier.FindTypeByMessageStructure(msg.Body);
+                try
+                {
+                    var chm2 = System.Text.Json.JsonSerializer.Deserialize(msg.Body, chm2type);
+                    if (chm2 == null) return string.Empty;
+
+                    var tsd = TimeStampFormatDataConverter.GetTimeStampDataJSCode(chm2, propsToInclude);
+
+                    return tsd;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+            return string.Empty;
+
         }
     }
 }

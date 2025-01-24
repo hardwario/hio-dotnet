@@ -1,0 +1,83 @@
+﻿@using Services
+@using CHESTER.HioCloud.Models
+@using hio_dotnet.APIs.HioCloud.Models
+
+@inject HioCloudService HioCloudService
+
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenText Text="Devices:" />
+    </RadzenColumn>
+</RadzenRow>
+<RadzenRow Style="margin-top:1rem;">
+    <RadzenColumn>
+        <RadzenDataGrid @ref="dataGridRef" AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="5" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+        Data="@Connectors" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or" SelectionMode="@SelectionMode" @bind-Value=@SelectedItems>
+            <Columns>
+                <RadzenDataGridColumn Property="@nameof(HioCloudConnector.Name)" Filterable="false" Title="Name" Frozen="true" Width="120px" TextAlign="TextAlign.Center" />
+                <RadzenDataGridColumn Title="Tags" Frozen="true" Sortable="false" Filterable="false" Width="80px" TextAlign="TextAlign.Center">
+                    <Template Context="data">
+                        @if (data as HioCloudConnector == null)
+                        {
+                            <RadzenText Text="No Tags" />
+                        }
+                        else if ((data as HioCloudConnector).Tags == null)
+                        {
+                            <RadzenText Text="No Tags" />
+                        }
+                        else
+                        {
+                            @if ((data as HioCloudConnector).Tags.Count == 0)
+                            {
+                                <RadzenText Text="No Tags" />
+                            }
+                            @foreach (var tag in (data as HioCloudConnector).Tags)
+                            {
+                                <RadzenBadge Text="@tag.Name" />
+                            }
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                @if (IsActionVisible)
+                {
+                    <RadzenDataGridColumn Title="Action" Frozen="true" Sortable="false" Filterable="false" Width="80px" TextAlign="TextAlign.Center">
+                        <Template Context="data">
+                            <RadzenButton Click="async () => await OnOpenItemHandler(data) " Text="Open Connector" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                }
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    [Parameter] public List<HioCloudConnector> Connectors { get; set; } = new List<HioCloudConnector>();
+    [Parameter] public EventCallback<HioCloudConnector> OnOpenConnectorRequest { get; set; }
+    [Parameter] public DataGridSelectionMode SelectionMode { get; set; } = DataGridSelectionMode.Single;
+    [Parameter] public bool IsActionVisible { get; set; } = true;
+    [Parameter] public string SpaceId { get; set; } = string.Empty;
+
+    public IList<HioCloudConnector> SelectedItems = new List<HioCloudConnector>();
+    private RadzenDataGrid<HioCloudConnector> dataGridRef;
+
+    private async Task OnOpenItemHandler(HioCloudConnector data)
+    {
+        data.SpaceId = SpaceId;
+        await OnOpenConnectorRequest.InvokeAsync(data as HioCloudConnector);
+    }
+
+    public async Task AddSelectedConnectors(List<HioCloudConnector> items)
+    {
+        foreach(var item in items)
+        {
+            if (!SelectedItems.Contains(item))
+            {
+                SelectedItems.Add(item);
+                dataGridRef.SelectRow(item);
+            }
+
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+}

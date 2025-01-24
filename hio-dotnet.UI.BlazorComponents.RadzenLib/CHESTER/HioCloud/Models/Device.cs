@@ -14,5 +14,7 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.HioCloud.Models
         public string SpaceName { get; set; } = "Device";
         public string SerialNumber { get; set; } = string.Empty;
         public List<Message> Messages { get; set; } = new List<Message>();
+
+        public Dictionary<string, bool> PropsToInclude { get; set; } = new Dictionary<string, bool>();
     }
 }
