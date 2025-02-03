@@ -2,13 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>hio_dotnet.HWDrivers</RootNamespace>
+    <RootNamespace>hio_dotnet.LibSerialPort</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
-
 
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <DefineConstants>WINDOWS</DefineConstants>
@@ -27,26 +24,11 @@
     <DefineConstants>MACOS</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="JLink\Driver\JLinkARM.dll" />
-    <None Remove="JLink\Driver\JLink_x64.dll" />
-  </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Management" Version="8.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="JLink\Driver\JLinkARM.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <Content Include="libserialport.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="JLink\Driver\JLink_x64.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\hio-dotnet.LibSerialPort\hio-dotnet.LibSerialPort.csproj" />
   </ItemGroup>
 
 </Project>

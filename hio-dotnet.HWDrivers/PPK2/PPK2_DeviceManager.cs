@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO.Ports;
 using System.Linq;
 using System.Management;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using hio_dotnet.LibSerialPort;
 
 namespace hio_dotnet.HWDrivers.PPK2
 {
@@ -25,7 +25,7 @@ namespace hio_dotnet.HWDrivers.PPK2
             try
             {
                 // Get a list of all connected COM ports
-                string[] portNames = SerialPort.GetPortNames();
+                string[] portNames = LibSerialPortDriver.GetPortNames();
 
 #if WINDOWS
                 // Windows-specific implementation using System.Management
