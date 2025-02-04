@@ -12,7 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using hio_dotnet.HWDrivers.Server;
 
-namespace hio_dotnet.Demos.HardwarioMonitor.Services
+namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
 {
 
     public class RemoteConsoleService
@@ -34,8 +34,6 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         public event EventHandler<Tuple<string, MultiRTTClientBase>?> NewRTTMessageLineReceived;
 
-        public event EventHandler<DataPoint[]?> DataPointsReceived;
-
         public event EventHandler<bool> OnIsBusy;
         public event EventHandler<bool> OnIsPPKConnected;
         public event EventHandler<bool> OnIsPPKDisconnected;
@@ -48,13 +46,6 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         public List<string> ConsoleOutputShell = new List<string>();
         public List<string> ConsoleOutputLog = new List<string>();
-
-        private const int dataPointsLength = 20000;
-        private const int latestDataPointsLength = 2000;
-        public DataPoint[] dataPoints { get; set; } = new DataPoint[dataPointsLength];
-        public DataPoint[] latestDataPoints { get; set; } = new DataPoint[latestDataPointsLength];
-        public int DataPointsIndex { get; set; } = 0;
-        public int DataPointsTimeSinceStartCounter { get; set; } = 0;
 
         public bool IsConsoleListening { get; set; } = false;
         public bool IsPPK2Connected { get; set; } = false;
@@ -96,19 +87,6 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             _notificationService.Notify(message);
         }
 
-        public void InitArrays()
-        {
-            for (int i = 0; i < dataPoints.Length; i++)
-            {
-                dataPoints[i] = new DataPoint() { Time = i, Current = 0 };
-            }
-
-            for (int i = 0; i < latestDataPoints.Length; i++)
-            {
-                latestDataPoints[i] = new DataPoint() { Time = i, Current = 0 };
-            }
-        }
-
         public void StopAll(object sender, EventArgs e)
         {
             if (IsConsoleListening)
@@ -127,9 +105,6 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             if (driversServerApiClient == null)
                 driversServerApiClient = new DriversServerApiClient(null);
             
-            MainDataContext.OnStopJLink -= StopAll;
-            MainDataContext.OnStopJLink += StopAll;
-
             OnIsBusy?.Invoke(this, true);
             await Task.Delay(10);
 
@@ -310,16 +285,20 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         public async Task SaveConsoleShellToFile()
         {
+            /*
             var fileService = new FileService();
             await fileService.SaveFileWithDialogAsync(ConsoleOutputShell, "ConsoleShellOutput.txt");
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "File Saved", Detail = "Console content has been saved to the file.", Duration = 3000 });
+            */
         }
 
         public async Task SaveConsoleLogToFile()
         {
+            /*
             var fileService = new FileService();
             await fileService.SaveFileWithDialogAsync(ConsoleOutputLog, "ConsoleLogOutput.txt");
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "File Saved", Detail = "Console Log content has been saved to the file.", Duration = 3000 });
+            */
         }
 
         private async Task SendAllConfigLines(string cfg)

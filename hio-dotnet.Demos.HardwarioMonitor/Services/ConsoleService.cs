@@ -57,10 +57,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         public int DataPointsTimeSinceStartCounter { get; set; } = 0;
 
         public bool IsConsoleListening { get; set; } = false;
-        public bool IsPPK2Connected()
-        {
-            return ppk2 != null;
-        }
+        public bool IsPPK2Connected { get => ppk2 != null; }
 
         public bool IsDeviceOn { get; set; } = false;
         public int DeviceVoltage { get; set; } = 0;

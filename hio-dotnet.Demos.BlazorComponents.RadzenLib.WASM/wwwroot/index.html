@@ -10,7 +10,8 @@
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="hio-dotnet.Demos.BlazorComponents.RadzenLib.WASM.styles.css" rel="stylesheet" />
-    <link rel="stylesheet" href="_content/Radzen.Blazor/css/material-base.css">
+
+    <link class="theme" rel="stylesheet" href="_content/Radzen.Blazor/css/dark-base.css">
 </head>
 
 <body>
@@ -29,7 +30,19 @@
     </div>
 
     <script src="_content/hio-dotnet.UI.BlazorComponents.RadzenLib/hiodotnet_interop.js"></script>
+    <script src="_content/Blazor.AceEditorJs/BlazorAceEditor.min.js"></script>
     <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+    <script>
+        var getHeadElement = function () {
+            return document.getElementsByTagName("head")[0];
+        };
+
+        var toggleThemeStyleSheet = function (isDarkTheme) {
+            let themeLink = getHeadElement().getElementsByClassName("theme")[0];
+            let theme = isDarkTheme ? "dark-base.css" : "material-base.css";
+            themeLink.href = "_content/Radzen.Blazor/css/" + theme;
+        };
+    </script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>
 

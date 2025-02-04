@@ -9,6 +9,7 @@ using EmbedIO.WebApi;
 using Swan.Logging;
 using EmbedIO.WebSockets;
 using System.Collections.Concurrent;
+using EmbedIO.Cors;
 
 namespace hio_dotnet.HWDrivers.Server
 {
@@ -28,6 +29,7 @@ namespace hio_dotnet.HWDrivers.Server
                             .WithUrlPrefix($"http://localhost:{port}")
                             .WithMode(HttpListenerMode.EmbedIO))
                             .WithLocalSessionManager()
+                            .WithCors(origins: "*", headers: "*", methods: "*")
                             .WithWebApi("/api", m => m
                     .WithController<DriversApiControler>())
                             .WithModule(new DriversWebSocketModule("/ws"));
@@ -38,6 +40,7 @@ namespace hio_dotnet.HWDrivers.Server
                 _server.WithStaticFolder("/", resourcePath, true);
             }
         }
+
 
         /// <summary>
         /// Start server
