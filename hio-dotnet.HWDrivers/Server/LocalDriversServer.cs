@@ -30,9 +30,10 @@ namespace hio_dotnet.HWDrivers.Server
                             .WithMode(HttpListenerMode.EmbedIO))
                             .WithLocalSessionManager()
                             .WithCors(origins: "*", headers: "*", methods: "*")
+                            .WithModule(new DriversWebSocketModule("/ws"))
                             .WithWebApi("/api", m => m
                     .WithController<DriversApiControler>())
-                            .WithModule(new DriversWebSocketModule("/ws"));
+                            ;
 
             if (!string.IsNullOrEmpty(resourcePath))
             {

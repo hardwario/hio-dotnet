@@ -20,7 +20,6 @@
                     Style="background: none; border: none; cursor: pointer;" 
                     Click="@ToggleTheme" 
                     Size="ButtonSize.Small"
-                    Title="Toggle theme"
                     />
 
                 </RadzenStack>
@@ -36,8 +35,11 @@
                         <RadzenPanelMenuItem Text="Configs" Icon="manufacturing" Path="/configs" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "Configs", Position = TooltipPosition.Right }) )" />
                         <RadzenPanelMenuItem Text="Cloud" Icon="cloud" Path="/hiocloud" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "Cloud", Position = TooltipPosition.Right }) )" />
                         <RadzenPanelMenuItem Text="ThingsBoard" Icon="table" Path="/thingsboard" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "ThingsBoard", Position = TooltipPosition.Right }) )" />
-                        <RadzenPanelMenuItem Text="HeatMap" Icon="table" Path="/heatmap" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "HeatMap", Position = TooltipPosition.Right }) )" />
-                        <RadzenPanelMenuItem Text="Sandbox" Icon="table" Path="/sandbox" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "Sandbox", Position = TooltipPosition.Right }) )" />
+                        @if (MainDataContext.Config.Debug)
+                        {
+                            <RadzenPanelMenuItem Text="HeatMap" Icon="table" Path="/heatmap" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "HeatMap", Position = TooltipPosition.Right }) )" />
+                            <RadzenPanelMenuItem Text="Sandbox" Icon="table" Path="/sandbox" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "Sandbox", Position = TooltipPosition.Right }) )" />
+                        }
                     </RadzenPanelMenu>
                 </RadzenColumn>
             </RadzenRow>

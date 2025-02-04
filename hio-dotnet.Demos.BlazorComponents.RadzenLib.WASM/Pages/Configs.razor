@@ -1,4 +1,6 @@
 ﻿@using Services
+@using hio_dotnet.HWDrivers.MCU
+
 @page "/configs"
 
 @inject RemoteConsoleService ConsoleService
@@ -79,7 +81,6 @@
 
     protected override void OnInitialized()
     {
-        ConsoleService.InitArrays();
         ConsoleService.NewRTTMessageLineReceived += NewLineReceived;
         ConsoleService.OnIsBusy += (s, e) =>
         {

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.JSInterop;
 using hio_dotnet.HWDrivers.Server;
 
 namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
@@ -18,13 +19,16 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
     public class RemoteConsoleService
     {
         private readonly NotificationService _notificationService;
-        public RemoteConsoleService(NotificationService notificationService)
+        private readonly IJSRuntime _jsRuntime;
+
+        public RemoteConsoleService(NotificationService notificationService, IJSRuntime jsRuntime)
         {
             _notificationService = notificationService;
             driversServerApiClient = new DriversServerApiClient(null);
             driversWebSocketClient = new DriversWebSocketClient();
 
-            driversWebSocketClient.OnMessageReceived += DriversWebSocketClient_OnMessageReceived;           
+            driversWebSocketClient.OnMessageReceived += DriversWebSocketClient_OnMessageReceived;
+            _jsRuntime = jsRuntime;
         }
 
         private DriversServerApiClient? driversServerApiClient;
@@ -64,6 +68,20 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
 
         public LoRaWANConfig LoRaWANConfig { get; set; } = new LoRaWANConfig();
         public LTEConfig LTEConfig { get; set; } = new LTEConfig();
+
+        public async Task GetStatuses()
+        {
+            if (driversServerApiClient != null)
+            {
+                IsDeviceOn = await driversServerApiClient.PPK2_DeviceStatus();
+                if (IsDeviceOn)
+                {
+                    IsPPK2Connected = true;
+                }
+
+                DeviceVoltage = await driversServerApiClient.PPK2_DeviceVoltage();
+            }
+        }
 
         private void DriversWebSocketClient_OnMessageReceived(string obj)
         {
@@ -285,20 +303,18 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
 
         public async Task SaveConsoleShellToFile()
         {
-            /*
-            var fileService = new FileService();
-            await fileService.SaveFileWithDialogAsync(ConsoleOutputShell, "ConsoleShellOutput.txt");
+            var filename = $"{DateTime.Now:yyyyMMddHHmmss}_ConsoleShellOutput.txt";
+            await _jsRuntime.InvokeVoidAsync("window.hiodotnet.downloadText", ConsoleOutputShell, filename);
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "File Saved", Detail = "Console content has been saved to the file.", Duration = 3000 });
-            */
+            
         }
 
         public async Task SaveConsoleLogToFile()
         {
-            /*
-            var fileService = new FileService();
-            await fileService.SaveFileWithDialogAsync(ConsoleOutputLog, "ConsoleLogOutput.txt");
+            var filename = $"{DateTime.Now:yyyyMMddHHmmss}_ConsoleLogOutput.txt";
+            await _jsRuntime.InvokeVoidAsync("window.hiodotnet.downloadText", ConsoleOutputLog, filename);
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "File Saved", Detail = "Console Log content has been saved to the file.", Duration = 3000 });
-            */
+            
         }
 
         private async Task SendAllConfigLines(string cfg)

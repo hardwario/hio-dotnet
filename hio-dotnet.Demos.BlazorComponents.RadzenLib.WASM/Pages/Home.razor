@@ -94,7 +94,7 @@
             </RadzenColumn>
         </RadzenRow>
         <hr style="margin-top: 5px; width: 100%;" />
-        
+
     </RadzenSidebar>
     <RadzenBody>
         <RadzenRow Style="height: 100%;">
@@ -106,13 +106,13 @@
                                 <RadzenSplitter>
                                     <RadzenSplitterPane Size="50%" Min="30px" Max="70%">
                                         <ConsoleComponent @ref=consoleComponentRef 
-                                                          TextSize="@ConsoleFontSize" 
-                                                          Output="@ConsoleService.ConsoleOutputShell" 
-                                                          IsSendButtonDisabled="@isDisabled" 
-                                                          OnSendCommand="HandleSendCommand"
-                                                          IsActionPanelVisible = "true"
-                                                          ActionCommandButtonDataList="@ActionCommandButtonDataList"
-                                                          OnActionSendCommandHandler="onSendCommandHandler" />
+                                        TextSize="@ConsoleFontSize" 
+                                        Output="@ConsoleService.ConsoleOutputShell" 
+                                        IsSendButtonDisabled="@isDisabled" 
+                                        OnSendCommand="HandleSendCommand"
+                                        IsActionPanelVisible = "true"
+                                        ActionCommandButtonDataList="@ActionCommandButtonDataList"
+                                        OnActionSendCommandHandler="onSendCommandHandler" />
                                     </RadzenSplitterPane>
                                     <RadzenSplitterPane>
                                         <ConsoleComponent @ref=consoleComponentLogRef TextSize="@ConsoleFontSize" Headline="Log" Output="@ConsoleService.ConsoleOutputLog" HideCommandLine="true" />
@@ -228,6 +228,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
+        await ConsoleService.GetStatuses();
         if (ConsoleService.IsConsoleListening)
         {
             isDisabled = false;

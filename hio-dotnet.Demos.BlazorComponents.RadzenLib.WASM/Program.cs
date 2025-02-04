@@ -16,6 +16,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddScoped<HioCloudService>();
 builder.Services.AddScoped<ThingsBoardService>();
 builder.Services.AddScoped<RemoteConsoleService>();
+builder.Services.AddScoped<LoadingOverlayService>();
 
 var config = new AppConfig()
 {

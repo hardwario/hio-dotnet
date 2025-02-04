@@ -88,6 +88,8 @@
         ConsoleService.OnIsPPKDisconnected += Refresh;
         ConsoleService.OnIsPPKVoltageOutputConnected += Refresh;
         ConsoleService.OnIsPPKVoltageOutputDisconnected += Refresh;
+
+        await ConsoleService.GetStatuses();
     }
 
     private void Refresh(object sender, bool e)
