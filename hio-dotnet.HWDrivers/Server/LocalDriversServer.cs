@@ -38,7 +38,8 @@ namespace hio_dotnet.HWDrivers.Server
             if (!string.IsNullOrEmpty(resourcePath))
             {
                 Console.WriteLine($"Serving files from: {resourcePath}");
-                _server.WithStaticFolder("/", resourcePath, true);
+                _server = _server.WithStaticFolder("/", resourcePath, true);
+
             }
         }
 

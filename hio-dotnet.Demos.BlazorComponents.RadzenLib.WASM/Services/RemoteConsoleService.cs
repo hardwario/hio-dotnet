@@ -87,10 +87,10 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
         {
             try
             {
-                var parsed = System.Text.Json.JsonSerializer.Deserialize<Tuple<string, MultiRTTClientBase>>(obj);
+                var parsed = System.Text.Json.JsonSerializer.Deserialize<WebSocketModuleTransferObject>(obj);
                 if (parsed != null)
                 {
-                    ProcessNewRTTLine(null, parsed);
+                    ProcessNewRTTLine(null, new Tuple<string, MultiRTTClientBase>(parsed.Message, parsed.ClientBase));
                 }
             }
             catch (Exception ex)
@@ -135,9 +135,15 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                 return;
             }
 
-            var selectedDevice = devices[0];
+            var selectedDevice = devices.Where(n => n.PortName.Contains("ACM0")).FirstOrDefault();
+            if (selectedDevice == null)
+            {
+                selectedDevice = devices.Where(n => n.PortName.Contains("COM")).FirstOrDefault() ?? new GetPortsResponse();
+            }
+
             Console.WriteLine($"\nUsing PPK2 device on COM Port: {selectedDevice.PortName} with Serial Number: {selectedDevice.SerialNumber}");
 
+            selectedDevice.PortName = selectedDevice.PortName.Replace("\\/", "/").Replace("/", "%2F");
             await driversServerApiClient.PPK2_Init(selectedDevice.PortName);
             IsPPK2Connected = true;
 

@@ -37,8 +37,10 @@ namespace hio_dotnet.HWDrivers.Server
             var buffer = new byte[1024 * 4];
             while (_webSocket?.State == WebSocketState.Open)
             {
+                await Task.Delay(5);
                 var result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
                 var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                //Console.WriteLine($"New message captured:{message}");
                 OnMessageReceived?.Invoke(message);
             }
         }

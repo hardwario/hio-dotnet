@@ -5,11 +5,17 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading.Tasks;
 using EmbedIO.WebSockets;
+using hio_dotnet.HWDrivers;
 using hio_dotnet.HWDrivers.MCU;
 using Org.BouncyCastle.Asn1;
 
 namespace hio_dotnet.HWDrivers.Server
 {
+    public class WebSocketModuleTransferObject
+    {
+        public string Message { get; set; } = string.Empty;
+        public MultiRTTClientBase ClientBase { get; set; } = new MultiRTTClientBase();
+    }
     public class DriversWebSocketModule : WebSocketModule
     {
         private int _connectedClients = 0;
@@ -30,9 +36,18 @@ namespace hio_dotnet.HWDrivers.Server
                 {
                     DriversServerMainDataContext.MCUMultiRTTConsole.NewRTTMessageLineReceived += async (sender, e) =>
                     {
-                        var json = System.Text.Json.JsonSerializer.Serialize(e);
-                        // send json to all
-                        await BroadcastAsync(json);
+                        if (e != null)
+                        {
+                            var m = new WebSocketModuleTransferObject()
+                            {
+                                Message = e.Item1,
+                                ClientBase = e.Item2
+                            };
+                            var json = System.Text.Json.JsonSerializer.Serialize(m);
+                            // send json to all
+                            //Console.WriteLine($"Message Broadcast: {json}");
+                            await BroadcastAsync(json);
+                        }
                     };
                     _subscribed = true;
                 }

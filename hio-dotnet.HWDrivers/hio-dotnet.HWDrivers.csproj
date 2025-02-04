@@ -7,24 +7,42 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Platforms>AnyCPU</Platforms>
+    <_ExtraTrimmerArgs>--keep-metadata parametername</_ExtraTrimmerArgs>
   </PropertyGroup>
 
-
+<!--
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <DefineConstants>WINDOWS</DefineConstants>
   </PropertyGroup>
+  
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
     <DefineConstants>LINUX;OSX</DefineConstants>
   </PropertyGroup>
-
+-->
+  <Target Name="DisplayMessages" BeforeTargets="BeforeBuild">
+    <Message Importance="High" Text="RID = $(RuntimeIdentifier)" />
+  </Target>
+  
   <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+    <DefineConstants>WINDOWS;X64</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x86'">
     <DefineConstants>WINDOWS</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'linux-x64'">
+    <DefineConstants>LINUX;X64</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'linux-arm'">
     <DefineConstants>LINUX</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'linux-arm64'">
+    <DefineConstants>LINUX;ARM64</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'osx-x64'">
     <DefineConstants>MACOS</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == ''">
+    <DefineConstants>LINUX</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
