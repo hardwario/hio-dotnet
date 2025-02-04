@@ -17,6 +17,10 @@ namespace hio_dotnet.HWDrivers.MCU
         public string Name { get; set; } = string.Empty;
         public int Channel { get; set; } = 0;
     }
+    public class MultiRTTClientWSMessage : MultiRTTClientBase
+    {
+        public string Message { get; set; } = string.Empty;
+    }
     public class MultiRTTClient : MultiRTTClientBase
     {
         public IRTTDriver? Driver { get; set; } = null;
@@ -63,6 +67,8 @@ namespace hio_dotnet.HWDrivers.MCU
             }
         }
 
+        public bool IsListening { get; set; } = false;
+
         private string _consoleName = string.Empty;
         private string _mcuType = string.Empty;
         private int _speed = 4000;
@@ -99,6 +105,8 @@ namespace hio_dotnet.HWDrivers.MCU
                 Console.WriteLine($"Console {_consoleName} is starting listenning...");
                 try
                 {
+                    IsListening = true;
+
                     while (!cancellationToken.IsCancellationRequested)
                     {
                         foreach (var client in Clients.Values)
@@ -137,6 +145,7 @@ namespace hio_dotnet.HWDrivers.MCU
                 }
                 finally
                 {
+                    IsListening = false;
                     CloseAll();
                 }
 

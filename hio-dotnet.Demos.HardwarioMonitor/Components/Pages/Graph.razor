@@ -2,7 +2,7 @@
 
 @page "/graph"
 
-@inject ConsoleService ConsoleService
+@inject RemoteConsoleService ConsoleService
 
 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
     <!-- Loading overlay -->
@@ -20,7 +20,7 @@
 
 <RadzenLayout Style="height: 100%; grid-template-rows: 1fr; grid-template-columns: 1fr auto; grid-template-areas: 'rz-body rz-sidebar'">
     <RadzenSidebar Style="padding: 5px;">
-        @if (!ConsoleService.IsPPK2Connected())
+        @if (!ConsoleService.IsPPKConnected)
         {
             <RadzenButton Click="OnInitPPK2Handler" Style="margin-top: 5px; width: 100%;">Init PPK2</RadzenButton>
         }
@@ -43,7 +43,7 @@
         <RadzenRow Style="margin-top: 5px; width: 100%;">
             <RadzenColumn>
                 <RadzenStack Orientation="Orientation.Horizontal">
-                    @if (ConsoleService.IsPPK2Connected())
+                    @if (ConsoleService.IsPPKConnected)
                     {
                         <RadzenText Text="PPK Connected" />
                     }

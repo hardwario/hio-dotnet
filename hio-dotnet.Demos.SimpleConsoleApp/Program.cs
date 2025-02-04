@@ -1397,7 +1397,7 @@ if (HIO_CLOUD_AND_THINGSBOARD_DEPLOY_MULTIPLEDEVICES)
     }
 
     // create connector for hio cloud for multiple devices
-    var connector = HioCloudConnector.GetConnectorStringMultipleDevices(sntokens, "http://localhost:8080");
+    var connector = HioCloudConnector.GetConnectorStringMultipleDevices(sntokens, basedomain: "http://localhost:8080");
 
     Console.WriteLine("\n\nConnector:\n");
     Console.WriteLine(connector);
