@@ -1427,6 +1427,9 @@ if (GENERATE_TIMESTAMP_DATA)
     var result = TimeStampFormatDataConverter.GetJSActiveCode(message).ToList();
 
 
+    var names = TimeStampFormatDataConverter.GetJSActiveCode(message, returnJustNames: true).ToList();
+
+
     var sndata = new Dictionary<string, string>();
 
     var sb = new StringBuilder();
@@ -1441,7 +1444,10 @@ if (GENERATE_TIMESTAMP_DATA)
     var message1 = new ChesterMeteoCloudMessage();
     BaseSimulator.GetSimulatedData(message1);
 
-    var result1 = TimeStampFormatDataConverter.GetJSActiveCode(message1).ToList();
+    var names1 = TimeStampFormatDataConverter.GetJSActiveCode(message1, returnJustNames: true).ToList();
+
+
+    var result1 = TimeStampFormatDataConverter.GetJSActiveCode(message1, propsToInclude:names1.Take(2).ToList()).ToList();
 
     var sb1 = new StringBuilder();
     foreach (var res in result1)

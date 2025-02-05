@@ -1,4 +1,4 @@
-﻿@using Microsoft.JSInterop
+@using Microsoft.JSInterop
 @using Services
 @using CHESTER.HioCloud.Models
 @using hio_dotnet.UI.BlazorComponents.RadzenLib.ThingsBoard
@@ -537,7 +537,7 @@
         }
 
         // create connector for hio cloud
-        connector = HioCloudConnector.GetConnectorStringMultipleDevices(sntokens, sndata, "http://localhost:8080");
+        connector = HioCloudConnector.GetConnectorStringMultipleDevices_FromActiveJSCode(sntokens, sndata, "http://localhost:8080");
     }
 
     private async Task AddConnector()

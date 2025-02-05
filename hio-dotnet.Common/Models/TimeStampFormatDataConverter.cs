@@ -289,7 +289,7 @@ namespace hio_dotnet.Common.Models
             return result;
         }
 
-        public static IEnumerable<string> GetJSActiveCode(object data, string parentName = "")
+        public static IEnumerable<string> GetJSActiveCode(object data, string parentName = "", bool returnJustNames = false, List<string>? propsToInclude = null)
         {
             if (data == null) yield break;
 
@@ -301,6 +301,12 @@ namespace hio_dotnet.Common.Models
             {
                 if (!shared.ContainsKey(name))
                     shared.Add(name, value);
+            }
+
+            bool isInTheInclude(string propname)
+            {
+                if (propsToInclude == null || propsToInclude.Count == 0) return true;
+                return propsToInclude.Contains(propname);
             }
 
             foreach (var prop in props)
@@ -325,7 +331,17 @@ namespace hio_dotnet.Common.Models
                     prop.PropertyType == typeof(double) ||
                     prop.PropertyType == typeof(long))
                 {
-                    AddToShared(propName, propValueName);
+                    if (!returnJustNames)
+                    {
+                        if (isInTheInclude(propName))
+                        {
+                            AddToShared(propName, propValueName);
+                        }
+                    }
+                    else
+                    {
+                        yield return propName;
+                    }
                 }
                 // Processing lists
                 else if (typeof(System.Collections.IEnumerable).IsAssignableFrom(prop.PropertyType) &&
@@ -353,8 +369,18 @@ namespace hio_dotnet.Common.Models
 
                             var subpropname = $"{jsonPropertyName}.{subpropjsonPropertyName}";
                             var subpropvalue = $"{jsonPropertyName.Replace(".", "?.")}?.{subpropjsonPropertyName}";
+
+                            if (returnJustNames && subpropjsonPropertyName != "timestamp")
+                            {
+                                yield return $"{parentName}.{subpropname}";
+                            }
                             if (!subpropsnames.ContainsKey(subpropname))
-                                subpropsnames.Add(subpropname, subpropvalue);
+                            {
+                                if (isInTheInclude($"{parentName}.{subpropname}"))
+                                {
+                                    subpropsnames.Add(subpropname, subpropvalue);
+                                }
+                            }
                         }
 
                         var sp = new StringBuilder();
@@ -384,8 +410,14 @@ namespace hio_dotnet.Common.Models
                         sp.AppendLine("\t})");
                         sp.AppendLine(").forEach(d => { data.push(d);});");
 
-                        var res = sp.ToString();
-                        yield return res;
+                        if (subpropsnames.Count > 0)
+                        {
+                            var res = sp.ToString();
+                            if (!returnJustNames)
+                            {
+                                yield return res;
+                            }
+                        }
                     }
                     else if (!hasTimestamp && subprops.Any(x => x.Name == "Measurements"))
                     {
@@ -418,8 +450,36 @@ namespace hio_dotnet.Common.Models
 
                                     var subpropname = $"measurement.{subpropjsonPropertyName}";
                                     var subpropvalue = $"measurement?.{subpropjsonPropertyName}";
+
+                                    var prpn = "";
+
+                                    if (!string.IsNullOrEmpty(parentName))
+                                    {
+                                        if (!string.IsNullOrEmpty(prefix))
+                                            prpn = $"{parentName}.{prop.Name}.{prefix}.{subpropname}";
+                                        else
+                                            prpn = $"{parentName}.{prop.Name}.{subpropname}";
+                                    }
+                                    else
+                                    {
+                                        if (!string.IsNullOrEmpty(prefix))
+                                            prpn = $"{prop.Name}.{prefix}.{subpropname}";
+                                        else
+                                            prpn = $"{prop.Name}.{subpropname}";
+                                    }
+
+                                    if (returnJustNames)
+                                    {
+                                        yield return prpn;
+                                    }
+
                                     if (!subpropsnames.ContainsKey(subpropname))
-                                        subpropsnames.Add(subpropname, subpropvalue);
+                                    {
+                                        if (isInTheInclude(prpn))
+                                        {
+                                            subpropsnames.Add(subpropname, subpropvalue);
+                                        }
+                                    }
                                 }
                             }
 
@@ -447,12 +507,18 @@ namespace hio_dotnet.Common.Models
                             sp.AppendLine("\t\t}");
                             sp.AppendLine("\t})");
                             sp.AppendLine(").forEach(d => { data.push(d);}));");
+
+                            if (subpropsnames.Count > 0)
+                            {
+                                var res = sp.ToString();
+                                if (!returnJustNames)
+                                {
+                                    yield return res;
+                                }
+                            }
                         }
 
-                        var res = sp.ToString();
-                        yield return res;
                     }
-
                 }
                 // Processing objects
                 else if (!prop.PropertyType.IsPrimitive && prop.PropertyType != typeof(string))
@@ -460,7 +526,7 @@ namespace hio_dotnet.Common.Models
                     var childObject = prop.GetValue(data);
                     if (childObject != null)
                     {
-                        foreach (var nestedItem in GetJSActiveCode(childObject, propName))
+                        foreach (var nestedItem in GetJSActiveCode(childObject, propName, returnJustNames, propsToInclude))
                         {
                             yield return nestedItem;
                         }
@@ -468,24 +534,27 @@ namespace hio_dotnet.Common.Models
                 }
             }
 
-            if (shared.Count == 0) yield break;
-
-            var sb = new StringBuilder();
-            sb.AppendLine("data.push({");
-            sb.AppendLine("\tts:sharedtimestamp, ");
-            sb.AppendLine("\tvalues: {");
-
-            var j = 0;
-            foreach (var item in shared)
+            if (!returnJustNames)
             {
-                if (j == shared.Count - 1)
-                    sb.AppendLine($"\t\t'{item.Key}': job.message.body.{item.Value}");
-                else
-                    sb.AppendLine($"\t\t'{item.Key}': job.message.body.{item.Value},");
+                if (shared.Count == 0) yield break;
+
+                var sb = new StringBuilder();
+                sb.AppendLine("data.push({");
+                sb.AppendLine("\tts:sharedtimestamp, ");
+                sb.AppendLine("\tvalues: {");
+
+                var j = 0;
+                foreach (var item in shared)
+                {
+                    if (j == shared.Count - 1)
+                        sb.AppendLine($"\t\t'{item.Key}': job.message.body.{item.Value}");
+                    else
+                        sb.AppendLine($"\t\t'{item.Key}': job.message.body.{item.Value},");
+                }
+                sb.AppendLine("}});");
+                var r = sb.ToString();
+                yield return r;
             }
-            sb.AppendLine("}});");
-            var r = sb.ToString();
-            yield return r;
         }
         
 
