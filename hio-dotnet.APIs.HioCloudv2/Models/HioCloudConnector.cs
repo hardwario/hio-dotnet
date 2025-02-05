@@ -197,5 +197,82 @@ namespace hio_dotnet.APIs.HioCloud.Models
                    "        }\r\n" +
                    "}";
         }
+
+
+        public static string GetConnectorStringMultipleDevices_FromActiveJSCode(Dictionary<string, string> connectionTokens, Dictionary<string, string> sndata = null, string basedomain = "https://thingsboard.hardwario.com/")
+        {
+            var burl = basedomain;
+            if (!burl.EndsWith("/"))
+            {
+                burl += "/";
+            }
+
+            var url = $"{burl}api/v1/";
+
+            var stringBuilder = new StringBuilder();
+            stringBuilder.AppendLine("\r\n");
+            if (sndata != null)
+            {
+                stringBuilder.AppendLine("\t\r\n");
+                var index = 0;
+                foreach (var sn in sndata)
+                {
+                    if (index == 0)
+                    {
+                        stringBuilder.AppendLine($"\tif (sn == '{sn.Key}') {{\r\n");
+                    }
+                    else
+                    {
+                        stringBuilder.AppendLine($"\telse if (sn == '{sn.Key}') {{\r\n");
+                    }
+                    var data = sn.Value;
+                    stringBuilder.AppendLine($"\t\t{data}\r\n");
+
+                    stringBuilder.AppendLine("\t}\r\n");
+                }
+            }
+
+            stringBuilder.AppendLine("\r\n");
+            stringBuilder.AppendLine("\tvar snToAccessTokenDict ={\r\n");
+            var item = 0;
+            foreach (var (key, value) in connectionTokens)
+            {
+                if (item < connectionTokens.Count - 1)
+                    stringBuilder.Append($"\t\t\"{key}\": \"{value}\",\r\n");
+                else
+                    stringBuilder.Append($"\t\t\"{key}\": \"{value}\"\r\n");
+                item++;
+            }
+            stringBuilder.AppendLine("\t};\r\n");
+
+            var dictString = stringBuilder.ToString();
+
+            var bodyname = "body";
+
+            if (sndata != null)
+            {
+                bodyname = "data";
+            }
+
+            return "function main(job) {\r\n" +
+                   "    let body = job.message.body\r\n" +
+                   "    var data = [];\r\n" +
+                   "    const sharedtimestamp = new Date(job.message.created_at).getTime() * 1000;\r\n" +
+                   "    var accesstoken = '';\r\n" +
+                   "    var sn = job.device.serial_number;\r\n" +
+                        dictString +
+                   "    accesstoken = snToAccessTokenDict[job.device.serial_number];\r\n" +
+                   "    var url = \"" + url + "\" + accesstoken + '/telemetry';\r\n" +
+                   "    \r\n" +
+                   "        return {\r\n" +
+                   "            \"method\": \"POST\",\r\n" +
+                   "            \"url\": url,\r\n" +
+                   "            \"header\": { \r\n" +
+                   "                \"Content-Type\": \"application/json\" \r\n" +
+                   "            },\r\n" +
+                   "            \"data\": " + bodyname + "\r\n" +
+                   "        }\r\n" +
+                   "}";
+        }
     }
 }
