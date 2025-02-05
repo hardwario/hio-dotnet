@@ -57,8 +57,15 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
         {
             if (driversServerApiClient != null)
             {
-                var result = driversServerApiClient.PPK2_DeviceStatus().Result;
-                return result;
+                try
+                {
+                    var result = driversServerApiClient.PPK2_DeviceStatus().Result;
+                    return result;
+                }
+                catch
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                }
             }
             return false;               
         }
@@ -73,13 +80,20 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
         {
             if (driversServerApiClient != null)
             {
-                IsDeviceOn = await driversServerApiClient.PPK2_DeviceStatus();
-                if (IsDeviceOn)
+                try
                 {
-                    IsPPK2Connected = true;
-                }
+                    IsDeviceOn = await driversServerApiClient.PPK2_DeviceStatus();
+                    if (IsDeviceOn)
+                    {
+                        IsPPK2Connected = true;
+                    }
 
-                DeviceVoltage = await driversServerApiClient.PPK2_DeviceVoltage();
+                    DeviceVoltage = await driversServerApiClient.PPK2_DeviceVoltage();
+                }
+                catch
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                }
             }
         }
 
@@ -114,7 +128,16 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             if (IsPPK2Connected)
             {
                 if (driversServerApiClient != null)
-                    driversServerApiClient.PPK2_TurnOff().Wait();
+                {
+                    try
+                    {
+                        driversServerApiClient.PPK2_TurnOff().Wait();
+                    }
+                    catch
+                    {
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                    }
+                }
             }
         }
 
@@ -144,7 +167,17 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             Console.WriteLine($"\nUsing PPK2 device on COM Port: {selectedDevice.PortName} with Serial Number: {selectedDevice.SerialNumber}");
 
             selectedDevice.PortName = selectedDevice.PortName.Replace("\\/", "/").Replace("/", "%2F");
-            await driversServerApiClient.PPK2_Init(selectedDevice.PortName);
+            if (driversServerApiClient != null)
+            {
+                try
+                {
+                    await driversServerApiClient.PPK2_Init(selectedDevice.PortName);
+                }
+                catch
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                }
+            }
             IsPPK2Connected = true;
 
             OnIsPPKConnected?.Invoke(this, true);
@@ -162,7 +195,16 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             //int voltage = 3300;
             Console.WriteLine($"Setting source voltage to {voltage} mV...");
             if (driversServerApiClient != null)
-                await driversServerApiClient.PPK2_SetVoltage(voltage);
+            {
+                try
+                {
+                    await driversServerApiClient.PPK2_SetVoltage(voltage);
+                }
+                catch
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                }
+            }
 
             DeviceVoltage = voltage;
         }
@@ -172,7 +214,16 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             // Turn on the DUT power
             Console.WriteLine("Turning on DUT power...");
             if (driversServerApiClient != null)
-                await driversServerApiClient.PPK2_TurnOn();
+            {
+                try
+                {
+                    await driversServerApiClient.PPK2_TurnOn();
+                }
+                catch
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                }
+            }
 
             IsDeviceOn = true;
             if (withMeasurement)
@@ -192,7 +243,16 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
 
             Console.WriteLine("Turning off DUT power...");
             if (driversServerApiClient != null)
-                await driversServerApiClient.PPK2_TurnOff();
+            {
+                try 
+                { 
+                    await driversServerApiClient.PPK2_TurnOff();
+                }
+                catch
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                }
+            }
 
             IsDeviceOn = false;
 
@@ -210,10 +270,19 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             OnIsBusy?.Invoke(this, true);
             await Task.Delay(10);
 
-            
+
 
             if (driversServerApiClient != null)
-                await driversServerApiClient.JLink_Init();
+            {
+                try
+                {
+                    await driversServerApiClient.JLink_Init();
+                }
+                catch
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                }
+            }
 
             IsConsoleListening = true;
 
@@ -228,7 +297,14 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             {
                 _ = Task.Run(async () =>
                 {
-                    await driversWebSocketClient.ConnectAsync("ws://localhost:8042/ws");
+                    try
+                    {
+                        await driversWebSocketClient.ConnectAsync("ws://localhost:8042/ws");
+                    }
+                    catch 
+                    { 
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                    }
                 });
             }
         }
@@ -279,7 +355,16 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                 }
 
                 if (driversServerApiClient != null)
-                    await driversServerApiClient.JLink_SendCommandByName("ConfigConsole", command);
+                {
+                    try
+                    {
+                        await driversServerApiClient.JLink_SendCommandByName("ConfigConsole", command);
+                    }
+                    catch
+                    {
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                    }
+                }
             }
             else
             {
@@ -295,7 +380,16 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             IsConsoleListening = false;
 
             if (driversServerApiClient != null)
-                await driversServerApiClient.JLink_Stop();
+            {
+                try
+                {
+                    await driversServerApiClient.JLink_Stop();
+                }
+                catch
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                }
+            }
 
             OnIsJLinkDisconnected?.Invoke(this, true);
 

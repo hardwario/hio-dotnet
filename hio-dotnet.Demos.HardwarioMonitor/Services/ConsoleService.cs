@@ -90,7 +90,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             {
                 StopListening();
             }
-            if (IsPPK2Connected())
+            if (IsPPK2Connected)
             {
                 ppk2?.Dispose();
             }
