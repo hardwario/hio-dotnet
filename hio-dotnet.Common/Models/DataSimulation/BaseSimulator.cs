@@ -1,4 +1,5 @@
-﻿using hio_dotnet.Common.Models.CatalogApps.Meteo;
+﻿using hio_dotnet.Common.Helpers;
+using hio_dotnet.Common.Models.CatalogApps.Meteo;
 using hio_dotnet.Common.Models.CatalogApps.Push;
 using hio_dotnet.Common.Models.CatalogApps.Scale;
 using hio_dotnet.Common.Models.Common;
@@ -14,15 +15,21 @@ namespace hio_dotnet.Common.Models.DataSimulation
 {
     public class BaseSimulator
     {
-        public static void GetSimulatedData(object obj, object? previousObj = null)
+        public static void GetSimulatedData(object obj, object? previousObj = null, bool forceTimestamp = false, long timestamp = 0)
         {
-            Simulate(obj, previousObj);
+            if (!forceTimestamp)
+            {
+                timestamp = TimeHelpers.DateTimeToUnixTimestamp(DateTime.UtcNow);
+                forceTimestamp = true;
+            }
+
+            Simulate(obj, previousObj, forceTimestamp, timestamp);
 
             // add name of the FW and other static basic common info
             FillCommonStatics(obj, previousObj);
         }
 
-        public static void Simulate(object obj, object? previousObj = null)
+        public static void Simulate(object obj, object? previousObj = null, bool forceTimestamp = false, long timestamp = 0)
         {
             var properties = obj.GetType().GetProperties();
 
@@ -42,7 +49,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                     }
 
                     if (!isList)
-                        FillRandomValue(simulationAttr, obj, property, previousObj);
+                        FillRandomValue(simulationAttr, obj, property, previousObj, forceTimestamp, timestamp);
                 }
 
                 else if (simulationAttr != null &&
@@ -66,7 +73,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                         var simulationMeasurementAttr = property.GetCustomAttribute<SimulationMeasurementAttribute>();
                         if (simulationMeasurementAttr != null)
                         {
-                            SimulateMeasurementGroup(nestedObj, simulationMeasurementAttr, previousNestedObj);
+                            SimulateMeasurementGroup(nestedObj, simulationMeasurementAttr, previousNestedObj, forceTimestamp, timestamp);
                             property.SetValue(obj, nestedObj);
                         }
                     }
@@ -75,7 +82,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                         var simulationMeasurementAttr = property.GetCustomAttribute<SimulationMeasurementAttribute>();
                         if (simulationMeasurementAttr != null)
                         {
-                            SimulateSimpleDoubleMeasurementGroup(nestedObj, simulationMeasurementAttr, previousNestedObj);
+                            SimulateSimpleDoubleMeasurementGroup(nestedObj, simulationMeasurementAttr, previousNestedObj, forceTimestamp, timestamp);
                             property.SetValue(obj, nestedObj);
                         }
                     }
@@ -84,7 +91,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                         var simulationMeasurementAttr = property.GetCustomAttribute<SimulationMeasurementAttribute>();
                         if (simulationMeasurementAttr != null)
                         {
-                            SimulateSimpleIntMeasurementGroup(nestedObj, simulationMeasurementAttr, previousNestedObj);
+                            SimulateSimpleIntMeasurementGroup(nestedObj, simulationMeasurementAttr, previousNestedObj, forceTimestamp, timestamp);
                             property.SetValue(obj, nestedObj);
                         }
                     }
@@ -93,7 +100,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                         var simulationMeasurementAttr = property.GetCustomAttribute<SimulationMeasurementAttribute>();
                         if (simulationMeasurementAttr != null)
                         {
-                            Simulate_Temperature(nestedObj, simulationMeasurementAttr, previousNestedObj);
+                            Simulate_Temperature(nestedObj, simulationMeasurementAttr, previousNestedObj, forceTimestamp, timestamp);
                             property.SetValue(obj, nestedObj);
                         }
                     }
@@ -116,7 +123,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                                     else
                                         w1tp = ((List<WeightMeasurement>)previousNestedObj)?.FirstOrDefault();
                                 }
-                                Simulate(w1t, w1tp);
+                                Simulate(w1t, w1tp, forceTimestamp, timestamp);
 
                                 ((List<WeightMeasurement>)nestedObj).Add(w1t);
                             }
@@ -141,7 +148,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                                     else
                                         w1tp = ((List<PushButtonsStates>)previousNestedObj)?.FirstOrDefault();
                                 }
-                                Simulate(w1t, w1tp);
+                                Simulate(w1t, w1tp, forceTimestamp, timestamp);
 
                                 w1t.Button = $"Button_{i}";
 
@@ -170,7 +177,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                                     else
                                         w1tp = ((List<W1_Thermometer>)previousNestedObj)?.FirstOrDefault();
                                 }
-                                Simulate_W1_Thermoemter(w1t, simulationMeasurementAttr, w1tp);
+                                Simulate_W1_Thermoemter(w1t, simulationMeasurementAttr, w1tp, forceTimestamp, timestamp);
 
                                 ((List<W1_Thermometer>)nestedObj).Add(w1t);
                             }
@@ -196,7 +203,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                                         w1tp = ((List<SoilMeasurements>)previousNestedObj)?.FirstOrDefault();
                                 }
 
-                                Simulate(w1t, w1tp);
+                                Simulate(w1t, w1tp, forceTimestamp, timestamp);
 
                                 ((List<SoilMeasurements>)nestedObj).Add(w1t);
                             }
@@ -221,7 +228,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                                     else
                                         w1tp = ((List<RTD_Thermometer>)previousNestedObj)?.FirstOrDefault();
                                 }
-                                Simulate_RTD_Thermoemter(w1t, simulationMeasurementAttr, w1tp, i);
+                                Simulate_RTD_Thermoemter(w1t, simulationMeasurementAttr, w1tp, i, forceTimestamp, timestamp);
 
                                 ((List<RTD_Thermometer>)nestedObj).Add(w1t);
                             }
@@ -246,7 +253,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                                     else
                                         w1tp = ((List<AnalogChannel>)previousNestedObj)?.FirstOrDefault();
                                 }
-                                Simulate_AnalogChannel(w1t, simulationMeasurementAttr, w1tp, i);
+                                Simulate_AnalogChannel(w1t, simulationMeasurementAttr, w1tp, i, forceTimestamp, timestamp);
 
                                 ((List<AnalogChannel>)nestedObj).Add(w1t);
                             }
@@ -272,7 +279,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                                     else
                                         bltp = ((List<BLE_Tag>)previousNestedObj)?.FirstOrDefault();
                                 }
-                                Simulate(blt, bltp);
+                                Simulate(blt, bltp, forceTimestamp, timestamp);
 
                                 if (bltp != null)
                                 {
@@ -299,14 +306,14 @@ namespace hio_dotnet.Common.Models.DataSimulation
                     }
                     else
                     {
-                        Simulate(nestedObj, previousNestedObj);
+                        Simulate(nestedObj, previousNestedObj, forceTimestamp, timestamp);
                         property.SetValue(obj, nestedObj);
                     }
                 }
             }
         }
 
-        public static void SimulateMeasurementGroup(object obj, SimulationMeasurementAttribute simulationMeasurementAttr, object? previousObj = null)
+        public static void SimulateMeasurementGroup(object obj, SimulationMeasurementAttribute simulationMeasurementAttr, object? previousObj = null, bool forceTimestamp = false, long timestamp = 0)
         {
             if (obj.GetType() != typeof(MeasurementGroup))
             {
@@ -328,13 +335,13 @@ namespace hio_dotnet.Common.Models.DataSimulation
                 {
                     if (property != null && property.PropertyType == typeof(List<Measurement>))
                     {
-                        FillMeasurementList(obj, simulationMeasurementAttr, property, previousObj);
+                        FillMeasurementList(obj, simulationMeasurementAttr, property, previousObj, forceTimestamp, timestamp);
                     }
                 }
             }
         }
 
-        public static void SimulateSimpleDoubleMeasurementGroup(object obj, SimulationMeasurementAttribute simulationMeasurementAttr, object? previousObj = null)
+        public static void SimulateSimpleDoubleMeasurementGroup(object obj, SimulationMeasurementAttribute simulationMeasurementAttr, object? previousObj = null, bool forceTimestamp = false, long timestamp = 0)
         {
             if (obj.GetType() != typeof(SimpleDoubleMeasurementGroup))
             {
@@ -357,13 +364,13 @@ namespace hio_dotnet.Common.Models.DataSimulation
                 {
                     if (property != null && property.PropertyType == typeof(List<SimpleTimeDoubleMeasurement>))
                     {
-                        FillSimpleTimeDoubleList(obj, simulationMeasurementAttr, property, previousObj);
+                        FillSimpleTimeDoubleList(obj, simulationMeasurementAttr, property, previousObj, forceTimestamp, timestamp);
                     }
                 }
             }
         }
 
-        public static void SimulateSimpleIntMeasurementGroup(object obj, SimulationMeasurementAttribute simulationMeasurementAttr, object? previousObj = null)
+        public static void SimulateSimpleIntMeasurementGroup(object obj, SimulationMeasurementAttribute simulationMeasurementAttr, object? previousObj = null, bool forceTimestamp = false, long timestamp = 0)
         {
             if (obj.GetType() != typeof(SimpleIntMeasurementGroup))
             {
@@ -386,13 +393,13 @@ namespace hio_dotnet.Common.Models.DataSimulation
                 {
                     if (property != null && property.PropertyType == typeof(List<SimpleTimeIntMeasurement>))
                     {
-                        FillSimpleTimeIntList(obj, simulationMeasurementAttr, property, previousObj);
+                        FillSimpleTimeIntList(obj, simulationMeasurementAttr, property, previousObj, forceTimestamp, timestamp);
                     }
                 }
             }
         }
 
-        public static void Simulate_W1_Thermoemter(object obj, SimulationMeasurementAttribute simulationMeasurementAttr, object? previousObj = null)
+        public static void Simulate_W1_Thermoemter(object obj, SimulationMeasurementAttribute simulationMeasurementAttr, object? previousObj = null, bool forceTimestamp = false, long timestamp = 0)
         {
             if (obj.GetType() != typeof(W1_Thermometer))
             {
@@ -428,13 +435,13 @@ namespace hio_dotnet.Common.Models.DataSimulation
                 {
                     if (property != null && property.PropertyType == typeof(List<Measurement>))
                     {
-                        FillMeasurementList(obj, simulationMeasurementAttr, property, previousObj);
+                        FillMeasurementList(obj, simulationMeasurementAttr, property, previousObj, forceTimestamp, timestamp);
                     }
                 }
             }
         }
 
-        public static void Simulate_RTD_Thermoemter(object obj, SimulationMeasurementAttribute simulationMeasurementAttr, object? previousObj = null, int? channel = null)
+        public static void Simulate_RTD_Thermoemter(object obj, SimulationMeasurementAttribute simulationMeasurementAttr, object? previousObj = null, int? channel = null, bool forceTimestamp = false, long timestamp = 0)
         {
             if (obj.GetType() != typeof(RTD_Thermometer))
             {
@@ -477,13 +484,13 @@ namespace hio_dotnet.Common.Models.DataSimulation
                 {
                     if (property != null && property.PropertyType == typeof(List<Measurement>))
                     {
-                        FillMeasurementList(obj, simulationMeasurementAttr, property, previousObj);
+                        FillMeasurementList(obj, simulationMeasurementAttr, property, previousObj, forceTimestamp, timestamp);
                     }
                 }
             }
         }
 
-        public static void Simulate_Temperature(object obj, SimulationMeasurementAttribute simulationMeasurementAttr, object? previousObj = null)
+        public static void Simulate_Temperature(object obj, SimulationMeasurementAttribute simulationMeasurementAttr, object? previousObj = null, bool forceTimestamp = false, long timestamp = 0)
         {
             if (obj.GetType() != typeof(Temperature))
             {
@@ -507,18 +514,18 @@ namespace hio_dotnet.Common.Models.DataSimulation
                 {
                     if (property != null && property.PropertyType == typeof(List<Measurement>))
                     {
-                        FillMeasurementList(obj, simulationMeasurementAttr, property, previousObj);
+                        FillMeasurementList(obj, simulationMeasurementAttr, property, previousObj, forceTimestamp, timestamp);
                     }
                     
                     if (property != null && property.PropertyType == typeof(List<SimpleTimeDoubleMeasurement>))
                     {
-                        FillSimpleTimeDoubleList(obj, simulationMeasurementAttr, property, previousObj);
+                        FillSimpleTimeDoubleList(obj, simulationMeasurementAttr, property, previousObj, forceTimestamp, timestamp);
                     }
                 }
             }
         }
 
-        public static void Simulate_AnalogChannel(object obj, SimulationMeasurementAttribute simulationMeasurementAttr, object? previousObj = null, int? channel = null)
+        public static void Simulate_AnalogChannel(object obj, SimulationMeasurementAttribute simulationMeasurementAttr, object? previousObj = null, int? channel = null, bool forceTimestamp = false, long timestamp = 0)
         {
             if (obj.GetType() != typeof(AnalogChannel))
             {
@@ -561,7 +568,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                 {
                     if (property != null && property.PropertyType == typeof(List<MeanRMSMeasurement>))
                     {
-                        FillRMSMeasurementList(obj, simulationMeasurementAttr, property, previousObj);
+                        FillRMSMeasurementList(obj, simulationMeasurementAttr, property, previousObj, forceTimestamp, timestamp);
                     }
                 }
             }
@@ -570,7 +577,9 @@ namespace hio_dotnet.Common.Models.DataSimulation
         public static void FillMeasurementList(object obj, 
                                                SimulationMeasurementAttribute simulationMeasurementAttr, 
                                                PropertyInfo? property = null, 
-                                               object? previousObj = null)
+                                               object? previousObj = null, 
+                                               bool forceTimestamp = false, 
+                                               long timestamp = 0)
         {
             // add new item to the list
             var list = (List<Measurement>)property.GetValue(obj);
@@ -593,6 +602,15 @@ namespace hio_dotnet.Common.Models.DataSimulation
 
                     var propertiesMeasurement = typeof(Measurement).GetProperties();
 
+                    if (forceTimestamp)
+                    {
+                        var ts = propertiesMeasurement.FirstOrDefault(p => p.Name == "Timestamp");
+                        if (ts != null)
+                        {
+                            ts.SetValue(listitem, timestamp);
+                        }
+                    }
+
                     var avgProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Avg");
                     var mdnProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Mdn");
                     var minProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Min");
@@ -606,7 +624,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                         avgPropAttr.NeedsFollowPrevious = simulationMeasurementAttr.NeedsFollowPrevious;
                         avgPropAttr.ShouldRaise = simulationMeasurementAttr.ShouldRaise;
                         avgPropAttr.MaximumChange = simulationMeasurementAttr.MaximumChange;
-                        FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj);
+                        FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj, forceTimestamp, timestamp);
                     }
 
                     var random = new Random();
@@ -642,7 +660,9 @@ namespace hio_dotnet.Common.Models.DataSimulation
         public static void FillRMSMeasurementList(object obj,
                                        SimulationMeasurementAttribute simulationMeasurementAttr,
                                        PropertyInfo? property = null,
-                                       object? previousObj = null)
+                                       object? previousObj = null, 
+                                       bool forceTimestamp = false, 
+                                       long timestamp = 0)
         {
             // add new item to the list
             var list = (List<MeanRMSMeasurement>)property.GetValue(obj);
@@ -665,6 +685,15 @@ namespace hio_dotnet.Common.Models.DataSimulation
 
                     var propertiesMeasurement = typeof(MeanRMSMeasurement).GetProperties();
 
+                    if (forceTimestamp)
+                    {
+                        var ts = propertiesMeasurement.FirstOrDefault(p => p.Name == "Timestamp");
+                        if (ts != null)
+                        {
+                            ts.SetValue(listitem, timestamp);
+                        }
+                    }
+
                     var avgProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "MeanAvg");
                     var mdnProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "MeanMdn");
                     var minProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "MeanMin");
@@ -678,7 +707,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                         avgPropAttr.NeedsFollowPrevious = simulationMeasurementAttr.NeedsFollowPrevious;
                         avgPropAttr.ShouldRaise = simulationMeasurementAttr.ShouldRaise;
                         avgPropAttr.MaximumChange = simulationMeasurementAttr.MaximumChange;
-                        FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj);
+                        FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj, forceTimestamp, timestamp);
                     }
 
                     var random = new Random();
@@ -725,7 +754,9 @@ namespace hio_dotnet.Common.Models.DataSimulation
         public static void FillSimpleTimeDoubleList(object obj,
                                        SimulationMeasurementAttribute simulationMeasurementAttr,
                                        PropertyInfo? property = null,
-                                       object? previousObj = null)
+                                       object? previousObj = null, 
+                                       bool forceTimestamp = false, 
+                                       long timestamp = 0)
         {
             // add new item to the list
             var list = (List<SimpleTimeDoubleMeasurement>)property.GetValue(obj);
@@ -748,6 +779,15 @@ namespace hio_dotnet.Common.Models.DataSimulation
 
                     var propertiesMeasurement = typeof(SimpleTimeDoubleMeasurement).GetProperties();
 
+                    if (forceTimestamp)
+                    {
+                        var ts = propertiesMeasurement.FirstOrDefault(p => p.Name == "Timestamp");
+                        if (ts != null)
+                        {
+                            ts.SetValue(listitem, timestamp);
+                        }
+                    }
+
                     var avgProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Value");
 
                     var avgPropAttr = avgProp?.GetCustomAttribute<SimulationAttribute>();
@@ -758,7 +798,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                         avgPropAttr.NeedsFollowPrevious = simulationMeasurementAttr.NeedsFollowPrevious;
                         avgPropAttr.ShouldRaise = simulationMeasurementAttr.ShouldRaise;
                         avgPropAttr.MaximumChange = simulationMeasurementAttr.MaximumChange;
-                        FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj);
+                        FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj, forceTimestamp, timestamp);
                     }
 
                     list.Add(listitem);
@@ -769,7 +809,9 @@ namespace hio_dotnet.Common.Models.DataSimulation
         public static void FillSimpleTimeIntList(object obj,
                                SimulationMeasurementAttribute simulationMeasurementAttr,
                                PropertyInfo? property = null,
-                               object? previousObj = null)
+                               object? previousObj = null, 
+                               bool forceTimestamp = false, 
+                               long timestamp = 0)
         {
             // add new item to the list
             var list = (List<SimpleTimeIntMeasurement>)property.GetValue(obj);
@@ -792,6 +834,15 @@ namespace hio_dotnet.Common.Models.DataSimulation
 
                     var propertiesMeasurement = typeof(SimpleTimeIntMeasurement).GetProperties();
 
+                    if (forceTimestamp)
+                    {
+                        var ts = propertiesMeasurement.FirstOrDefault(p => p.Name == "Timestamp");
+                        if (ts != null)
+                        {
+                            ts.SetValue(listitem, timestamp);
+                        }
+                    }
+
                     var avgProp = propertiesMeasurement.FirstOrDefault(p => p.Name == "Value");
 
                     var avgPropAttr = avgProp?.GetCustomAttribute<SimulationAttribute>();
@@ -802,7 +853,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
                         avgPropAttr.NeedsFollowPrevious = simulationMeasurementAttr.NeedsFollowPrevious;
                         avgPropAttr.ShouldRaise = simulationMeasurementAttr.ShouldRaise;
                         avgPropAttr.MaximumChange = simulationMeasurementAttr.MaximumChange;
-                        FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj);
+                        FillRandomValue(avgPropAttr, listitem, avgProp, previousMeasurementObj, forceTimestamp, timestamp);
                     }
 
                     list.Add(listitem);
@@ -814,7 +865,7 @@ namespace hio_dotnet.Common.Models.DataSimulation
         public static void FillRandomValue(SimulationAttribute simulationAttr, 
                                            object obj, 
                                            PropertyInfo? property = null, 
-                                           object? previousObj = null)
+                                           object? previousObj = null, bool forceTimestamp = false, long timestamp = 0)
         {
             if (property == null)
             {
@@ -956,8 +1007,15 @@ namespace hio_dotnet.Common.Models.DataSimulation
                 }
                 else if (property.PropertyType == typeof(long))
                 {
-                    var value = Math.Round(initialValue, 4);
-                    property.SetValue(obj, (long)initialValue);
+                    if (forceTimestamp && property.Name == "Timestamp")
+                    {
+                        property.SetValue(obj, timestamp);
+                    }
+                    else
+                    {
+                        var value = Math.Round(initialValue, 4);
+                        property.SetValue(obj, (long)initialValue);
+                    }
                 }
                 else if (property.PropertyType == typeof(long?))
                 {
@@ -966,8 +1024,15 @@ namespace hio_dotnet.Common.Models.DataSimulation
                     {
                         property.SetValue(obj, 0);
                     }
-                    var value = Math.Round(initialValue, 4);
-                    property.SetValue(obj, (long)initialValue);
+                    if (forceTimestamp && property.Name == "Timestamp")
+                    {
+                        property.SetValue(obj, timestamp);
+                    }
+                    else
+                    {
+                        var value = Math.Round(initialValue, 4);
+                        property.SetValue(obj, (long)initialValue);
+                    }
                 }
 
             }

@@ -28,8 +28,10 @@
             <hio_dotnet.UI.BlazorComponents.RadzenLib.Common.Buttons.CopyButton TextToCopy="@ConnectionToken" IsJustIcon="true"  />
         </RadzenStack>
     </RadzenColumn>
+</RadzenRow>
+<RadzenRow>
     <RadzenColumn>
-        <RadzenButton Text="Send Simulated Data" Click="SendSimulatedData" />
+        <ThingsBoardHioCloudMessagesSimulator Tab="@Tab" ConnectionToken="@ConnectionToken" />
     </RadzenColumn>
 </RadzenRow>
 
@@ -162,8 +164,6 @@
     bool showDataLabels = false;
     bool showMarkers = true;
 
-    private HioCloudFlattenJSONForDevice? flatener;
-
     string FormatDouble(object value)
     {
         if (double.TryParse(value.ToString(), out var result))
@@ -184,16 +184,6 @@
     private DateTime end = DateTime.UtcNow;
 
     public string ConnectionToken { get; set; } = string.Empty;
-
-    public List<string> SimulatedMessages { get; set; } = new List<string>();
-    public string SimulatedMessage { get; set; } = string.Empty;
-
-    public string SimulatorJSDataProcessingScriptBase { get; set; } = string.Empty;
-    public string SimulatorJSDataProcessingScript { get; set; } = string.Empty;
-
-    private object? result;
-
-    private CHESTER.HioCloud.Models.Device hioDevice = new CHESTER.HioCloud.Models.Device();
 
     public Device DeviceData
     { 
@@ -309,50 +299,4 @@
         });
     }
 
-    private async Task SavePropsForDevice(DialogService ds)
-    {
-        var finaldata = flatener?.GetFinalMessageData();
-        if (flatener != null)
-            hioDevice = flatener.Device;
-
-        if (!string.IsNullOrEmpty(finaldata))
-        {
-            if (finaldata != null)
-            {
-                Console.WriteLine($"Result of data processing: {finaldata}");
-                if (!string.IsNullOrEmpty(finaldata))
-                {
-                    await ThingsBoardService.SendTelemetryData(finaldata, ConnectionToken);
-                }
-            }
-        }
-
-        if (ThingsBoardService.DevicesDataKeys.ContainsKey(DeviceData.Id.Id))
-            ThingsBoardService.DevicesDataKeys.Remove(DeviceData.Id.Id);
-
-        await loadKeys();
-
-        ds.Close(true);
-    }
-
-    private async Task SendSimulatedData()
-    {
-        hioDevice.Name = DeviceData.Name;
-
-        var result = await DialogService.OpenAsync("Select Properties", ds =>
-            @<RadzenStack Gap="1.5rem">
-                <RadzenStack Orientation="Orientation.Vertical">
-                    <RadzenRow>
-                        <RadzenColumn>
-                    <HioCloudFlattenJSONForDevice @ref=flatener Device="@hioDevice" HasTitle="true" UseSimulatedMessage="true"/>
-                        </RadzenColumn>
-                    </RadzenRow>
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
-                        <RadzenButton Text="Ok" Click="@(async () => await SavePropsForDevice(ds))" ButtonStyle="ButtonStyle.Light" />
-                        <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
-                    </RadzenStack>
-                </RadzenStack>
-            </RadzenStack>
-                   ,new DialogOptions() { Resizable = true, Style="width:100%;" } );
-    }
 }

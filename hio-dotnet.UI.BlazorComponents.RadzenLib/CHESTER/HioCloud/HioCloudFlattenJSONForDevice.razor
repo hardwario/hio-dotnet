@@ -198,7 +198,7 @@
     {
         if (UseSimulatedMessage)
         {
-            await CreateSimulatedMessage();
+            await CreateSimulatedMessage(typeof(ChesterCommonCloudMessage));
         }
         await base.OnParametersSetAsync();
     }
@@ -218,9 +218,12 @@
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    public async Task CreateSimulatedMessage()
+    public async Task CreateSimulatedMessage(Type type)
     {
-        var simulatedMessageObject = new hio_dotnet.Common.Models.CatalogApps.Radon.ChesterRadonCloudMessage();
+        var simulatedMessageObject = Activator.CreateInstance(type); 
+        if (simulatedMessageObject == null)
+            return;
+
         hio_dotnet.Common.Models.DataSimulation.BaseSimulator.GetSimulatedData(simulatedMessageObject);
 
         InputMessage = System.Text.Json.JsonSerializer.Serialize(simulatedMessageObject);
@@ -254,6 +257,19 @@
     public string GetFinalMessageData()
     {
         return finalMessage ?? string.Empty;
+    }
+    public string GetFullTestScript()
+    {
+        return fullTestScript ?? string.Empty;
+    }
+
+    public Type GetSelectedType()
+    {
+        if (forceType)
+        {
+            return forcedTypeOfHioMessage;
+        }
+        return typeOfHioMessage;
     }
 
     /*
@@ -398,7 +414,7 @@
 
             if (UseSimulatedMessage)
             {
-                await CreateSimulatedMessage();
+                await CreateSimulatedMessage(type);
             }
 
             await RefreshConnector(forcedTypeOfHioMessage);
