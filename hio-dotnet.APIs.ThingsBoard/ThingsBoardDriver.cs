@@ -16,8 +16,6 @@ namespace hio_dotnet.APIs.ThingsBoard
         /// Use this constructor to authenticate with ThingsBoard using username and password.
         /// </summary>
         /// <param name="baseUrl"></param>
-        /// <param name="username"></param>
-        /// <param name="password"></param>
         /// <param name="port"></param>
         /// <exception cref="ArgumentException"></exception>
         public ThingsBoardDriver(string baseUrl, int port = 0)
@@ -384,7 +382,7 @@ namespace hio_dotnet.APIs.ThingsBoard
             }
         }
 
-        public async Task<string?> SendTelemetryData(object telemetryData, string connectionToken, string jwtToken = "")
+        public async Task<string?> SendTelemetryData(object telemetryData, string connectionToken, string jwtToken = "", bool serializeData = true)
         {
             if (string.IsNullOrEmpty(jwtToken))
             {
@@ -401,7 +399,15 @@ namespace hio_dotnet.APIs.ThingsBoard
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                var data = JsonSerializer.Serialize(telemetryData);
+                var data = string.Empty;
+                if (serializeData)
+                {
+                    data = JsonSerializer.Serialize(telemetryData);
+                }
+                else
+                {
+                    data = telemetryData.ToString();
+                }
 
                 var url = $"/api/v1/{connectionToken}/telemetry";
                 var content = new StringContent(data, Encoding.UTF8, "application/json");

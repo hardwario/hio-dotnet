@@ -377,13 +377,12 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
         {
             cts.Cancel();
 
-            IsConsoleListening = false;
-
             if (driversServerApiClient != null)
             {
                 try
                 {
                     await driversServerApiClient.JLink_Stop();
+                    IsConsoleListening = false;
                 }
                 catch
                 {
