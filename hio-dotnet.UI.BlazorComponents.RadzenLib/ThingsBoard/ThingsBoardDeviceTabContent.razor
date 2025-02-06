@@ -193,6 +193,8 @@
 
     private object? result;
 
+    private CHESTER.HioCloud.Models.Device hioDevice = new CHESTER.HioCloud.Models.Device();
+
     public Device DeviceData
     { 
         get 
@@ -309,33 +311,18 @@
 
     private async Task SavePropsForDevice(DialogService ds)
     {
-        var conndata = flatener?.GetConnectorData();
-        var msg = flatener?.GetMessageData();
+        var finaldata = flatener?.GetFinalMessageData();
+        if (flatener != null)
+            hioDevice = flatener.Device;
 
-        if (!string.IsNullOrEmpty(conndata) && !string.IsNullOrEmpty(msg))
+        if (!string.IsNullOrEmpty(finaldata))
         {
-            SimulatorJSDataProcessingScriptBase = conndata;
-            SimulatedMessage = msg;
-
-            var time = hio_dotnet.Common.Helpers.TimeHelpers.DateTimeToUnixTimestamp(DateTime.Now);
-
-            SimulatorJSDataProcessingScript = $@"
-                const data = [];
-                const sharedtimestamp = {time};
-                const job = {{ message: {{ body: {SimulatedMessage} }} }};
-            {SimulatorJSDataProcessingScriptBase}
-                return data;
-            ";
-
-            result = await JSRuntime.InvokeAsync<object>("hiodotnet.parseTimestampData", SimulatorJSDataProcessingScript);
-
-            if (result != null)
+            if (finaldata != null)
             {
-                Console.WriteLine($"Result of data processing: {result}");
-                var r = result.ToString();
-                if (!string.IsNullOrEmpty(r))
+                Console.WriteLine($"Result of data processing: {finaldata}");
+                if (!string.IsNullOrEmpty(finaldata))
                 {
-                    await ThingsBoardService.SendTelemetryData(r, ConnectionToken);
+                    await ThingsBoardService.SendTelemetryData(finaldata, ConnectionToken);
                 }
             }
         }
@@ -350,12 +337,14 @@
 
     private async Task SendSimulatedData()
     {
+        hioDevice.Name = DeviceData.Name;
+
         var result = await DialogService.OpenAsync("Select Properties", ds =>
             @<RadzenStack Gap="1.5rem">
                 <RadzenStack Orientation="Orientation.Vertical">
                     <RadzenRow>
                         <RadzenColumn>
-                    <HioCloudFlattenJSONForDevice @ref=flatener Device="@(new CHESTER.HioCloud.Models.Device() { Name = DeviceData.Name })" HasTitle="true" UseSimulatedMessage="true"/>
+                    <HioCloudFlattenJSONForDevice @ref=flatener Device="@hioDevice" HasTitle="true" UseSimulatedMessage="true"/>
                         </RadzenColumn>
                     </RadzenRow>
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">

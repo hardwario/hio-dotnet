@@ -1,8 +1,10 @@
 ﻿@using Services
-@using CHESTER.HioCloud.Models
 @using Blazor.AceEditorJs
+@using CHESTER.HioCloud.Models
 @using hio_dotnet.Common.Models
+@using Microsoft.JSInterop;
 
+@inject IJSRuntime JSRuntime
 @inject HioCloudService HioCloudService
 
 @if (HasTitle)
@@ -57,20 +59,30 @@
         </RadzenRow>
     </RadzenColumn>
     <RadzenColumn>
-        <RadzenRow Style="margin-bottom:1rem;">
-            <RadzenColumn>
-                <RadzenRadioButtonList TValue="ParseVersion" Value="@parseVersion" ValueChanged="@onParseVersionChanged">
-                    <Items>
-                        <RadzenRadioButtonListItem Text="One Object" Value="ParseVersion.OneObject" />
-                        <RadzenRadioButtonListItem Text="Split Objects" Value="ParseVersion.SplitObjects" />
-                    </Items>
-                </RadzenRadioButtonList>
-            </RadzenColumn>
-        </RadzenRow>
-        @if (connector != null)
-        {
+        <!--Own tabs are used because of trouble with AceJsEditor in RadzenTabs-->
+        <div class="tab">
+            <button class="tablinks scriptTab" onclick="openTab(event, 'Script')">Script</button>
+            <button class="tablinks" onclick="openTab(event, 'OriginalMessage')">Original Message</button>
+            <button class="tablinks" onclick="openTab(event, 'FullTestScript')">Full Test Script</button>
+            <button class="tablinks" onclick="openTab(event, 'FinalMessage')">Final Message</button>
+        </div>
+
+        <div id="Script" class="tabcontent" style="height:100%;">
             <AceJsEditor @key="editorKey" @ref=acejsEditor1Ref Style="height:100%" @bind-Value="@connector" Options="opt" />
-        }
+        </div>
+
+        <div id="OriginalMessage" class="tabcontent" style="height:100%;">
+            <hio_dotnet.UI.BlazorComponents.RadzenLib.Common.JSON.JSONViewer @ref="JSONViewerOriginalMessageRef" />
+        </div>
+
+        <div id="FullTestScript" class="tabcontent" style="height:100%;">
+            <AceJsEditor @key="editorKeyFullTestScript" @ref=acejsEditorFullTestScriptRef Style="height:100%" @bind-Value="@fullTestScript" Options="opt1" />
+        </div>
+
+        <div id="FinalMessage" class="tabcontent" style="height:100%;">
+            <hio_dotnet.UI.BlazorComponents.RadzenLib.Common.JSON.JSONViewer @ref="JSONViewerFinalMessageRef" />
+        </div>
+
     </RadzenColumn>
 </RadzenRow>
 
@@ -83,12 +95,75 @@
     </RadzenColumn>
 </RadzenRow>
 
+<style>
+    .tab {
+    overflow: hidden;
+    border: 0px solid #e9edf0;
+    background-color: #a8b4b8;
+    }
+
+    /* Style the buttons that are used to open the tab content */
+    .tab button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+    }
+
+    /* Change background color of buttons on hover */
+    .tab button:hover {
+    background-color: #7b8a8e;
+    }
+
+    /* Create an active/current tablink class */
+    .tab button.active {
+    background-color: #45565e;
+    }
+
+    /* Style the tab content */
+    .tabcontent {
+    display: none;
+    padding: 6px 12px;
+    border: 1px solid --rz-body-background-color;
+    border-top: none;
+    }
+</style>
+
+<script>
+    function openTab(evt, tabName) {
+    var i, tabcontent, tablinks;
+
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+    }
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+    }
+    // set timer to click on the first tab in 100ms after render
+
+    async function clickButtonAfterDelay() {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    var b = document.getElementsByClassName('scriptTab');
+    console.log(b);
+    b[0].click();
+    }
+
+    // Call the function
+    clickButtonAfterDelay();
+
+
+
+</script>
+
 @code {
-    public enum ParseVersion
-    {
-        OneObject,
-        SplitObjects
-    };
 
     [Parameter] public Device Device { get; set; } = new Device();
     [Parameter] public bool UseSimulatedMessage { get; set; } = false;
@@ -97,17 +172,27 @@
     [Parameter] public string Title { get; set; } = "Message Properties";
 
     private int editorKey = 0;
+    private int editorKeyFullTestScript = 0;
     private AceJsEditor? acejsEditor1Ref;
+    private AceJsEditor? acejsEditorFullTestScriptRef;
     private HioCloudMessagePropsList? hioCloudMessagePropsListRef;
-    private ParseVersion parseVersion = ParseVersion.OneObject;
+    private hio_dotnet.UI.BlazorComponents.RadzenLib.Common.JSON.JSONViewer? JSONViewerOriginalMessageRef;
+    private hio_dotnet.UI.BlazorComponents.RadzenLib.Common.JSON.JSONViewer? JSONViewerFinalMessageRef;
 
-    private string? connector = null;
+    private string finalMessage = string.Empty;
+    private string? fullTestScript = null;
+    private string connector = string.Empty;
     private AceEditorOptions opt = new() { IsReadOnly = false, Language = AceLanguage.javascript, Theme = AceTheme.twilight };
+    private AceEditorOptions opt1 = new() { IsReadOnly = false, Language = AceLanguage.javascript, Theme = AceTheme.twilight };
     private System.Timers.Timer timer = new System.Timers.Timer(200);
     private Type typeOfHioMessage = typeof(ChesterCommonCloudMessage);
     private Type forcedTypeOfHioMessage = typeof(ChesterCommonCloudMessage);
 
     private bool forceType = false;
+
+    private object? result;
+
+    private string inputMessageIntended = string.Empty;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -118,20 +203,40 @@
         await base.OnParametersSetAsync();
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (JSONViewerOriginalMessageRef != null)
+            {
+
+                await JSONViewerOriginalMessageRef.Load(inputMessageIntended);
+
+                await RefreshConnector();
+            }
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
     public async Task CreateSimulatedMessage()
     {
         var simulatedMessageObject = new hio_dotnet.Common.Models.CatalogApps.Radon.ChesterRadonCloudMessage();
         hio_dotnet.Common.Models.DataSimulation.BaseSimulator.GetSimulatedData(simulatedMessageObject);
 
         InputMessage = System.Text.Json.JsonSerializer.Serialize(simulatedMessageObject);
+        // create json serialized intended version of simulatedMessageObject
+        inputMessageIntended = System.Text.Json.JsonSerializer.Serialize(simulatedMessageObject, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
 
-        var res = await HioCloudService.GetPropertiesNamesForDeviceMessage("123", "123", forcedTypeOfHioMessage, forceType, true, InputMessage);
-        Device.PropsToInclude.Clear();
-        foreach (var name in res.Item2)
+        if (Device.PropsToInclude.Count == 0)
         {
-            if (!Device.PropsToInclude.ContainsKey(name))
+            var res = await HioCloudService.GetPropertiesNamesForDeviceMessage("123", "123", forcedTypeOfHioMessage, forceType, true, InputMessage);
+            Device.PropsToInclude.Clear();
+            foreach (var name in res.Item2)
             {
-                Device.PropsToInclude.Add(name, true);
+                if (!Device.PropsToInclude.ContainsKey(name))
+                {
+                    Device.PropsToInclude.Add(name, true);
+                }
             }
         }
     }
@@ -144,6 +249,11 @@
     public string GetMessageData()
     {
         return InputMessage ?? string.Empty;
+    }
+
+    public string GetFinalMessageData()
+    {
+        return finalMessage ?? string.Empty;
     }
 
     /*
@@ -193,15 +303,6 @@
         }
     }
 
-    private async Task onParseVersionChanged(ParseVersion value)
-    {
-        if (parseVersion == value)
-            return;
-
-        parseVersion = value;
-        await RefreshConnector();
-    }
-
     private async Task onValueChanged(KeyValuePair<string, bool> data)
     {
         await RefreshConnector();
@@ -216,38 +317,24 @@
             type = forcedTypeOfHioMessage;
         }
 
-        if (parseVersion == ParseVersion.OneObject)
-        {
-            res = await HioCloudService.GetPropertiesTimestampFormatJSCode(
-                                                Device.SpaceId.ToString(),
-                                                Device.Id.ToString(),
-                                                Device.PropsToInclude.Where(i => i.Value)
-                                                                     .Select(t => t.Key)
-                                                                     .ToList(),
-                                                                     type,
-                                                                     forceType, 
-                                                                     useInputMessage: UseSimulatedMessage,
-                                                                     inputMsg: InputMessage);
-        }
-        else if (parseVersion == ParseVersion.SplitObjects)
-        {
-            res = await HioCloudService.GetPropertiesTimestampFormatJSCode(
-                                                Device.SpaceId.ToString(),
-                                                Device.Id.ToString(),
-                                                Device.PropsToInclude.Where(i => i.Value)
-                                                                     .Select(t => t.Key)
-                                                                     .ToList(),
-                                                                     type,
-                                                                     forceType,
-                                                                     useInputMessage: UseSimulatedMessage,
-                                                                     inputMsg: InputMessage);
-        }
+        res = await HioCloudService.GetPropertiesTimestampFormatJSCode(
+                                            Device.SpaceId.ToString(),
+                                            Device.Id.ToString(),
+                                            Device.PropsToInclude.Where(i => i.Value)
+                                                                    .Select(t => t.Key)
+                                                                    .ToList(),
+                                                                    type,
+                                                                    forceType, 
+                                                                    useInputMessage: UseSimulatedMessage,
+                                                                    inputMsg: InputMessage);
 
         if (res != null)
         {
-            connector = null;
-            await InvokeAsync(StateHasChanged);
+            //connector = null;
+            //await InvokeAsync(StateHasChanged);
             connector = res.ToString();
+            CreateFullTestScript();
+            await RunTestScript();
             if (acejsEditor1Ref != null)
             {
                 //rerender the editor
@@ -260,6 +347,7 @@
     private void ReloadEditor()
     {
         editorKey++; // Changing the key will force Blazor to recreate the component
+        editorKeyFullTestScript++; // Changing the key will force Blazor to recreate the component
     }
 
     private async Task onUnselectAllHandler()
@@ -329,6 +417,54 @@
         if (hioCloudMessagePropsListRef != null)
         {
             await hioCloudMessagePropsListRef.Refresh(typeOfHioMessage);
+        }
+    }
+
+    private void CreateFullTestScript()
+    {
+        if (connector != null)
+        {
+            var time = hio_dotnet.Common.Helpers.TimeHelpers.DateTimeToUnixTimestamp(DateTime.Now);
+
+            fullTestScript = $@"
+                const data = [];
+                const sharedtimestamp = {time};
+                const job = {{ message: {{ body: {InputMessage} }} }};
+            {connector}
+                return data;
+            ";
+        }
+    }
+
+    private async Task RunTestScript()
+    {
+        if (string.IsNullOrEmpty(fullTestScript))
+        {
+            return;
+        }
+
+        try
+        {
+            result = await JSRuntime.InvokeAsync<object>("hiodotnet.parseTimestampData", fullTestScript);
+
+            if (result != null)
+            {
+                // deserialize result as object
+                var simulatedMessageObject = System.Text.Json.JsonSerializer.Deserialize<object>(result.ToString());
+
+                if (JSONViewerFinalMessageRef != null)
+                {
+                    // create json serialized intended version of simulatedMessageObject
+                    var inputMessage = System.Text.Json.JsonSerializer.Serialize(simulatedMessageObject, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+
+                    await JSONViewerFinalMessageRef.Load(inputMessage);
+
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
         }
     }
 }
