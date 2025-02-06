@@ -152,7 +152,7 @@ namespace hio_dotnet.HWDrivers.Server
             {
                 httpClient.BaseAddress = new System.Uri(_baseUrl);
 
-                var url = $"/api/ppk2/turnon";
+                var url = $"/api/ppk2/turnoff";
 
                 try
                 {

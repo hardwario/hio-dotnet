@@ -74,7 +74,7 @@ namespace hio_dotnet.HWDrivers.Server
             return "OK";
         }
 
-        // GET: /api/ppk2/turnon
+        // GET: /api/ppk2/turnoff
         [Route(HttpVerbs.Get, "/ppk2/turnoff")]
         public string PPK2_TurnOff()
         {
@@ -154,6 +154,13 @@ namespace hio_dotnet.HWDrivers.Server
                     return "Cannot find any PPK2 devices.";
                 }
             }
+            else
+            {
+                PPK2_SetVoltage(3600);
+                PPK2_TurnOn();
+            }
+
+            await Task.Delay(2500);
 
             // Create MCUConsole instances for Config and Log RTT channels
             Console.WriteLine("JLink RTT Console is Starting :)\n\n");

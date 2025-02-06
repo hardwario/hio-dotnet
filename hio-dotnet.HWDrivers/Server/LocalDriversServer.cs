@@ -22,9 +22,10 @@ namespace hio_dotnet.HWDrivers.Server
         private Guid mainServiceId = Guid.Empty;
         private Guid mainJLinkId = Guid.Empty;
         private Guid checkJLinkTaskId = Guid.Empty;
-
+        private int _port = 8042;
         public LocalDriversServer(string? resourcePath, int port = 8042)
         {
+            _port = port;
             _server = new WebServer(o => o
                             .WithUrlPrefix($"http://localhost:{port}")
                             .WithMode(HttpListenerMode.EmbedIO))
@@ -55,7 +56,7 @@ namespace hio_dotnet.HWDrivers.Server
             checkJLinkTaskId = Guid.NewGuid();
             ServerTasks.TryAdd(mainServiceId, CheckJLinkTask()); 
 
-            Console.WriteLine("Server running at http://localhost:{port}");
+            Console.WriteLine($"Server running at http://localhost:{_port}");
 
             return RunServer();
         }
