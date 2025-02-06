@@ -1,5 +1,7 @@
-﻿@inherits LayoutComponentBase
+﻿@using Services
+@inherits LayoutComponentBase
 
+@inject AppService AppService
 @inject TooltipService TooltipService
 @inject ThemeService ThemeService
 @inject IJSRuntime JSRuntime
@@ -79,6 +81,7 @@
     protected override async Task OnParametersSetAsync()
     {
         await JSRuntime.InvokeVoidAsync("toggleThemeStyleSheet", isDark);
+        AppService.RegisterHioCloudDefaultLogin();
     }
 
     private async Task ToggleTheme()

@@ -401,6 +401,12 @@
         if (type != null && type != typeOfHioMessage)
         {
             typeOfHioMessage = type;
+            await CreateSimulatedMessage(type);
+            await RefreshConnector();
+            if (JSONViewerOriginalMessageRef != null)
+            {
+                await JSONViewerOriginalMessageRef.Load(inputMessageIntended);
+            }
             await InvokeAsync(StateHasChanged);
         }
     }

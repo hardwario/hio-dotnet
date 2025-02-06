@@ -18,5 +18,9 @@
         public string DefaultLoginForThingsBoard { get; set; } = "tenant@thingsboard.org";
         public string DefaultPasswordForThingsBoard { get; set; } = "tenant";
 
+        public bool UseDefaultLoginForHioCloud { get; set; } = false;
+        public string DefaultLoginForHioCloud { get; set; } = string.Empty;
+        public string DefaultPasswordForHioCloud { get; set; } = string.Empty;
+
     }
 }

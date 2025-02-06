@@ -26,6 +26,9 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
         public bool IsInitializedWithApiToken { get; set; } = false;
 
         public bool IsLoggedIn { get; set; } = false;
+        public bool UseDefaultLogin { get; set; } = false;
+        public string DefaultLogin { get; set; } = string.Empty;
+        public string DefaultPassword { get; set; } = string.Empty;
 
         public List<HioCloudSpace> HioCloudSpaces = new List<HioCloudSpace>();
         public List<Space> Spaces = new List<Space>();

@@ -142,7 +142,7 @@ class HioJsonViewerInterop {
         const selector = `#${CSS.escape(elementId)}`;
         const jsonViewer = document.querySelector(selector);
 
-        if (jsonViewer) {
+        if (jsonViewer && jsonData !== "") {
             jsonViewer.data = JSON.parse(jsonData);
             this.waitForShadowRoot(jsonViewer);
         } else {

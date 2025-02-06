@@ -27,7 +27,8 @@ builder.Services.AddScoped<ThingsBoardService>(sp => new ThingsBoardService(base
                                                                             defaultPass: config?.DefaultPasswordForThingsBoard));
 builder.Services.AddScoped<RemoteConsoleService>();
 builder.Services.AddScoped<LoadingOverlayService>();
-    
+builder.Services.AddScoped<AppService>();
+
 if (config != null)
 {
     MainDataContext.Initialize(config);
