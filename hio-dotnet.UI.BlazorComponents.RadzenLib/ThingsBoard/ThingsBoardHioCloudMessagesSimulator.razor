@@ -17,16 +17,26 @@
     <RadzenColumn>
         <RadzenButton Text="Select Props" Click="OpenPropsDialog" />
     </RadzenColumn>
+</RadzenRow>
+<RadzenRow>
     <RadzenColumn>
-        <RadzenText Text="Select Number of messages" />
-        <RadzenNumeric Min="1" Max="100" @bind-Value="SimulateMessagesNum" TValue="int" />
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenText Text="Select Number of messages" />
+                <RadzenNumeric Min="1" Max="100" @bind-Value="SimulateMessagesNum" TValue="int" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenText Text="Select Number of Minutes between messages" />
+                <RadzenNumeric Min="1" Max="100" @bind-Value="SimulateMessagesNumMinutes" TValue="int" />
+            </RadzenColumn>
+        </RadzenRow>
     </RadzenColumn>
+</RadzenRow>
+<RadzenRow>
     <RadzenColumn>
-        <RadzenText Text="Select Number of Minutes between messages" />
-        <RadzenNumeric Min="1" Max="100" @bind-Value="SimulateMessagesNumMinutes" TValue="int" />
-    </RadzenColumn>
-    <RadzenColumn>
-        <RadzenButton Text="Simulate" Click="SendSimulatedData" />
+        <RadzenButton Text="Simulate" Click="SendSimulatedData" Style="height:100%;" />
     </RadzenColumn>
 </RadzenRow>
 
@@ -130,7 +140,7 @@
 
             var actualtime = DateTime.UtcNow;
             var lasttime = actualtime;
-            var timestamp = hio_dotnet.Common.Helpers.TimeHelpers.DateTimeToUnixTimestamp(actualtime);
+            var timestamp = hio_dotnet.Common.Helpers.TimeHelpers.DateTimeToUnixTimestamp(actualtime) / 1000;
             BaseSimulator.GetSimulatedData(messageObject, null, true, timestamp);
             SimulatedMessages.Clear();
             messageObjectPrevious = messageObject;
@@ -138,7 +148,7 @@
             for (int i = 0; i < SimulateMessagesNum; i++)
             {
                 var time = lasttime.AddMinutes(-SimulateMessagesNumMinutes);
-                timestamp = hio_dotnet.Common.Helpers.TimeHelpers.DateTimeToUnixTimestamp(time);
+                timestamp = hio_dotnet.Common.Helpers.TimeHelpers.DateTimeToUnixTimestamp(time) / 1000;
                 
                 var mo = Activator.CreateInstance(type);
                 if (mo != null)
