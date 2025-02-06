@@ -443,9 +443,9 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
 
         }
 
-        public async Task<Tuple<Type, List<string>>> GetPropertiesNamesForDeviceMessage(string spaceId, string deviceId, Type? type, bool useForcedType = false)
+        public async Task<Tuple<Type, List<string>>> GetPropertiesNamesForDeviceMessage(string spaceId, string deviceId, Type? type, bool useForcedType = false, bool useInputMessage = false, string? inputMsg = null)
         {
-            if (hioCloudDriver == null)
+            if (hioCloudDriver == null && !useInputMessage)
             {
                 _notificationService.Notify(NotificationSeverity.Error, "HioCloudDriver not initialized");
                 return new Tuple<Type, List<string>>(typeof(ChesterCommonCloudMessage), new List<string>());
@@ -455,7 +455,19 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
                 _notificationService.Notify(NotificationSeverity.Error, "DeviceId is empty");
                 return new Tuple<Type, List<string>>(typeof(ChesterCommonCloudMessage), new List<string>());
             }
-            var msgs = await hioCloudDriver.GetAllDeviceMessages(Guid.Parse(spaceId), Guid.Parse(deviceId), 1);
+
+            List<HioCloudMessage>? msgs = new List<HioCloudMessage>();
+            if (useInputMessage)
+            {
+                msgs.Add(new HioCloudMessage()
+                {
+                    Body = inputMsg ?? string.Empty
+                });
+            }
+            else
+            {
+                msgs = await hioCloudDriver.GetAllDeviceMessages(Guid.Parse(spaceId), Guid.Parse(deviceId), 1);
+            }
 
             if (msgs != null)
             {
@@ -469,16 +481,23 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
                     var chm2 = System.Text.Json.JsonSerializer.Deserialize(msg.Body, chm2type);
                     var names = TimeStampFormatDataConverter.GetJSActiveCode(chm2, returnJustNames: true).ToList();
 
-                    var device = Spaces.SelectMany(s => s.Devices).FirstOrDefault(d => d.Id == Guid.Parse(deviceId));
-                    if (device != null)
+                    try
                     {
-                        foreach (var name in names)
+                        var device = Spaces.SelectMany(s => s.Devices)?.FirstOrDefault(d => d.Id == Guid.Parse(deviceId));
+                        if (device != null)
                         {
-                            if (!device.PropsToInclude.ContainsKey(name))
+                            foreach (var name in names)
                             {
-                                device.PropsToInclude.Add(name, true);
+                                if (!device.PropsToInclude.ContainsKey(name))
+                                {
+                                    device.PropsToInclude.Add(name, true);
+                                }
                             }
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
                     }
 
                     return new Tuple<Type, List<string>>(chm2type, names);
@@ -492,9 +511,9 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
 
         }
 
-        public async Task<string> GetPropertiesTimestampFormatJSCode(string spaceId, string deviceId, List<string>? propsToInclude = null, Type? type = null, bool useForcedType = false)
+        public async Task<string> GetPropertiesTimestampFormatJSCode(string spaceId, string deviceId, List<string>? propsToInclude = null, Type? type = null, bool useForcedType = false, bool useInputMessage = false, string? inputMsg = null)
         {
-            if (hioCloudDriver == null)
+            if (hioCloudDriver == null && !useInputMessage)
             {
                 _notificationService.Notify(NotificationSeverity.Error, "HioCloudDriver not initialized");
                 return string.Empty;
@@ -504,27 +523,43 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
                 _notificationService.Notify(NotificationSeverity.Error, "DeviceId is empty");
                 return string.Empty;
             }
-            var msgs = await hioCloudDriver.GetAllDeviceMessages(Guid.Parse(spaceId), Guid.Parse(deviceId), 1);
 
-            var device = Spaces.SelectMany(s => s.Devices).FirstOrDefault(d => d.Id == Guid.Parse(deviceId));
-            if (device != null && device.PropsToInclude != null && device.PropsToInclude.Count == 0)
-            {
-                _ = await GetPropertiesNamesForDeviceMessage(spaceId, deviceId, null);
-            }
 
-            if (device != null)
+            if (!useInputMessage)
             {
-                if (propsToInclude == null)
+                var device = Spaces.SelectMany(s => s.Devices).FirstOrDefault(d => d.Id == Guid.Parse(deviceId));
+                if (device != null && device.PropsToInclude != null && device.PropsToInclude.Count == 0)
                 {
-                    propsToInclude = new List<string>();
-                    foreach (var name in device.PropsToInclude.Where(p => p.Value))
+                    _ = await GetPropertiesNamesForDeviceMessage(spaceId, deviceId, null);
+                }
+
+                if (device != null)
+                {
+                    if (propsToInclude == null)
                     {
-                        if (!propsToInclude.Contains(name.Key))
+                        propsToInclude = new List<string>();
+                        foreach (var name in device.PropsToInclude.Where(p => p.Value))
                         {
-                            propsToInclude.Add(name.Key);
+                            if (!propsToInclude.Contains(name.Key))
+                            {
+                                propsToInclude.Add(name.Key);
+                            }
                         }
                     }
                 }
+            }
+
+            var msgs = new List<HioCloudMessage>();
+            if (useInputMessage)
+            {
+                msgs.Add(new HioCloudMessage()
+                {
+                    Body = inputMsg ?? string.Empty
+                });
+            }
+            else
+            {
+                msgs = await hioCloudDriver.GetAllDeviceMessages(Guid.Parse(spaceId), Guid.Parse(deviceId), 1);
             }
 
             if (msgs != null)

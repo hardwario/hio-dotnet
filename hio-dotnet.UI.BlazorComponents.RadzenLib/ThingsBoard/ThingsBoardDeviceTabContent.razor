@@ -5,9 +5,12 @@
 @using hio_dotnet.UI.BlazorComponents.RadzenLib.ThingsBoard.Models
 @using Microsoft.JSInterop;
 @using System.Globalization
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.HioCloud
 
 @inject IJSRuntime JSRuntime
 @inject ThingsBoardService ThingsBoardService
+@inject HioCloudService HioCloudService
+@inject DialogService DialogService
 
 <RadzenRow>
     <RadzenColumn>
@@ -17,6 +20,16 @@
     <RadzenColumn>
         <RadzenText Text="Device Id:" />
         <RadzenText Text="@DeviceData.Id.Id.ToString()" />
+    </RadzenColumn>
+    <RadzenColumn>
+        <RadzenText Text="Connection Token:" />
+        <RadzenStack Orientation="Orientation.Horizontal">
+            <RadzenText Text="@ConnectionToken" />
+            <hio_dotnet.UI.BlazorComponents.RadzenLib.Common.Buttons.CopyButton TextToCopy="@ConnectionToken" IsJustIcon="true"  />
+        </RadzenStack>
+    </RadzenColumn>
+    <RadzenColumn>
+        <RadzenButton Text="Send Simulated Data" Click="SendSimulatedData" />
     </RadzenColumn>
 </RadzenRow>
 
@@ -92,7 +105,7 @@
             @foreach (var key in Tab.KeysWithDataPoints)
             {
                 <RadzenColumn>
-                   <ThingsBoardNumbersDataList Key="@key" />
+                    <ThingsBoardNumbersDataList Key="@key" />
                 </RadzenColumn>
             }
         </RadzenRow>
@@ -149,6 +162,8 @@
     bool showDataLabels = false;
     bool showMarkers = true;
 
+    private HioCloudFlattenJSONForDevice? flatener;
+
     string FormatDouble(object value)
     {
         if (double.TryParse(value.ToString(), out var result))
@@ -168,6 +183,16 @@
     private DateTime start = DateTime.UtcNow.AddDays(-1);
     private DateTime end = DateTime.UtcNow;
 
+    public string ConnectionToken { get; set; } = string.Empty;
+
+    public List<string> SimulatedMessages { get; set; } = new List<string>();
+    public string SimulatedMessage { get; set; } = string.Empty;
+
+    public string SimulatorJSDataProcessingScriptBase { get; set; } = string.Empty;
+    public string SimulatorJSDataProcessingScript { get; set; } = string.Empty;
+
+    private object? result;
+
     public Device DeviceData
     { 
         get 
@@ -179,6 +204,21 @@
             }
             return d;
         } 
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            var connectionToken = await ThingsBoardService.GetConnectionToken(DeviceData.Id.Id.ToString() ?? string.Empty);
+            ConnectionToken = connectionToken;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+
+        await base.OnParametersSetAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -221,7 +261,10 @@
 
     private async Task onGetLatestDataHandler()
     {
-        var keysToCheck = Tab.Keys.Where(k => k.Checked).Select(k => k.Key).ToList();
+        var keysToCheck = Tab.Keys.Where(k => k.Checked)?.Select(k => k.Key).ToList();
+        if (keysToCheck == null || keysToCheck.Count == 0)
+            return;
+
         var keysString = string.Join(",", keysToCheck);
         data = await ThingsBoardService.GetLatestData(DeviceData.Id.Id, keysString);
 
@@ -233,7 +276,9 @@
 
     private async Task onGetDataHistoryHandler()
     {
-        var keysToCheck = Tab.Keys.Where(k => k.Checked).Select(k => k.Key).ToList();
+        var keysToCheck = Tab.Keys.Where(k => k.Checked)?.Select(k => k.Key).ToList();
+        if (keysToCheck == null || keysToCheck.Count == 0)
+            return;
         var keysString = string.Join(",", keysToCheck);
         data = await ThingsBoardService.GetDataHistory(DeviceData.Id.Id, keysString, start, end);
 
@@ -260,5 +305,65 @@
             FileName = fileName,
             ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         });
+    }
+
+    private async Task SavePropsForDevice(DialogService ds)
+    {
+        var conndata = flatener?.GetConnectorData();
+        var msg = flatener?.GetMessageData();
+
+        if (!string.IsNullOrEmpty(conndata) && !string.IsNullOrEmpty(msg))
+        {
+            SimulatorJSDataProcessingScriptBase = conndata;
+            SimulatedMessage = msg;
+
+            var time = hio_dotnet.Common.Helpers.TimeHelpers.DateTimeToUnixTimestamp(DateTime.Now);
+
+            SimulatorJSDataProcessingScript = $@"
+                const data = [];
+                const sharedtimestamp = {time};
+                const job = {{ message: {{ body: {SimulatedMessage} }} }};
+            {SimulatorJSDataProcessingScriptBase}
+                return data;
+            ";
+
+            result = await JSRuntime.InvokeAsync<object>("hiodotnet.parseTimestampData", SimulatorJSDataProcessingScript);
+
+            if (result != null)
+            {
+                Console.WriteLine($"Result of data processing: {result}");
+                var r = result.ToString();
+                if (!string.IsNullOrEmpty(r))
+                {
+                    await ThingsBoardService.SendTelemetryData(r, ConnectionToken);
+                }
+            }
+        }
+
+        if (ThingsBoardService.DevicesDataKeys.ContainsKey(DeviceData.Id.Id))
+            ThingsBoardService.DevicesDataKeys.Remove(DeviceData.Id.Id);
+
+        await loadKeys();
+
+        ds.Close(true);
+    }
+
+    private async Task SendSimulatedData()
+    {
+        var result = await DialogService.OpenAsync("Select Properties", ds =>
+            @<RadzenStack Gap="1.5rem">
+                <RadzenStack Orientation="Orientation.Vertical">
+                    <RadzenRow>
+                        <RadzenColumn>
+                    <HioCloudFlattenJSONForDevice @ref=flatener Device="@(new CHESTER.HioCloud.Models.Device() { Name = DeviceData.Name })" HasTitle="true" UseSimulatedMessage="true"/>
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                        <RadzenButton Text="Ok" Click="@(async () => await SavePropsForDevice(ds))" ButtonStyle="ButtonStyle.Light" />
+                        <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenStack>
+                   ,new DialogOptions() { Resizable = true, Style="width:100%;" } );
     }
 }

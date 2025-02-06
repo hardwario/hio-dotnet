@@ -32,6 +32,11 @@ else
     {
         if (firstRender)
         {
+            if (ThingsBoardService.UseDefaultLoginForThingsBoard == true)
+            {
+                login = ThingsBoardService.DefaultLoginForThingsBoard;
+                password = ThingsBoardService.DefaultPasswordForThingsBoard;
+            }
             ThingsBoardService.OnLoggedIn += (s, e) =>
         {
             InvokeAsync(StateHasChanged);

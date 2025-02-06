@@ -77,6 +77,19 @@
         link.click();
         document.body.removeChild(link);
     }
+
+    parseTimestampData(script) {
+        try {
+            // Create a new function with "data" as argument.
+            const fn = new Function(script);
+            // Execute the function with the provided data.
+            const result = fn();
+            return result;
+        } catch (e) {
+            console.error("Error during dynamic script execution:", e);
+            return { error: e.toString() };
+        }
+    }
 }
 
 class HioHeatmapInterop {

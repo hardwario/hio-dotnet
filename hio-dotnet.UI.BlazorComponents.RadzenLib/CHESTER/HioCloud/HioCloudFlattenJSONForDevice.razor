@@ -37,9 +37,9 @@
         <RadzenRow Style="margin-top:1rem;">
             <RadzenColumn Size="9">
                 <HioCloudAvailableCloudMessagesTypesDropDown Value="@forcedTypeOfHioMessage"
-                                                             ValueChanged="@onForcedTypeOfHioMessageChangedHandler"
-                                                             HasTitle="true"
-                                                             Title="Class" />
+                ValueChanged="@onForcedTypeOfHioMessageChangedHandler"
+                HasTitle="true"
+                Title="Class" />
             </RadzenColumn>
             <RadzenColumn Size="3">
                 <RadzenButton Text="Reset" Click="@ResetForcedType" Size="ButtonSize.Small" Style="width:100%;margin-top:0.25rem;" />
@@ -48,9 +48,11 @@
         <RadzenRow>
             <RadzenColumn>
                 <HioCloudMessagePropsList @ref=hioCloudMessagePropsListRef
-                                          Device="@Device"
-                                          OnValueChanged="@onValueChanged"
-                                          OnTypeFound="@onTypeFoundHandler" />
+                Device="@Device"
+                OnValueChanged="@onValueChanged"
+                OnTypeFound="@onTypeFoundHandler"
+                UseSimulatedMessage="@UseSimulatedMessage"
+                InputMessage="@InputMessage"/>
             </RadzenColumn>
         </RadzenRow>
     </RadzenColumn>
@@ -89,6 +91,8 @@
     };
 
     [Parameter] public Device Device { get; set; } = new Device();
+    [Parameter] public bool UseSimulatedMessage { get; set; } = false;
+    [Parameter] public string? InputMessage { get; set; } = null;
     [Parameter] public bool HasTitle { get; set; } = false;
     [Parameter] public string Title { get; set; } = "Message Properties";
 
@@ -104,9 +108,41 @@
 
     private bool forceType = false;
 
+    protected override async Task OnParametersSetAsync()
+    {
+        if (UseSimulatedMessage)
+        {
+            await CreateSimulatedMessage();
+        }
+        await base.OnParametersSetAsync();
+    }
+
+    public async Task CreateSimulatedMessage()
+    {
+        var simulatedMessageObject = new hio_dotnet.Common.Models.CatalogApps.Radon.ChesterRadonCloudMessage();
+        hio_dotnet.Common.Models.DataSimulation.BaseSimulator.GetSimulatedData(simulatedMessageObject);
+
+        InputMessage = System.Text.Json.JsonSerializer.Serialize(simulatedMessageObject);
+
+        var res = await HioCloudService.GetPropertiesNamesForDeviceMessage("123", "123", forcedTypeOfHioMessage, forceType, true, InputMessage);
+        Device.PropsToInclude.Clear();
+        foreach (var name in res.Item2)
+        {
+            if (!Device.PropsToInclude.ContainsKey(name))
+            {
+                Device.PropsToInclude.Add(name, true);
+            }
+        }
+    }
+
     public string GetConnectorData()
     {
         return connector ?? string.Empty;
+    }
+
+    public string GetMessageData()
+    {
+        return InputMessage ?? string.Empty;
     }
 
     private void onConnectorValueChanged(string value)
@@ -117,20 +153,42 @@
 
     private string getListOfKeys()
     {
-        var sp = HioCloudService.Spaces.Where(s => s.Id == Device.SpaceId).First();
-        var devs = sp?.Devices?.Where(d => d.Id == Device.Id).First();
-        if (devs == null)
-            return string.Empty;
-
-        var res = string.Empty;
-        foreach (var item in devs.PropsToInclude)
+        if (!UseSimulatedMessage)
         {
-            if (item.Value)
+            try
             {
-                res += item.Key + "\n";
+                var sp = HioCloudService.Spaces.Where(s => s.Id == Device.SpaceId).FirstOrDefault();
+                var devs = sp?.Devices?.Where(d => d.Id == Device.Id).FirstOrDefault();
+                if (devs == null)
+                    return string.Empty;
+
+                var res = string.Empty;
+                foreach (var item in devs.PropsToInclude)
+                {
+                    if (item.Value)
+                    {
+                        res += item.Key + "\n";
+                    }
+                }
+                return res;
+            }
+            catch (Exception)
+            {
+                return string.Empty;
             }
         }
-        return res;
+        else
+        {
+            var res = string.Empty;
+            foreach (var item in Device.PropsToInclude)
+            {
+                if (item.Value)
+                {
+                    res += item.Key + "\n";
+                }
+            }
+            return res;
+        }
     }
 
     private async Task onParseVersionChanged(ParseVersion value)
@@ -165,7 +223,9 @@
                                                                      .Select(t => t.Key)
                                                                      .ToList(),
                                                                      type,
-                                                                     forceType);
+                                                                     forceType, 
+                                                                     useInputMessage: UseSimulatedMessage,
+                                                                     inputMsg: InputMessage);
         }
         else if (parseVersion == ParseVersion.SplitObjects)
         {
@@ -176,7 +236,9 @@
                                                                      .Select(t => t.Key)
                                                                      .ToList(),
                                                                      type,
-                                                                     forceType);
+                                                                     forceType,
+                                                                     useInputMessage: UseSimulatedMessage,
+                                                                     inputMsg: InputMessage);
         }
 
         if (res != null)
@@ -184,6 +246,8 @@
             connector = null;
             await InvokeAsync(StateHasChanged);
             connector = res.ToString();
+            if (acejsEditor1Ref != null)
+                acejsEditor1Ref.SelectedValue = connector;
             await InvokeAsync(StateHasChanged);
         }
     }
@@ -193,7 +257,8 @@
         foreach (var item in Device.PropsToInclude)
         {
             Device.PropsToInclude[item.Key] = false;
-            HioCloudService.Spaces.Where(s => s.Id == Device.SpaceId).First().Devices.Where(d => d.Id == Device.Id).First().PropsToInclude[item.Key] = false;
+            if (!UseSimulatedMessage)
+                HioCloudService.Spaces.Where(s => s.Id == Device.SpaceId).First().Devices.Where(d => d.Id == Device.Id).First().PropsToInclude[item.Key] = false;
         }
         await RefreshConnector();
         if (hioCloudMessagePropsListRef != null)
@@ -207,7 +272,8 @@
         foreach (var item in Device.PropsToInclude)
         {
             Device.PropsToInclude[item.Key] = true;
-            HioCloudService.Spaces.Where(s => s.Id == Device.SpaceId).First().Devices.Where(d => d.Id == Device.Id).First().PropsToInclude[item.Key] = true;
+            if (!UseSimulatedMessage)
+                HioCloudService.Spaces.Where(s => s.Id == Device.SpaceId).First().Devices.Where(d => d.Id == Device.Id).First().PropsToInclude[item.Key] = true;
         }
         await RefreshConnector();
         if (hioCloudMessagePropsListRef != null)
@@ -231,6 +297,12 @@
         {
             forcedTypeOfHioMessage = type;
             forceType = true;
+
+            if (UseSimulatedMessage)
+            {
+                await CreateSimulatedMessage();
+            }
+
             await RefreshConnector(forcedTypeOfHioMessage);
             if (hioCloudMessagePropsListRef != null)
             {
