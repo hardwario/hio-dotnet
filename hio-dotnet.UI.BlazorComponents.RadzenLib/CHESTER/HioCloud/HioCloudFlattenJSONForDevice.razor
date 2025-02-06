@@ -69,7 +69,7 @@
         </RadzenRow>
         @if (connector != null)
         {
-            <AceJsEditor @ref=acejsEditor1Ref Style="height:100%" Value="@connector" ValueChanged="@onConnectorValueChanged" Options="opt" />
+            <AceJsEditor @key="editorKey" @ref=acejsEditor1Ref Style="height:100%" @bind-Value="@connector" Options="opt" />
         }
     </RadzenColumn>
 </RadzenRow>
@@ -96,6 +96,7 @@
     [Parameter] public bool HasTitle { get; set; } = false;
     [Parameter] public string Title { get; set; } = "Message Properties";
 
+    private int editorKey = 0;
     private AceJsEditor? acejsEditor1Ref;
     private HioCloudMessagePropsList? hioCloudMessagePropsListRef;
     private ParseVersion parseVersion = ParseVersion.OneObject;
@@ -145,12 +146,13 @@
         return InputMessage ?? string.Empty;
     }
 
+    /*
     private void onConnectorValueChanged(string value)
-    {
+        {
         if (value != null && value != connector)
             connector = value;
     }
-
+    */
     private string getListOfKeys()
     {
         if (!UseSimulatedMessage)
@@ -247,9 +249,17 @@
             await InvokeAsync(StateHasChanged);
             connector = res.ToString();
             if (acejsEditor1Ref != null)
-                acejsEditor1Ref.SelectedValue = connector;
+            {
+                //rerender the editor
+                ReloadEditor();
+            }
             await InvokeAsync(StateHasChanged);
         }
+    }
+
+    private void ReloadEditor()
+    {
+        editorKey++; // Changing the key will force Blazor to recreate the component
     }
 
     private async Task onUnselectAllHandler()
