@@ -1,4 +1,5 @@
 ﻿using hio_dotnet.Common.Helpers;
+using hio_dotnet.Common.Models.CatalogApps.Dust;
 using hio_dotnet.Common.Models.CatalogApps.Meteo;
 using hio_dotnet.Common.Models.CatalogApps.Push;
 using hio_dotnet.Common.Models.CatalogApps.Scale;
@@ -206,6 +207,32 @@ namespace hio_dotnet.Common.Models.DataSimulation
                                 Simulate(w1t, w1tp, forceTimestamp, timestamp);
 
                                 ((List<SoilMeasurements>)nestedObj).Add(w1t);
+                            }
+
+                            property.SetValue(obj, nestedObj);
+                        }
+                    }
+                    else if (nestedObj.GetType() == typeof(List<DustSensorData>))
+                    {
+                        var simulationMeasurementAttr = property.GetCustomAttribute<SimulationMeasurementAttribute>();
+                        if (simulationMeasurementAttr != null)
+                        {
+                            var count = simulationMeasurementAttr.NumberOfInsideItems;
+                            for (int i = 0; i < count; i++)
+                            {
+                                var w1t = new DustSensorData();
+                                DustSensorData w1tp = null;
+                                if (previousNestedObj != null)
+                                {
+                                    if (((List<DustSensorData>)previousNestedObj).Count > i)
+                                        w1tp = ((List<DustSensorData>)previousNestedObj)[i];
+                                    else
+                                        w1tp = ((List<DustSensorData>)previousNestedObj)?.FirstOrDefault();
+                                }
+
+                                Simulate(w1t, w1tp, forceTimestamp, timestamp);
+
+                                ((List<DustSensorData>)nestedObj).Add(w1t);
                             }
 
                             property.SetValue(obj, nestedObj);

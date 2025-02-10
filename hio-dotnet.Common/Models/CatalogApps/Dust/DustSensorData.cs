@@ -9,42 +9,47 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.Common.Models.CatalogApps.Dust
 {
-    public class DustSensorData
+    public class DustSensorData : TimestampState
     {
-        [SimulationMeasurementAttribute(false, 76000.0, 77100.0, false, false, 0.02, 3)]
-        [JsonPropertyName("num_pm0_5")]
-        public MeasurementGroup Num_PM_0_5 { get; set; } = new MeasurementGroup();
 
-        [SimulationMeasurementAttribute(false, 97000.0, 98200.0, false, false, 0.02, 3)]
-        [JsonPropertyName("num_pm1")]
-        public MeasurementGroup Num_PM1 { get; set; } = new MeasurementGroup();
-
-        [SimulationMeasurementAttribute(false, 103000.0, 105000.0, false, false, 0.02, 3)]
-        [JsonPropertyName("num_pm2_5")]
-        public MeasurementGroup Num_PM_2_5 { get; set; } = new MeasurementGroup();
-
-        [SimulationMeasurementAttribute(false, 104000.0, 106300.0, false, false, 0.02, 3)]
-        [JsonPropertyName("num_pm4")]
-        public MeasurementGroup Num_PM4 { get; set; } = new MeasurementGroup();
-
-        [SimulationMeasurementAttribute(false, 104200.0, 106500.0, false, false, 0.02, 3)]
-        [JsonPropertyName("num_pm10")]
-        public MeasurementGroup Num_PM_10 { get; set; } = new MeasurementGroup();
-
-        [SimulationMeasurementAttribute(false, 12600.0, 13200.0, false, false, 0.02, 3)]
+        [SimulationAttribute(false, 10, 100, false, false, 0.02)]
         [JsonPropertyName("pm1")]
-        public MeasurementGroup PM_1 { get; set; } = new MeasurementGroup();
+        public int PM_1 { get; set; } = 0;
 
-        [SimulationMeasurementAttribute(false, 18400.0, 19500.0, false, false, 0.02, 3)]
+        [SimulationAttribute(false, 10, 100, false, false, 0.02)]
         [JsonPropertyName("pm2_5")]
-        public MeasurementGroup PM_2_5 { get; set; } = new MeasurementGroup();
+        public int PM_2_5 { get; set; } = 0;
 
-        [SimulationMeasurementAttribute(false, 22300.0, 24000.0, false, false, 0.02, 3)]
-        [JsonPropertyName("pm4")]
-        public MeasurementGroup PM_4 { get; set; } = new MeasurementGroup();
-
-        [SimulationMeasurementAttribute(false, 24300.0, 26300.0, false, false, 0.02, 3)]
+        [SimulationAttribute(false, 10, 100, false, false, 0.02)]
         [JsonPropertyName("pm10")]
-        public MeasurementGroup PM_10 { get; set; } = new MeasurementGroup();
+        public int PM_10 { get; set; } = 0;
+
+        [SimulationAttribute(false, 40000, 80000, false, false, 0.02)]
+        [JsonPropertyName("q0_3um")]
+        public int Q_0_3_um { get; set; } = 0;
+
+        [SimulationAttribute(false, 500, 4000, false, false, 0.02)]
+        [JsonPropertyName("q0_5um")]
+        public int Q_0_5_um { get; set; } = 0;
+
+        [SimulationAttribute(false, 22300.0, 24000.0, false, false, 0.02)]
+        [JsonPropertyName("q1_0um")]
+        public int Q_1_0_um { get; set; } = 0;
+
+        [SimulationAttribute(false, 24300.0, 26300.0, false, false, 0.02)]
+        [JsonPropertyName("q2_5um")]
+        public int Q_2_5_um { get; set; } = 0;
+
+        [SimulationAttribute(false, 24300.0, 26300.0, false, false, 0.02)]
+        [JsonPropertyName("q5_0um")]
+        public int Q_5_0_um { get; set; } = 0;
+
+        [SimulationAttribute(false, 24300.0, 26300.0, false, false, 0.02)]
+        [JsonPropertyName("q10um")]
+        public int Q_10_um { get; set; } = 0;
+
+        [SimulationAttribute(false, 5, 50, false, false, 0.02)]
+        [JsonPropertyName("tsp")]
+        public int Tsp { get; set; } = 0;
     }
 }

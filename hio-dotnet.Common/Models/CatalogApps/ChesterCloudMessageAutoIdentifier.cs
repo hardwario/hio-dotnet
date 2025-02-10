@@ -68,7 +68,7 @@ namespace hio_dotnet.Common.Models.CatalogApps
             else if (message.Contains("CHESTER Dust") ||
                      message.Contains("sps30"))
             {
-                return typeof(ChesterDustCloudMessage);
+                return typeof(ChesterDustSps30CloudMessage);
             }
             else if (message.Contains("CHESTER Scale") ||
                      message.Contains("weight"))

@@ -9,15 +9,11 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.Common.Models.CatalogApps.Dust
 {
-    public class ChesterDustCloudMessage : ChesterCommonCloudMessage
+    public class ChesterDustSps30CloudMessage : ChesterCommonCloudMessage
     {
         [SimulationAttribute(false)]
-        [JsonPropertyName("hygro")]
-        public Hygro Hygro { get; set; } = new Hygro();
-
-        [SimulationAttribute(false)]
-        [JsonPropertyName("pm")]
-        public DustSensorMeasurements DustSensor { get; set; } = new DustSensorMeasurements();
+        [JsonPropertyName("sps30")]
+        public DustSensorSps30Data DustSensor { get; set; } = new DustSensorSps30Data();
 
         [SimulationMeasurementAttribute(false, 25, 35, true, false, 0, 2)]
         [JsonPropertyName("w1_thermometers")]
