@@ -20,28 +20,34 @@
                 </div>
             </RadzenCard>
 
-            @if (!HideCommandLine)
-            {
-                <!-- Input area -->
-                <RadzenRow>
-                    <RadzenColumn Width="10">
-                        <RadzenTextBox @ref="commandTextBoxRef" @bind-Value="@command" Placeholder="Type command" Style="width: 100%;" @onkeydown="HandleKeyDown" @onfocus="() => OnCommandLineGotFocus.InvokeAsync()" @onfocusout="() => OnCommandLineLostFocus.InvokeAsync()" />
-                    </RadzenColumn>
-                    <RadzenColumn Width="2">
-                        <RadzenButton Text="Send" Disabled="@IsSendButtonDisabled" Click="SendCommand" Style="width: 100%;" />
-                    </RadzenColumn>
-                </RadzenRow>
-            }
         </RadzenColumn>
     </RadzenRow>
-    @if (IsActionPanelVisible)
-    {
-        <RadzenRow Style="height:auto;">
+    
+        <RadzenRow Style="height:auto;" class="chester-actions-panel-container">
             <RadzenColumn Style="height:auto;">
-                <hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.CHESTERActionsPanel IsTitleHidden="true" ActionCommandButtonDataList="@ActionCommandButtonDataList" SendCommands="@(async (e) => await OnActionSendCommandHandler.InvokeAsync(e))" />
+                @if (!HideCommandLine)
+                {
+                    <!-- Input area -->
+                    <RadzenRow>
+                        <RadzenColumn Width="10">
+                            <RadzenTextBox @ref="commandTextBoxRef" @bind-Value="@command" Placeholder="Type command" Style="width: 100%;" @onkeydown="HandleKeyDown" @onfocus="() => OnCommandLineGotFocus.InvokeAsync()" @onfocusout="() => OnCommandLineLostFocus.InvokeAsync()" />
+                        </RadzenColumn>
+                        <RadzenColumn Width="2">
+                            <RadzenButton Text="Send" Disabled="@IsSendButtonDisabled" Click="SendCommand" Style="width: 100%;" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                }
+                @if (IsActionPanelVisible)
+                {
+                    <RadzenRow>
+                        <RadzenColumn>
+                            <hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.CHESTERActionsPanel IsTitleHidden="true" ActionCommandButtonDataList="@ActionCommandButtonDataList" SendCommands="@(async (e) => await OnActionSendCommandHandler.InvokeAsync(e))" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                }
             </RadzenColumn>
         </RadzenRow>
-    }
+    
 </div>
 
 <style>
@@ -65,6 +71,14 @@
     min-height: @(GetMinHeight());
     max-height: @(GetMaxHeight());
     }
+
+    .chester-actions-panel-container {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 10px; /* Volitelně přidat padding */
+    }
 </style>
 
 @code {
@@ -80,16 +94,16 @@
     [Parameter] public EventCallback<List<string>> OnActionSendCommandHandler { get; set; }
     [Parameter] public bool IsActionPanelVisible { get; set; } = false;
     [Parameter] public List<ActionCommandButtonData> ActionCommandButtonDataList { get; set; } = new List<ActionCommandButtonData>();
-    [Parameter] public int MinHeight { get; set; } = 40;
-    [Parameter] public int MaxHeight { get; set; } = 40;
+    [Parameter] public int MinHeight { get; set; } = 59;
+    [Parameter] public int MaxHeight { get; set; } = 59;
 
     private string id = $"{Guid.NewGuid().ToString().Split('-')[0]}_Console";
 
-    public int MinHeightDefault { get; } = 40;
-    public int MaxHeightDefault { get; } = 40;
+    public int MinHeightDefault { get; } = 59;
+    public int MaxHeightDefault { get; } = 59;
 
-    private string GetMinHeight() => $"{MinHeight}rem";
-    private string GetMaxHeight() => $"{MaxHeight}rem";
+    private string GetMinHeight() => $"{MinHeight}vh";
+    private string GetMaxHeight() => $"{MaxHeight}vh";
 
     private string command = string.Empty;
     private int historyIndex = -1;

@@ -111,14 +111,14 @@
                                                           OnSendCommand="HandleSendCommand"
                                                           IsActionPanelVisible = "true"
                                                           ActionCommandButtonDataList="@ActionCommandButtonDataList"
-                                                          OnActionSendCommandHandler="onSendCommandHandler" MaxHeight="41" />
+                                                          OnActionSendCommandHandler="onSendCommandHandler" />
                                     </RadzenSplitterPane>
                                     <RadzenSplitterPane>
                                         <ConsoleComponent @ref=consoleComponentLogRef 
                                                           TextSize="@ConsoleFontSize" 
                                                           Headline="Log" 
                                                           Output="@ConsoleService.ConsoleOutputLog" 
-                                                          HideCommandLine="true" MaxHeight="48" />
+                                                          HideCommandLine="true" />
                                     </RadzenSplitterPane>
                                 </RadzenSplitter>
                             </RadzenSplitterPane>
@@ -249,13 +249,13 @@
         {
             if (consoleComponentRef != null)
             {
-                consoleComponentRef.MaxHeight = 41;
-                consoleComponentRef.MinHeight = 41;
+                consoleComponentRef.MaxHeight = 66;
+                consoleComponentRef.MinHeight = 66;
             }
             if (consoleComponentLogRef != null)
             {
-                consoleComponentLogRef.MaxHeight = 48;
-                consoleComponentLogRef.MinHeight = 48;
+                consoleComponentLogRef.MaxHeight = 76;
+                consoleComponentLogRef.MinHeight = 76;
             }
             await Refresh();
 
