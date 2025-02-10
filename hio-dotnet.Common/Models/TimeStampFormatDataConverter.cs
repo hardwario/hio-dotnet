@@ -359,7 +359,7 @@ namespace hio_dotnet.Common.Models
 
                     // check if there is any prop named Timestamp
                     var hasTimestamp = subprops.Any(x => x.Name == "Timestamp");
-                    if (hasTimestamp && prop.Name == "Measurements")
+                    if (hasTimestamp && (prop.Name == "Measurements" || prop.Name == "Weights"))
                     {
                         var subpropsnames = new Dictionary<string, string>();
 

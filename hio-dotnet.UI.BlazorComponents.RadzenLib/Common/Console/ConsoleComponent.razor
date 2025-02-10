@@ -11,7 +11,7 @@
     <RadzenRow>
         <RadzenColumn Width="12">
             <RadzenCard Class="console-card" Style="flex-grow: 1; display: flex; flex-direction: column; background-color: #333;">
-                <div class="console-output" id="@id">
+                <div class="@("console-output_" + id)" id="@id">
                     @for (var i = 0; i < Output.Count; i++)
                     {
                         var line = Output[i];
@@ -36,8 +36,8 @@
     </RadzenRow>
     @if (IsActionPanelVisible)
     {
-        <RadzenRow>
-            <RadzenColumn>
+        <RadzenRow Style="height:auto;">
+            <RadzenColumn Style="height:auto;">
                 <hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.CHESTERActionsPanel IsTitleHidden="true" ActionCommandButtonDataList="@ActionCommandButtonDataList" SendCommands="@(async (e) => await OnActionSendCommandHandler.InvokeAsync(e))" />
             </RadzenColumn>
         </RadzenRow>
@@ -48,7 +48,7 @@
     .console-container {
     display: flex;
     flex-direction: column;
-    height: 100vh; /* Adjust as needed */
+    height: 100%; /* Adjust as needed */
     }
 
     .console-card {
@@ -59,7 +59,7 @@
     flex-direction: column;
     }
 
-    .console-output {
+    .console-output_@(id) {
     flex-grow: 1;
     overflow-y: auto;
     min-height: @(GetMinHeight());
@@ -80,17 +80,16 @@
     [Parameter] public EventCallback<List<string>> OnActionSendCommandHandler { get; set; }
     [Parameter] public bool IsActionPanelVisible { get; set; } = false;
     [Parameter] public List<ActionCommandButtonData> ActionCommandButtonDataList { get; set; } = new List<ActionCommandButtonData>();
+    [Parameter] public int MinHeight { get; set; } = 40;
+    [Parameter] public int MaxHeight { get; set; } = 40;
 
     private string id = $"{Guid.NewGuid().ToString().Split('-')[0]}_Console";
 
-    public int MinHeight { get; set; } = 500;
-    public int MaxHeight { get; set; } = 500;
+    public int MinHeightDefault { get; } = 40;
+    public int MaxHeightDefault { get; } = 40;
 
-    public int MinHeightDefault { get; } = 500;
-    public int MaxHeightDefault { get; } = 500;
-
-    private string GetMinHeight() => $"{MinHeight}px";
-    private string GetMaxHeight() => $"{MaxHeight}px";
+    private string GetMinHeight() => $"{MinHeight}rem";
+    private string GetMaxHeight() => $"{MaxHeight}rem";
 
     private string command = string.Empty;
     private int historyIndex = -1;

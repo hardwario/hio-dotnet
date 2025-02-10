@@ -95,7 +95,7 @@
         <hr style="margin-top: 5px; width: 100%;" />
         
     </RadzenSidebar>
-    <RadzenBody>
+    <RadzenBody Style="padding:5px;height: 100%;">
         <RadzenRow Style="height: 100%;">
             <RadzenColumn Style="height: 100%;">
                 <RadzenRow Style="height: 100%;">
@@ -111,10 +111,14 @@
                                                           OnSendCommand="HandleSendCommand"
                                                           IsActionPanelVisible = "true"
                                                           ActionCommandButtonDataList="@ActionCommandButtonDataList"
-                                                          OnActionSendCommandHandler="onSendCommandHandler" />
+                                                          OnActionSendCommandHandler="onSendCommandHandler" MaxHeight="41" />
                                     </RadzenSplitterPane>
                                     <RadzenSplitterPane>
-                                        <ConsoleComponent @ref=consoleComponentLogRef TextSize="@ConsoleFontSize" Headline="Log" Output="@ConsoleService.ConsoleOutputLog" HideCommandLine="true" />
+                                        <ConsoleComponent @ref=consoleComponentLogRef 
+                                                          TextSize="@ConsoleFontSize" 
+                                                          Headline="Log" 
+                                                          Output="@ConsoleService.ConsoleOutputLog" 
+                                                          HideCommandLine="true" MaxHeight="48" />
                                     </RadzenSplitterPane>
                                 </RadzenSplitter>
                             </RadzenSplitterPane>
@@ -245,13 +249,13 @@
         {
             if (consoleComponentRef != null)
             {
-                consoleComponentRef.MaxHeight = 650;
-                consoleComponentRef.MinHeight = 650;
+                consoleComponentRef.MaxHeight = 41;
+                consoleComponentRef.MinHeight = 41;
             }
             if (consoleComponentLogRef != null)
             {
-                consoleComponentLogRef.MaxHeight = 650;
-                consoleComponentLogRef.MinHeight = 650;
+                consoleComponentLogRef.MaxHeight = 48;
+                consoleComponentLogRef.MinHeight = 48;
             }
             await Refresh();
 

@@ -18,7 +18,7 @@
         <RadzenDataGrid @ref="dataGridRef" Data="@PropsToInclude()" ColumnWidth="350px" AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="20" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
             <Columns>
                 <RadzenDataGridColumn Property="Key" Title="Property Name" Width="320px" />
-                <RadzenDataGridColumn Title="Include" Frozen="true" Sortable="false" Filterable="false" Width="80px" TextAlign="TextAlign.Center">
+                <RadzenDataGridColumn Title="Include" Frozen="true" Sortable="true" Filterable="false" Width="80px" TextAlign="TextAlign.Center">
                     <Template Context="data">
                         <RadzenCheckBox TValue="bool" value="@(data.Value)" ValueChanged="@(async (e) => await onValueChangedHandler(e, data.Key))"/>
                     </Template>
