@@ -5,8 +5,8 @@
     <RootNamespace>hio_dotnet.LibSerialPort</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <DefineConstants>LINUX</DefineConstants>
   </PropertyGroup>
+
 
   <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64'">
     <DefineConstants>WINDOWS</DefineConstants>
@@ -25,6 +25,13 @@
     <DefineConstants>MACOS</DefineConstants>
   </PropertyGroup>
 
+
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <DefineConstants>WINDOWS</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+    <DefineConstants>LINUX;OSX</DefineConstants>
+  </PropertyGroup>
 
   <ItemGroup>
     <Content Include="libserialport.dll">

@@ -41,8 +41,9 @@
   <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'osx-x64'">
     <DefineConstants>MACOS</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(RuntimeIdentifier)' == ''">
-    <DefineConstants>LINUX</DefineConstants>
+
+  <PropertyGroup>
+    <DefineConstants>WINDOWS;SERIALPORT</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -56,6 +57,10 @@
     <PackageReference Include="System.Management" Version="8.0.0" />
   </ItemGroup>
 
+  <ItemGroup Condition=" '$(DefineConstants)' == '' OR !$(DefineConstants.Contains('LIBSERIALPORT')) ">
+    <PackageReference Include="System.IO.Ports" Version="9.0.1" />
+  </ItemGroup>
+
   <ItemGroup>
     <Content Include="JLink\Driver\JLinkARM.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -65,7 +70,7 @@
     </Content>
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition=" '$(DefineConstants)' != '' AND $(DefineConstants.Contains('LIBSERIALPORT')) ">
     <ProjectReference Include="..\hio-dotnet.LibSerialPort\hio-dotnet.LibSerialPort.csproj" />
   </ItemGroup>
 

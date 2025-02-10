@@ -6,7 +6,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+#if LIBSERIALPORT
 using hio_dotnet.LibSerialPort;
+#else
+using System.IO.Ports;
+#endif
 
 namespace hio_dotnet.HWDrivers.PPK2
 {
@@ -24,9 +28,13 @@ namespace hio_dotnet.HWDrivers.PPK2
 
             try
             {
+#if LIBSERIALPORT
                 // Get a list of all connected COM ports
                 string[] portNames = LibSerialPortDriver.GetPortNames();
-                foreach(var name in portNames)
+#else
+                string[] portNames = SerialPort.GetPortNames();
+#endif
+                foreach (var name in portNames)
                 {
                     Console.WriteLine($"Port Name: {name}");
                 }
