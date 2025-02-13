@@ -51,6 +51,9 @@
         <RadzenButton Click="SaveShellToFile" Style="margin-top: 5px; width: 100%;">Save Console To File</RadzenButton>
         <RadzenButton Click="SaveLogToFile" Style="margin-top: 5px; width: 100%;">Save Log To File</RadzenButton>
 
+        <CreateRemoteSession SessionId="@ConsoleService.RemoteSessionId" Style="margin-top: 5px; width:100%;" OnCreateRemoteSession="@OnCreateRemoteSessionHanlder" OnCancelRemoteSession="@OnCancelRemoteSessionHanlder" />
+        <ConnectToRemoteSession SessionId="@ConsoleService.RemoteSessionId" Style="margin-top: 5px; width:100%;" OnConnectToRemoteSession="@OnConnectToRemoteSessionHanlder" OnCancelRemoteSession="@OnCancelRemoteSessionHanlder" />
+
         <RadzenRow Style="margin-top: 5px; width: 100%;">
             <RadzenColumn>
                 <RadzenStack Orientation="Orientation.Horizontal">
@@ -220,7 +223,7 @@
             Refresh();
         };
 
-        if (ConsoleService.IsConsoleListening)
+        if (ConsoleService.IsConsoleListening || ConsoleService.RemoteSessionId != Guid.Empty)
         {
             isDisabled = false;
         }
@@ -232,7 +235,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (ConsoleService.IsConsoleListening)
+        if (ConsoleService.IsConsoleListening || ConsoleService.RemoteSessionId != Guid.Empty)
         {
             isDisabled = false;
         }
@@ -346,4 +349,31 @@
         }
     }
 
+    private async Task OnCreateRemoteSessionHanlder(Tuple<string, string> login)
+    {
+        if (await ConsoleService.StartRemoteSession(login.Item1, login.Item2))
+        {
+            isDisabled = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task OnCancelRemoteSessionHanlder(Guid sessionId)
+    {
+        if (await ConsoleService.StopRemoteWSSession())
+        {
+            if (!ConsoleService.IsConsoleListening)
+                isDisabled = true;
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnConnectToRemoteSessionHanlder(Guid sessionId)
+    {
+        if (await ConsoleService.ConnectToRemoteSession(sessionId))
+        {
+            isDisabled = false;
+        }
+        await InvokeAsync(StateHasChanged);
+    }
 }
