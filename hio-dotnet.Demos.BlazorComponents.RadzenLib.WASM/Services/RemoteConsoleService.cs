@@ -29,6 +29,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
 
             driversWebSocketClient.OnMessageReceived += DriversWebSocketClient_OnMessageReceived;
             _jsRuntime = jsRuntime;
+            StartWSListening();
         }
 
         private DriversServerApiClient? driversServerApiClient;
@@ -53,13 +54,31 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
 
         public bool IsConsoleListening { get; set; } = false;
         public bool IsPPK2Connected { get; set; } = false;
+
+        public async Task StartWSListening()
+        {
+            if (driversWebSocketClient != null)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await driversWebSocketClient.ConnectAsync("ws://localhost:8042/ws");
+                    }
+                    catch
+                    {
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                    }
+                });
+            }
+        }
         public async Task<bool> IsPPK2ConnectedAsync()
         {
-            if (driversServerApiClient != null)
+            if (driversWebSocketClient != null)
             {
                 try
                 {
-                    var result = driversServerApiClient.PPK2_DeviceStatus().Result;
+                    var result = driversWebSocketClient.PPK2_DeviceStatus().Result;
                     return result;
                 }
                 catch
@@ -78,17 +97,17 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
 
         public async Task GetStatuses()
         {
-            if (driversServerApiClient != null)
+            if (driversWebSocketClient != null)
             {
                 try
                 {
-                    IsDeviceOn = await driversServerApiClient.PPK2_DeviceStatus();
+                    IsDeviceOn = await driversWebSocketClient.PPK2_DeviceStatus();
                     if (IsDeviceOn)
                     {
                         IsPPK2Connected = true;
                     }
 
-                    DeviceVoltage = await driversServerApiClient.PPK2_DeviceVoltage();
+                    DeviceVoltage = await driversWebSocketClient.PPK2_DeviceVoltage();
                 }
                 catch
                 {
@@ -127,11 +146,11 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             }
             if (IsPPK2Connected)
             {
-                if (driversServerApiClient != null)
+                if (driversWebSocketClient != null)
                 {
                     try
                     {
-                        driversServerApiClient.PPK2_TurnOff().Wait();
+                        driversWebSocketClient.PPK2_TurnOff().Wait();
                     }
                     catch
                     {
@@ -143,13 +162,13 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
 
         public async Task FindAndConnectPPK(bool doNotTurnBusy = false)
         {
-            if (driversServerApiClient == null)
-                driversServerApiClient = new DriversServerApiClient(null);
+            if (driversWebSocketClient == null)
+                driversWebSocketClient = new DriversWebSocketClient();
             
             OnIsBusy?.Invoke(this, true);
             await Task.Delay(10);
 
-            var devices = await driversServerApiClient.PPK2_GetPortsNames();
+            var devices = await driversWebSocketClient.PPK2_GetPortsNames();
 
             if (devices.Count == 0)
             {
@@ -167,16 +186,14 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             Console.WriteLine($"\nUsing PPK2 device on COM Port: {selectedDevice.PortName} with Serial Number: {selectedDevice.SerialNumber}");
 
             selectedDevice.PortName = selectedDevice.PortName.Replace("\\/", "/").Replace("/", "%2F");
-            if (driversServerApiClient != null)
+            
+            try
             {
-                try
-                {
-                    await driversServerApiClient.PPK2_Init(selectedDevice.PortName);
-                }
-                catch
-                {
-                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
-                }
+                await driversWebSocketClient.PPK2_Init(selectedDevice.PortName);
+            }
+            catch
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
             }
             IsPPK2Connected = true;
 
@@ -194,11 +211,11 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             // Set a source voltage (e.g., 3300 mV)
             //int voltage = 3300;
             Console.WriteLine($"Setting source voltage to {voltage} mV...");
-            if (driversServerApiClient != null)
+            if (driversWebSocketClient != null)
             {
                 try
                 {
-                    await driversServerApiClient.PPK2_SetVoltage(voltage);
+                    await driversWebSocketClient.PPK2_SetVoltage(voltage);
                 }
                 catch
                 {
@@ -213,11 +230,11 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
         {
             // Turn on the DUT power
             Console.WriteLine("Turning on DUT power...");
-            if (driversServerApiClient != null)
+            if (driversWebSocketClient != null)
             {
                 try
                 {
-                    await driversServerApiClient.PPK2_TurnOn();
+                    await driversWebSocketClient.PPK2_TurnOn();
                 }
                 catch
                 {
@@ -242,11 +259,11 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                 await StopListening();
 
             Console.WriteLine("Turning off DUT power...");
-            if (driversServerApiClient != null)
+            if (driversWebSocketClient != null)
             {
                 try 
                 { 
-                    await driversServerApiClient.PPK2_TurnOff();
+                    await driversWebSocketClient.PPK2_TurnOff();
                 }
                 catch
                 {
@@ -270,13 +287,11 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             OnIsBusy?.Invoke(this, true);
             await Task.Delay(10);
 
-
-
-            if (driversServerApiClient != null)
+            if (driversWebSocketClient != null)
             {
                 try
                 {
-                    await driversServerApiClient.JLink_Init();
+                    await driversWebSocketClient.JLink_Init();
                 }
                 catch
                 {
@@ -293,20 +308,6 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             OnIsJLinkConnected?.Invoke(this, true);
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "JLink Connected", Detail = "JLink is connected now.", Duration = 3000 });
 
-            if (driversWebSocketClient != null)
-            {
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        await driversWebSocketClient.ConnectAsync("ws://localhost:8042/ws");
-                    }
-                    catch 
-                    { 
-                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
-                    }
-                });
-            }
         }
 
         private void ProcessNewRTTLine(object sender, Tuple<string, MultiRTTClientBase>? data)
@@ -354,11 +355,11 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                     }
                 }
 
-                if (driversServerApiClient != null)
+                if (driversWebSocketClient != null)
                 {
                     try
                     {
-                        await driversServerApiClient.JLink_SendCommandByName("ConfigConsole", command);
+                        await driversWebSocketClient.JLink_SendCommandByName("ConfigConsole", command);
                     }
                     catch
                     {
@@ -377,11 +378,11 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
         {
             cts.Cancel();
 
-            if (driversServerApiClient != null)
+            if (driversWebSocketClient != null)
             {
                 try
                 {
-                    await driversServerApiClient.JLink_Stop();
+                    await driversWebSocketClient.JLink_Stop();
                     IsConsoleListening = false;
                 }
                 catch

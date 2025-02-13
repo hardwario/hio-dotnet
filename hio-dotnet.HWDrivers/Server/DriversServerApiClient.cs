@@ -67,7 +67,7 @@ namespace hio_dotnet.HWDrivers.Server
             using (var httpClient = new HttpClient())
             {
                 httpClient.BaseAddress = new System.Uri(_baseUrl);
-
+                portname = System.Web.HttpUtility.UrlEncode(portname);
                 var url = $"/api/ppk2/init/{portname}";
 
                 try
@@ -298,6 +298,10 @@ namespace hio_dotnet.HWDrivers.Server
             using (var httpClient = new HttpClient())
             {
                 httpClient.BaseAddress = new System.Uri(_baseUrl);
+
+                // encode message to be save as part of the url
+                message = System.Web.HttpUtility.UrlEncode(message);
+
                 var url = $"/api/jlink/sendcommandbychannel/{channel}/{message}";
                 try
                 {
@@ -323,6 +327,7 @@ namespace hio_dotnet.HWDrivers.Server
             using (var httpClient = new HttpClient())
             {
                 httpClient.BaseAddress = new System.Uri(_baseUrl);
+                message = System.Web.HttpUtility.UrlEncode(message);
                 var url = $"/api/jlink/sendcommandbyname/{name}/{message}";
                 try
                 {

@@ -57,6 +57,7 @@ namespace hio_dotnet.HWDrivers.Server
             ServerTasks.TryAdd(mainServiceId, CheckJLinkTask()); 
 
             Console.WriteLine($"Server running at http://localhost:{_port}");
+            DriversServerMainDataContext.ServerBaseUrl = $"http://localhost:{_port}";
 
             return RunServer();
         }

@@ -15,6 +15,11 @@ namespace hio_dotnet.HWDrivers.Server
         public static MCUMultiRTTConsole? MCUMultiRTTConsole { get; set; }
 
         /// <summary>
+        /// Shared functions of controller for API and WebSocket controllers.
+        /// </summary>
+        public static DriversCommonController DriversCommonController { get; set; } = new DriversCommonController();
+
+        /// <summary>
         /// When the JLink is connected over the api, this event is fired.
         /// </summary>
         public static event EventHandler? OnJLinkConnected;
@@ -27,6 +32,7 @@ namespace hio_dotnet.HWDrivers.Server
         public static bool IsConsoleListening { get; set; } = false;
         public static bool IsDeviceOn { get; set; } = false;
         public static int DeviceVoltage { get; set; } = 0;
+        public static string ServerBaseUrl { get; set; } = "http://localhost:8042";
 
         public static CancellationTokenSource? cts;
 

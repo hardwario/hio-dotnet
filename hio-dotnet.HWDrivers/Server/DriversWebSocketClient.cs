@@ -1,9 +1,11 @@
 ﻿using hio_dotnet.HWDrivers.MCU;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace hio_dotnet.HWDrivers.Server
@@ -14,12 +16,15 @@ namespace hio_dotnet.HWDrivers.Server
 
         public event Action<string> OnMessageReceived;
 
+        public ConcurrentDictionary<Guid, DriversWebSocketRequest> Requests { get; set; } = new ConcurrentDictionary<Guid, DriversWebSocketRequest>();
+        public ConcurrentDictionary<Guid, DriversWebSocketResponse> Responses { get; set; } = new ConcurrentDictionary<Guid, DriversWebSocketResponse>();
         public async Task ConnectAsync(string uri)
         {
             _webSocket = new ClientWebSocket();
             await _webSocket.ConnectAsync(new Uri(uri), CancellationToken.None);
             Console.WriteLine("Connected to WebSocket server");
 
+            await SendMessageAsync("Connected to WebSocket server");
             await ReceiveMessagesAsync();
         }
 
@@ -41,7 +46,25 @@ namespace hio_dotnet.HWDrivers.Server
                 var result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
                 var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
                 //Console.WriteLine($"New message captured:{message}");
-                OnMessageReceived?.Invoke(message);
+                if (message != null)
+                {
+                    if (message.Contains("DriversWebSocketModuleApiResponse:"))
+                    {
+                        var parts = message.Split("DriversWebSocketModuleApiResponse:");
+                        if (parts.Length == 2)
+                        {
+                            var apiResponse = parts[1];
+                            var response = JsonSerializer.Deserialize<DriversWebSocketResponse>(apiResponse);
+                            if (response != null)
+                            {
+                                if (Responses.ContainsKey(response.Id))
+                                    Responses.TryRemove(response.Id, out var r);
+                                Responses.TryAdd(response.Id, response);
+                            }
+                        }
+                    }
+                    OnMessageReceived?.Invoke(message);
+                }
             }
         }
 
@@ -63,6 +86,207 @@ namespace hio_dotnet.HWDrivers.Server
                 _webSocket.Dispose();
                 _webSocket = null;
             }
+        }
+
+        /// <summary>
+        /// Send API Request to Drivers Server and wait for the response
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="timeout">base delay is 100ms. for example 30s is timeout=300</param>
+        /// <returns></returns>
+        public async Task<string> SendApiRequest(DriversWebSocketRequest request, int timeout = 300)
+        {
+            var json = JsonSerializer.Serialize(request);
+            Requests.TryAdd(request.Id, request);
+            await SendMessageAsync($"DriversWebSocketModuleApiRequest:{json}");
+
+            var timeoutCounter = 0;
+            var foundResponse = false;
+            while (timeoutCounter < timeout)
+            {
+                await Task.Delay(100);
+                if (Responses.ContainsKey(request.Id))
+                {
+                    foundResponse = true;
+                    break;
+                }
+                timeoutCounter++;
+            }
+
+            if (foundResponse)
+            {
+                var response = Responses[request.Id];
+                Responses.TryRemove(request.Id, out var r);
+                return response.Response;
+            }
+
+            return string.Empty;
+        }
+
+        public async Task<List<GetPortsResponse>> PPK2_GetPortsNames()
+        {
+            var request = new DriversWebSocketRequest()
+            {
+                Message = "/api/ppk2/getportsnames",
+                Id = Guid.NewGuid()
+            };
+
+            var response = await SendApiRequest(request);
+            if (!string.IsNullOrEmpty(response))
+            {
+                try
+                {
+                    var r = JsonSerializer.Deserialize<List<GetPortsResponse>>(response);
+                    return r;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error parsing response: {ex.Message}");
+                }
+            }
+
+            return new List<GetPortsResponse>();
+        }
+
+        public async Task<string> PPK2_Init(string portname)
+        {
+            var request = new DriversWebSocketRequest()
+            {
+                Message = $"/api/ppk2/init/{portname}",
+                Id = Guid.NewGuid()
+            };
+
+            var response = await SendApiRequest(request);
+
+            return response;
+        }
+
+        public async Task<string> PPK2_SetVoltage(int voltage)
+        {
+            var request = new DriversWebSocketRequest()
+            {
+                Message = $"/api/ppk2/setvoltage/{voltage}",
+                Id = Guid.NewGuid()
+            };
+
+            var response = await SendApiRequest(request);
+
+            return response;
+        }
+
+        public async Task<string> PPK2_TurnOn()
+        {
+            var request = new DriversWebSocketRequest()
+            {
+                Message = $"/api/ppk2/turnon",
+                Id = Guid.NewGuid()
+            };
+
+            var response = await SendApiRequest(request);
+
+            return response;
+        }
+
+        public async Task<string> PPK2_TurnOff()
+        {
+            var request = new DriversWebSocketRequest()
+            {
+                Message = $"/api/ppk2/turnoff",
+                Id = Guid.NewGuid()
+            };
+            var response = await SendApiRequest(request);
+            return response;
+        }
+
+        /// <summary>
+        /// PPK2: Get Device Status
+        /// If true, device is on
+        /// If false, device is off
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<bool> PPK2_DeviceStatus()
+        {
+            var request = new DriversWebSocketRequest()
+            {
+                Message = $"/api/ppk2/devicestatus",
+                Id = Guid.NewGuid()
+            };
+
+            var response = await SendApiRequest(request);
+
+            if (!string.IsNullOrEmpty(response))
+            {
+                return response == "true";
+            }
+            return false;
+        }
+
+        public async Task<int> PPK2_DeviceVoltage()
+        {
+            var request = new DriversWebSocketRequest()
+            {
+                Message = $"/api/ppk2/devicevoltage",
+                Id = Guid.NewGuid()
+            };
+            var response = await SendApiRequest(request);
+            if (!string.IsNullOrEmpty(response))
+            {
+                try
+                {
+                    var num = int.Parse(response);
+                    return num;
+                }
+                catch(Exception ex) 
+                {
+                    Console.WriteLine($"Error parsing response: {ex.Message}");
+                }
+            }
+            return 0;
+        }
+
+        public async Task<string> JLink_Init()
+        {
+            var request = new DriversWebSocketRequest()
+            {
+                Message = $"/api/jlink/init",
+                Id = Guid.NewGuid()
+            };
+            var response = await SendApiRequest(request);
+            return response;
+        }
+
+        public async Task<string> JLink_Stop()
+        {
+            var request = new DriversWebSocketRequest()
+            {
+                Message = $"/api/jlink/stop",
+                Id = Guid.NewGuid()
+            };
+            var response = await SendApiRequest(request);
+            return response;
+        }
+
+        public async Task<string> JLink_SendCommandByChannel(int channel, string message)
+        {
+            var request = new DriversWebSocketRequest()
+            {
+                Message = $"/api/jlink/sendcommandbychannel/{channel}/{message}",
+                Id = Guid.NewGuid()
+            };
+            var response = await SendApiRequest(request);
+            return response;
+        }
+
+        public async Task<string> JLink_SendCommandByName(string name, string message)
+        {
+            var request = new DriversWebSocketRequest()
+            {
+                Message = $"/api/jlink/sendcommandbyname/{name}/{message}",
+                Id = Guid.NewGuid()
+            };
+            var response = await SendApiRequest(request);
+            return response;
         }
     }
 }
