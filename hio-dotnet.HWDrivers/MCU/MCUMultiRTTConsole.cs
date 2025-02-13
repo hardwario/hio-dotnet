@@ -68,6 +68,7 @@ namespace hio_dotnet.HWDrivers.MCU
         }
 
         public bool IsListening { get; set; } = false;
+        public int Subscribers { get; set; } = 0;
 
         private string _consoleName = string.Empty;
         private string _mcuType = string.Empty;
@@ -111,8 +112,6 @@ namespace hio_dotnet.HWDrivers.MCU
                     {
                         foreach (var client in Clients.Values)
                         {
-
-
                             string message = client.Driver?.ReadRtt(client.Channel) ?? string.Empty;
 
                             if (!string.IsNullOrEmpty(message))

@@ -1,4 +1,5 @@
 ﻿using hio_dotnet.HWDrivers.Server;
+using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
 
@@ -44,11 +45,13 @@ namespace hio_dotnet.Demos.WSSessionsServer
                                 {
                                     session.User1Id = message.UserId;
                                     session.User1Socket = webSocket;
+                                    Console.WriteLine($"Setting user 1: {session.User1Id}");
                                 }
-                                else if (session.User2Id == Guid.Empty)
+                                else if (session.User2Id == Guid.Empty && session.User1Id != message.UserId)
                                 {
                                     session.User2Id = message.UserId;
                                     session.User2Socket = webSocket;
+                                    Console.WriteLine($"Setting user 2: {session.User1Id}");
                                 }
 
                                 MainDataContext.Sessions.TryRemove(session.Id.ToString(), out _);
@@ -59,6 +62,8 @@ namespace hio_dotnet.Demos.WSSessionsServer
                                     var forwardMessage = $"WSSessionMessage:{split[1]}";
                                     var responseBytes = Encoding.UTF8.GetBytes(forwardMessage);
 
+                                    var id = message.UserId == session.User1Id ? session.User2Id : session.User1Id;
+                                    Console.WriteLine($"Forwarding Message: {forwardMessage} to user {id}");
                                     var targetSocket = message.UserId == session.User1Id ? session.User2Socket : session.User1Socket;
                                     if (targetSocket != null && targetSocket.State == WebSocketState.Open)
                                     {

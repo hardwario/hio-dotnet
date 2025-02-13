@@ -3,6 +3,7 @@ using hio_dotnet.HWDrivers.Enums;
 using hio_dotnet.HWDrivers.JLink;
 using hio_dotnet.HWDrivers.MCU;
 using hio_dotnet.HWDrivers.PPK2;
+using hio_dotnet.HWDrivers.Server;
 using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.DataCollection;
 using Radzen;
 using System;
@@ -25,10 +26,13 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         public ConsoleService(NotificationService notificationService)
         {
             _notificationService = notificationService;
+            remoteWebSocketClient = new RemoteWebSocketClient();
         }
 
         public MCUMultiRTTConsole? MCUConsole { get; set; }
         public PPK2_Driver? ppk2 { get; set; }
+
+        private RemoteWebSocketClient? remoteWebSocketClient;
 
         private CancellationTokenSource cts = new CancellationTokenSource();
 
@@ -62,13 +66,140 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         public bool IsDeviceOn { get; set; } = false;
         public int DeviceVoltage { get; set; } = 0;
 
+        public bool UseRemoteConnection { get; set; } = false;
+        public bool IsHostOfRemoteConnection { get; set; } = false;
+
         public LoRaWANConfig LoRaWANConfig { get; set; } = new LoRaWANConfig();
         public LTEConfig LTEConfig { get; set; } = new LTEConfig();
+
+        public Guid RemoteSessionId { get => remoteWebSocketClient?.SessionId ?? Guid.Empty; }
 
         private void ShowNotification(NotificationMessage message)
         {
             message.Style = MainDataContext.NotificationPosition;
             _notificationService.Notify(message);
+        }
+
+        public async Task<bool> ConnectToRemoteSession(Guid sessionId)
+        {
+            if (remoteWebSocketClient != null)
+            {
+                try
+                {
+                    remoteWebSocketClient.SessionId = sessionId;
+
+                    remoteWebSocketClient.OnMessageReceived -= RemoteWebSocketClient_OnMessageReceived;
+                    remoteWebSocketClient.OnMessageReceived += RemoteWebSocketClient_OnMessageReceived;
+                    remoteWebSocketClient.OnCommandReceived -= RemoteWebSocketClient_OnCommandReceived;
+                    remoteWebSocketClient.OnCommandReceived += RemoteWebSocketClient_OnCommandReceived;
+
+                    StartRemoteWSListening();
+                    await Task.Delay(100);
+
+                    await remoteWebSocketClient.SendWSSessionMessage("Registering as user in the session.");
+
+                    UseRemoteConnection = true;
+                    IsHostOfRemoteConnection = true;
+                    return true;
+                }
+                catch
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                }
+            }
+            return false;
+        }
+
+        public async Task StartRemoteWSListening()
+        {
+            if (remoteWebSocketClient != null)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await remoteWebSocketClient.ConnectAsync("ws://localhost:5000/ws");
+                    }
+                    catch
+                    {
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                    }
+                });
+            }
+        }
+
+        public async Task<bool> StartRemoteSession(string login, string password)
+        {
+            if (remoteWebSocketClient != null)
+            {
+                try
+                {
+                    await remoteWebSocketClient.LoginToWSForwarderServer(login, password);
+                    await remoteWebSocketClient.OpenSessionOnWSForwarderServer();
+
+                    remoteWebSocketClient.OnMessageReceived -= RemoteWebSocketClient_OnMessageReceived;
+                    remoteWebSocketClient.OnMessageReceived += RemoteWebSocketClient_OnMessageReceived;
+
+                    StartRemoteWSListening();
+                    await Task.Delay(100);
+
+                    await remoteWebSocketClient.SendWSSessionMessage("Registering as host in the session.");
+
+                    UseRemoteConnection = true;
+                    IsHostOfRemoteConnection = false;
+                    return true;
+                }
+                catch
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                }
+            }
+            return false;
+        }
+
+        public async Task<bool> StopRemoteWSSession()
+        {
+            if (remoteWebSocketClient != null)
+            {
+                try
+                {
+                    await remoteWebSocketClient.DisconnectAsync();
+                    remoteWebSocketClient.SessionId = Guid.Empty;
+                    UseRemoteConnection = false;
+                    IsHostOfRemoteConnection = false;
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Remote Connection Closed", Detail = "Remote connection was closed.", Duration = 3000 });
+                    return true;
+                }
+                catch
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                }
+            }
+            return false;
+        }
+
+        private void RemoteWebSocketClient_OnCommandReceived(string obj)
+        {
+            if (!string.IsNullOrEmpty(obj) && UseRemoteConnection && IsHostOfRemoteConnection)
+            {
+                SendCommand(obj);
+            }
+        }
+
+        private void RemoteWebSocketClient_OnMessageReceived(string obj)
+        {
+            try
+            {
+                var parsed = System.Text.Json.JsonSerializer.Deserialize<WebSocketModuleTransferObject>(obj);
+                if (parsed != null)
+                {
+                    ProcessNewRTTLine(null, new Tuple<string, MultiRTTClientBase>(parsed.Message, parsed.ClientBase));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to parse message as Tuple<string, MultiRTTClientBase>: {ex.Message}");
+            }
         }
 
         public void InitArrays()
@@ -344,6 +475,12 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         private void ProcessNewRTTLine(object sender, Tuple<string, MultiRTTClientBase>? data)
         {
+            if (UseRemoteConnection && IsHostOfRemoteConnection && data != null && data.Item1 != null && data.Item2 != null)
+            {
+                var json = System.Text.Json.JsonSerializer.Serialize(new WebSocketModuleTransferObject() { Message = data.Item1, ClientBase = data.Item2 });
+                remoteWebSocketClient.SendWSSessionMessage($"{json}");
+            }
+
             if (data?.Item2.Channel == 0)
             {
                 var line = $"{data.Item1}";
@@ -371,7 +508,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         public async Task SendCommand(string command)
         {
-            if (IsConsoleListening)
+            if (IsConsoleListening || (UseRemoteConnection && !IsHostOfRemoteConnection))
             {
                 ConsoleOutputShell.Add("> " + command.Replace("\n", string.Empty));
 
@@ -387,7 +524,28 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
                     }
                 }
 
-                await MCUConsole?.SendCommand(0, command);
+                if ((!UseRemoteConnection || (UseRemoteConnection && IsHostOfRemoteConnection)) && MCUConsole != null)
+                {
+                    try
+                    {
+                        await MCUConsole.SendCommand(0, command);
+                    }
+                    catch
+                    {
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                    }
+                }
+                else if (UseRemoteConnection && !IsHostOfRemoteConnection && remoteWebSocketClient != null)
+                {
+                    try
+                    {
+                        await remoteWebSocketClient.SendCommand(command);
+                    }
+                    catch
+                    {
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                    }
+                }
             }
             else
             {

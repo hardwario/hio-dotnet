@@ -1,8 +1,11 @@
-﻿using hio_dotnet.HWDrivers.MCU;
+﻿using EmbedIO.Sessions;
+using hio_dotnet.HWDrivers.MCU;
+using Swan.Formatters;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
@@ -10,11 +13,18 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.HWDrivers.Server
 {
-    public class DriversWebSocketClient
+    public class RemoteWebSocketClient
     {
         private ClientWebSocket _webSocket;
 
         public event Action<string> OnMessageReceived;
+        public event Action<string> OnCommandReceived;
+
+        public Guid UserId { get; set; } = Guid.NewGuid();
+        public Guid SessionId { get; set; } = Guid.Empty;
+
+        public string RemoteWSForwaredServerUrl { get; set; } = "http://localhost:5000";
+        public string RemoteWSForwaredServerJWT { get; set; } = string.Empty;
 
         public ConcurrentDictionary<Guid, DriversWebSocketRequest> Requests { get; set; } = new ConcurrentDictionary<Guid, DriversWebSocketRequest>();
         public ConcurrentDictionary<Guid, DriversWebSocketResponse> Responses { get; set; } = new ConcurrentDictionary<Guid, DriversWebSocketResponse>();
@@ -24,7 +34,10 @@ namespace hio_dotnet.HWDrivers.Server
             await _webSocket.ConnectAsync(new Uri(uri), CancellationToken.None);
             Console.WriteLine("Connected to WebSocket server");
 
-            await SendMessageAsync("Connected to WebSocket server");
+            if (_webSocket?.State == WebSocketState.Open)
+            {
+                ;
+            }
             await ReceiveMessagesAsync();
         }
 
@@ -48,33 +61,31 @@ namespace hio_dotnet.HWDrivers.Server
                     var result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
                     var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
                     //Console.WriteLine($"New message captured:{message}");
-                    if (message != null)
+                    if (message != null && message.Contains("WSSessionMessage:"))
                     {
-                        if (message.Contains("WSSessionMessage:"))
-                        {
-                            var parts = message.Split("WSSessionMessage:");
-                            if (parts.Length == 2)
-                            {
-                                message = parts[1];
-                            }
-                        }
+                        message = message.Replace("WSSessionMessage:", "");
 
-                        if (message.Contains("DriversWebSocketModuleApiResponse:"))
+                        var wssm = JsonSerializer.Deserialize<WSSessionMessage>(message);
+                        if (wssm != null)
                         {
-                            var parts = message.Split("DriversWebSocketModuleApiResponse:");
-                            if (parts.Length == 2)
+                            if (wssm.Message.Contains("DriversWebSocketModuleApiResponse:"))
                             {
-                                var apiResponse = parts[1];
-                                var response = JsonSerializer.Deserialize<DriversWebSocketResponse>(apiResponse);
+                                var msg = wssm.Message.Replace("DriversWebSocketModuleApiResponse:", "");
+                                var response = JsonSerializer.Deserialize<DriversWebSocketResponse>(msg);
                                 if (response != null)
                                 {
                                     if (Responses.ContainsKey(response.Id))
                                         Responses.TryRemove(response.Id, out var r);
                                     Responses.TryAdd(response.Id, response);
+
                                 }
                             }
+                            else if (wssm.Message.Contains("Command:"))
+                            {
+                                OnCommandReceived?.Invoke(wssm.Message.Replace("Command:", ""));
+                            }
+                            OnMessageReceived?.Invoke(wssm.Message);
                         }
-                        OnMessageReceived?.Invoke(message);
                     }
                 }
                 catch (Exception ex)
@@ -104,6 +115,30 @@ namespace hio_dotnet.HWDrivers.Server
             }
         }
 
+        public async Task<bool> SendWSSessionMessage(string data)
+        {
+            var sessionMessage = new WSSessionMessage
+            {
+                SessionId = SessionId,
+                UserId = UserId,
+                Message = $"{data}"
+            };
+
+            var json = System.Text.Json.JsonSerializer.Serialize(sessionMessage);
+
+            try
+            {
+                await SendMessageAsync($"WSSessionMessage:{json}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending WSSessionMessage: {ex.Message}");
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Send API Request to Drivers Server and wait for the response
         /// </summary>
@@ -112,9 +147,24 @@ namespace hio_dotnet.HWDrivers.Server
         /// <returns></returns>
         public async Task<string> SendApiRequest(DriversWebSocketRequest request, int timeout = 300)
         {
+            if (SessionId == Guid.Empty)
+            {
+                throw new Exception("SessionId is not set");
+            }
+
             var json = JsonSerializer.Serialize(request);
             Requests.TryAdd(request.Id, request);
-            await SendMessageAsync($"DriversWebSocketModuleApiRequest:{json}");
+
+            var sessionMessage = new WSSessionMessage
+            {
+                SessionId = SessionId,
+                UserId = UserId,
+                Message = $"DriversWebSocketModuleApiRequest:{json}"
+            };
+
+            json = System.Text.Json.JsonSerializer.Serialize(sessionMessage);
+
+            await SendMessageAsync($"WSSessionMessage:{json}");
 
             var timeoutCounter = 0;
             var foundResponse = false;
@@ -253,7 +303,7 @@ namespace hio_dotnet.HWDrivers.Server
                     var num = int.Parse(response);
                     return num;
                 }
-                catch(Exception ex) 
+                catch (Exception ex)
                 {
                     Console.WriteLine($"Error parsing response: {ex.Message}");
                 }
@@ -303,6 +353,51 @@ namespace hio_dotnet.HWDrivers.Server
             };
             var response = await SendApiRequest(request);
             return response;
+        }
+
+        public async Task<bool> SendCommand(string command)
+        {
+            try
+            {
+                await SendWSSessionMessage($"Command:{command}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending command: {ex.Message}");
+            }
+            return false;
+        }
+
+        public async Task<string> LoginToWSForwarderServer(string login, string password)
+        {
+            using var client = new HttpClient();
+            var httpContent = new StringContent(JsonSerializer.Serialize(new { username = login, password = password }), Encoding.UTF8, "application/json");
+            var response = await client.PostAsync($"{RemoteWSForwaredServerUrl}/login", httpContent);
+            var jwtToken = await response.Content.ReadAsStringAsync();
+            RemoteWSForwaredServerJWT = jwtToken;
+            return jwtToken;
+        }
+
+        public async Task<string> OpenSessionOnWSForwarderServer(string jwtToken = "")
+        {
+            if (string.IsNullOrWhiteSpace(jwtToken) && !string.IsNullOrEmpty(RemoteWSForwaredServerJWT))
+                jwtToken = RemoteWSForwaredServerJWT;
+
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+            var response = await client.GetAsync($"{RemoteWSForwaredServerUrl}/addsession");
+            var sessionId = await response.Content.ReadAsStringAsync();
+            try
+            {
+                SessionId = Guid.Parse(sessionId.Replace("\"",""));
+                return sessionId;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing SessionId: {ex.Message}");
+            }
+            return string.Empty;
         }
     }
 }

@@ -37,7 +37,6 @@ namespace hio_dotnet.HWDrivers.Server
     public class DriversWebSocketModule : WebSocketModule
     {
         private int _connectedClients = 0;
-        private bool _subscribed = false;
         public DriversWebSocketModule(string urlPath)
             : base(urlPath, true)
         {
@@ -48,9 +47,9 @@ namespace hio_dotnet.HWDrivers.Server
 
         private void DriversServerMainDataContext_OnJLinkConnected(object? sender, EventArgs e)
         {
-            if (!_subscribed)
+            if (DriversServerMainDataContext.MCUMultiRTTConsole != null)
             {
-                if (DriversServerMainDataContext.MCUMultiRTTConsole != null)
+                if (DriversServerMainDataContext.MCUMultiRTTConsole.Subscribers == 0)
                 {
                     DriversServerMainDataContext.MCUMultiRTTConsole.NewRTTMessageLineReceived += async (sender, e) =>
                     {
@@ -67,7 +66,7 @@ namespace hio_dotnet.HWDrivers.Server
                             await BroadcastAsync(json);
                         }
                     };
-                    _subscribed = true;
+                    DriversServerMainDataContext.MCUMultiRTTConsole.Subscribers++;
                 }
             }
         }
@@ -80,76 +79,83 @@ namespace hio_dotnet.HWDrivers.Server
 
         protected override async Task OnMessageReceivedAsync(IWebSocketContext context, byte[] buffer, IWebSocketReceiveResult result)
         {
-            var message = System.Text.Encoding.UTF8.GetString(buffer);
-            Console.WriteLine($"Received on drivers server websocket: {message}");
-
-            if (message.Contains("DriversWebSocketModuleApiRequest:"))
+            try
             {
-                var parts = message.Split("DriversWebSocketModuleApiRequest:");
-                if (parts.Length == 2)
+                var message = System.Text.Encoding.UTF8.GetString(buffer);
+                Console.WriteLine($"Received on drivers server websocket: {message}");
+
+                if (message.Contains("DriversWebSocketModuleApiRequest:"))
                 {
-                    try
+                    var parts = message.Split("DriversWebSocketModuleApiRequest:");
+                    if (parts.Length == 2)
                     {
-                        var parsed = System.Text.Json.JsonSerializer.Deserialize<DriversWebSocketRequest>(parts[1]);
-                        if (parsed != null)
+                        try
                         {
-                            using (var httpClient = new HttpClient())
+                            var parsed = System.Text.Json.JsonSerializer.Deserialize<DriversWebSocketRequest>(parts[1]);
+                            if (parsed != null)
                             {
-                                httpClient.BaseAddress = new System.Uri(DriversServerMainDataContext.ServerBaseUrl);
-                                message = System.Web.HttpUtility.UrlEncode(message);
-
-                                var url = parsed.Message;
-                                try
+                                using (var httpClient = new HttpClient())
                                 {
-                                    var response = await httpClient.GetAsync(url);
-                                    var cnt = await response.Content.ReadAsStringAsync();
-                                    if (!response.IsSuccessStatusCode)
+                                    httpClient.BaseAddress = new System.Uri(DriversServerMainDataContext.ServerBaseUrl);
+                                    message = System.Web.HttpUtility.UrlEncode(message);
+
+                                    var url = parsed.Message;
+                                    try
                                     {
-                                        throw new Exception($"An error occurred while sending command by name to jlink. Response: {cnt}");
+                                        var response = await httpClient.GetAsync(url);
+                                        var cnt = await response.Content.ReadAsStringAsync();
+                                        if (!response.IsSuccessStatusCode)
+                                        {
+                                            throw new Exception($"An error occurred while sending command by name to jlink. Response: {cnt}");
+                                        }
+                                        response.EnsureSuccessStatusCode();
+                                        var responseBody = await response.Content.ReadAsStringAsync();
+
+                                        var responseMessage = new DriversWebSocketResponse()
+                                        {
+                                            Id = parsed.Id,
+                                            Response = responseBody
+                                        };
+
+                                        var json = System.Text.Json.JsonSerializer.Serialize(responseMessage);
+
+                                        await SendAsync(context, $"DriversWebSocketModuleApiResponse:{json}");
                                     }
-                                    response.EnsureSuccessStatusCode();
-                                    var responseBody = await response.Content.ReadAsStringAsync();
-
-                                    var responseMessage = new DriversWebSocketResponse()
+                                    catch (HttpRequestException ex)
                                     {
-                                        Id = parsed.Id,
-                                        Response = responseBody
-                                    };
-
-                                    var json = System.Text.Json.JsonSerializer.Serialize(responseMessage);
-
-                                    await SendAsync(context, $"DriversWebSocketModuleApiResponse:{json}");
-                                }
-                                catch (HttpRequestException ex)
-                                {
-                                    throw new Exception("An error occurred while sending command by name to jlink.", ex);
+                                        throw new Exception("An error occurred while sending command by name to jlink.", ex);
+                                    }
                                 }
                             }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Failed to parse message as DriversWebSocketRequest: {ex.Message}");
-                    }
-                }
-                if (DriversServerMainDataContext.MCUMultiRTTConsole != null)
-                {
-                    try
-                    {
-                        var msg = System.Text.Json.JsonSerializer.Deserialize<MultiRTTClientWSMessage>(message);
-                        if (msg == null)
+                        catch (Exception ex)
                         {
-                            Console.WriteLine("Failed to parse message as MultiRTTClientWSMessage");
-                            await SendAsync(context, "Message is not valid MultiRTTClientWSMessage");
-                            return;
+                            Console.WriteLine($"Failed to parse message as DriversWebSocketRequest: {ex.Message}");
                         }
-                        await DriversServerMainDataContext.MCUMultiRTTConsole.SendCommand(msg.Name, msg.Message);
                     }
-                    catch (Exception ex)
+                    if (DriversServerMainDataContext.MCUMultiRTTConsole != null)
                     {
-                        Console.WriteLine($"Failed to parse message as MultiRTTClientWSMessage: {ex.Message}");
+                        try
+                        {
+                            var msg = System.Text.Json.JsonSerializer.Deserialize<MultiRTTClientWSMessage>(message);
+                            if (msg == null)
+                            {
+                                Console.WriteLine("Failed to parse message as MultiRTTClientWSMessage");
+                                await SendAsync(context, "Message is not valid MultiRTTClientWSMessage");
+                                return;
+                            }
+                            await DriversServerMainDataContext.MCUMultiRTTConsole.SendCommand(msg.Name, msg.Message);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Failed to parse message as MultiRTTClientWSMessage: {ex.Message}");
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error while processing message: {ex.Message}");
             }
         }
 

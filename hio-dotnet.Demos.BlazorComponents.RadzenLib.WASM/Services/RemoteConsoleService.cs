@@ -26,6 +26,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             _notificationService = notificationService;
             driversServerApiClient = new DriversServerApiClient(null);
             driversWebSocketClient = new DriversWebSocketClient();
+            remoteWebSocketClient = new RemoteWebSocketClient();
 
             driversWebSocketClient.OnMessageReceived += DriversWebSocketClient_OnMessageReceived;
             _jsRuntime = jsRuntime;
@@ -34,6 +35,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
 
         private DriversServerApiClient? driversServerApiClient;
         private DriversWebSocketClient? driversWebSocketClient;
+        private RemoteWebSocketClient? remoteWebSocketClient;
 
         private CancellationTokenSource cts = new CancellationTokenSource();
 
@@ -54,6 +56,10 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
 
         public bool IsConsoleListening { get; set; } = false;
         public bool IsPPK2Connected { get; set; } = false;
+        public bool UseRemoteConnection { get; set; } = false;
+        public bool IsHostOfRemoteConnection { get; set; } = false;
+
+        public Guid RemoteSessionId { get => remoteWebSocketClient?.SessionId ?? Guid.Empty; }
 
         public async Task StartWSListening()
         {
@@ -72,6 +78,119 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                 });
             }
         }
+
+        public async Task StartRemoteWSListening()
+        {
+            if (remoteWebSocketClient != null)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await remoteWebSocketClient.ConnectAsync("ws://localhost:5000/ws");
+                    }
+                    catch
+                    {
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                    }
+                });
+            }
+        }
+
+        public async Task<bool> ConnectToRemoteSession(Guid sessionId)
+        {
+            if (remoteWebSocketClient != null)
+            {
+                try
+                {
+                    remoteWebSocketClient.SessionId = sessionId;
+
+                    remoteWebSocketClient.OnMessageReceived -= RemoteWebSocketClient_OnMessageReceived;
+                    remoteWebSocketClient.OnMessageReceived += RemoteWebSocketClient_OnMessageReceived;
+                    remoteWebSocketClient.OnCommandReceived -= RemoteWebSocketClient_OnCommandReceived;
+                    remoteWebSocketClient.OnCommandReceived += RemoteWebSocketClient_OnCommandReceived;
+
+                    StartRemoteWSListening();
+                    await Task.Delay(100);
+
+                    await remoteWebSocketClient.SendWSSessionMessage("Registering as host in the session.");
+
+                    UseRemoteConnection = true;
+                    IsHostOfRemoteConnection = true;
+                    return true;
+                }
+                catch
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                }
+            }
+            return false;
+        }
+
+        public async Task<bool> StartRemoteSession(string login, string password)
+        {
+            if (remoteWebSocketClient != null)
+            {
+                try
+                {
+                    await remoteWebSocketClient.LoginToWSForwarderServer(login, password);
+                    await remoteWebSocketClient.OpenSessionOnWSForwarderServer();
+
+                    remoteWebSocketClient.OnMessageReceived -= RemoteWebSocketClient_OnMessageReceived;
+                    remoteWebSocketClient.OnMessageReceived += RemoteWebSocketClient_OnMessageReceived;
+
+                    StartRemoteWSListening();
+                    await Task.Delay(100);
+
+                    await remoteWebSocketClient.SendWSSessionMessage("Registering as user in the session.");
+
+                    UseRemoteConnection = true;
+                    IsHostOfRemoteConnection = false;
+                    return true;
+                }
+                catch
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                }
+            }
+            return false;
+        }
+
+        public async Task<bool> StopRemoteWSSession()
+        {
+            if (remoteWebSocketClient != null)
+            {
+                try
+                {
+                    await remoteWebSocketClient.DisconnectAsync();
+                    remoteWebSocketClient.SessionId = Guid.Empty;
+                    UseRemoteConnection = false;
+                    IsHostOfRemoteConnection = false;
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Remote Connection Closed", Detail = "Remote connection was closed.", Duration = 3000 });
+                    return true;
+                }
+                catch
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                }
+            }
+            return false;
+        }
+
+        private void RemoteWebSocketClient_OnCommandReceived(string obj)
+        {
+            if (!string.IsNullOrEmpty(obj) && UseRemoteConnection && IsHostOfRemoteConnection)
+            {
+                SendCommand(obj);
+            }
+        }
+
+        private void RemoteWebSocketClient_OnMessageReceived(string obj)
+        {
+            if (UseRemoteConnection && !IsHostOfRemoteConnection)
+                DriversWebSocketClient_OnMessageReceived(obj);
+        }
+
         public async Task<bool> IsPPK2ConnectedAsync()
         {
             if (driversWebSocketClient != null)
@@ -120,6 +239,13 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
         {
             try
             {
+                if (string.IsNullOrEmpty(obj))
+                    return;
+
+                if (UseRemoteConnection && IsHostOfRemoteConnection)
+                {
+                    remoteWebSocketClient.SendWSSessionMessage($"{obj}");
+                }
                 var parsed = System.Text.Json.JsonSerializer.Deserialize<WebSocketModuleTransferObject>(obj);
                 if (parsed != null)
                 {
@@ -339,7 +465,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
 
         public async Task SendCommand(string command)
         {
-            if (IsConsoleListening)
+            if (IsConsoleListening || (UseRemoteConnection && !IsHostOfRemoteConnection))
             {
                 ConsoleOutputShell.Add("> " + command.Replace("\n", string.Empty));
 
@@ -355,7 +481,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                     }
                 }
 
-                if (driversWebSocketClient != null)
+                if ((!UseRemoteConnection || (UseRemoteConnection && IsHostOfRemoteConnection)) && driversWebSocketClient != null)
                 {
                     try
                     {
@@ -366,6 +492,18 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                         ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
                     }
                 }
+                else if (UseRemoteConnection && !IsHostOfRemoteConnection && remoteWebSocketClient != null) 
+                {
+                    try
+                    {
+                        await remoteWebSocketClient.SendCommand(command);
+                    }
+                    catch
+                    {
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                    }
+                }
+
             }
             else
             {

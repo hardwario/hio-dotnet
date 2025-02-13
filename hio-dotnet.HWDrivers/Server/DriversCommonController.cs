@@ -216,6 +216,8 @@ namespace hio_dotnet.HWDrivers.Server
                 return "JLink RTT Console not initialized";
 
             DriversServerMainDataContext.cts?.Cancel();
+            DriversServerMainDataContext.MCUMultiRTTConsole.Dispose();
+            DriversServerMainDataContext.MCUMultiRTTConsole = null;
 
             DriversServerMainDataContext.IsConsoleListening = false;
             return "OK";
