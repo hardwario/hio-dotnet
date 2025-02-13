@@ -51,6 +51,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.LibSerialPort", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.Demos.SimpleDriversServer", "hio-dotnet.Demos.SimpleDriversServer\hio-dotnet.Demos.SimpleDriversServer.csproj", "{E41B428A-39B8-4B8B-A0F2-53B477C38F38}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.Demos.WSSessionsServer", "hio-dotnet.Demos.WSSessionsServer\hio-dotnet.Demos.WSSessionsServer.csproj", "{3038FD86-98AC-4A66-B8EC-EE27F615688A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -203,6 +205,14 @@ Global
 		{E41B428A-39B8-4B8B-A0F2-53B477C38F38}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E41B428A-39B8-4B8B-A0F2-53B477C38F38}.Release|x64.ActiveCfg = Release|Any CPU
 		{E41B428A-39B8-4B8B-A0F2-53B477C38F38}.Release|x64.Build.0 = Release|Any CPU
+		{3038FD86-98AC-4A66-B8EC-EE27F615688A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3038FD86-98AC-4A66-B8EC-EE27F615688A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3038FD86-98AC-4A66-B8EC-EE27F615688A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3038FD86-98AC-4A66-B8EC-EE27F615688A}.Debug|x64.Build.0 = Debug|Any CPU
+		{3038FD86-98AC-4A66-B8EC-EE27F615688A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3038FD86-98AC-4A66-B8EC-EE27F615688A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3038FD86-98AC-4A66-B8EC-EE27F615688A}.Release|x64.ActiveCfg = Release|Any CPU
+		{3038FD86-98AC-4A66-B8EC-EE27F615688A}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -228,6 +238,7 @@ Global
 		{F2AC3087-88D8-4027-A6DC-2BC9CEF8147B} = {26E31ECF-53E6-4E5A-B114-38A008891F03}
 		{86417B62-A838-48BB-90E2-E875A455765D} = {F2AC3087-88D8-4027-A6DC-2BC9CEF8147B}
 		{E41B428A-39B8-4B8B-A0F2-53B477C38F38} = {C69E4820-C35D-4BAF-94C8-52F738A12EBE}
+		{3038FD86-98AC-4A66-B8EC-EE27F615688A} = {C69E4820-C35D-4BAF-94C8-52F738A12EBE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E1FFF9B6-96C5-48A0-98CB-F203A8890083}
