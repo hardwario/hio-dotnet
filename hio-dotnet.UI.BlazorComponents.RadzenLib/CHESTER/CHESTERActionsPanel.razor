@@ -36,7 +36,7 @@
     [Parameter] public List<ActionCommandButtonData> ActionCommandButtonDataList { get; set; } = new List<ActionCommandButtonData>();
     [Parameter] public bool IsTitleHidden { get; set; } = false;
 
-    private async Task<bool> showDialog(string title, string text)
+    private async Task<bool?> showDialog(string title, string text)
     {
         var result = await DialogService.OpenAsync(title, ds =>
             @<RadzenStack Gap="1.5rem">
@@ -47,7 +47,8 @@
                         <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
                     </RadzenStack>
                 </RadzenStack>
-            </RadzenStack>);
+            </RadzenStack>
+    );
         return result;
     }
 
@@ -56,9 +57,12 @@
         if (buttonData.IsWithDialog)
         {
             var result = await showDialog(buttonData.DialogTitle, buttonData.DialogDescription);
-            if (result)
+            if (result != null)
             {
-                await SendCommands.InvokeAsync(buttonData.Commands);
+                if (result.Value)
+                {
+                    await SendCommands.InvokeAsync(buttonData.Commands);
+                }
             }
         }
         else
