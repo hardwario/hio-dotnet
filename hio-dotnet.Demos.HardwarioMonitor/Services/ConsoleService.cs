@@ -118,7 +118,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
                 {
                     try
                     {
-                        await remoteWebSocketClient.ConnectAsync("ws://localhost:5000/ws");
+                        await remoteWebSocketClient.ConnectAsync("wss://thingsboard.hardwario.com/ws");
                     }
                     catch
                     {

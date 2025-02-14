@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Net.WebSockets;
 using hio_dotnet.Demos.WSSessionsServer;
 using hio_dotnet.HWDrivers.Server;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,11 +52,22 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear(); // Povolí proxy i mimo známé sítì
+    options.KnownProxies.Clear();  // Povolí proxy i mimo známé IP
+});
+
 var app = builder.Build();
 
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseForwardedHeaders();
 
 var webSocketOptions = new WebSocketOptions()
 {
@@ -90,7 +102,10 @@ app.MapGet("/addsession", (HttpContext context) =>
 
 app.Map("/ws", async (HttpContext context) =>
 {
-    if (context.WebSockets.IsWebSocketRequest)
+    var upgradeHeader = context.Request.Headers["Upgrade"].ToString().ToLower();
+    var connectionHeader = context.Request.Headers["Connection"].ToString().ToLower();
+
+    if (upgradeHeader == "websocket" && connectionHeader.Contains("upgrade"))
     {
         using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
         await WebSocketProcessor.HandleWebSocketAsync(webSocket, context);
@@ -98,6 +113,7 @@ app.Map("/ws", async (HttpContext context) =>
     else
     {
         context.Response.StatusCode = 400;
+        await context.Response.WriteAsync("Invalid WebSocket request");
     }
 });
 

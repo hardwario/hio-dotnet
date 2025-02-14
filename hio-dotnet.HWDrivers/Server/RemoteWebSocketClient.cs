@@ -23,7 +23,7 @@ namespace hio_dotnet.HWDrivers.Server
         public Guid UserId { get; set; } = Guid.NewGuid();
         public Guid SessionId { get; set; } = Guid.Empty;
 
-        public string RemoteWSForwaredServerUrl { get; set; } = "http://localhost:5000";
+        public string RemoteWSForwaredServerUrl { get; set; } = "https://thingsboard.hardwario.com/wssessionserver";
         public string RemoteWSForwaredServerJWT { get; set; } = string.Empty;
 
         public ConcurrentDictionary<Guid, DriversWebSocketRequest> Requests { get; set; } = new ConcurrentDictionary<Guid, DriversWebSocketRequest>();
