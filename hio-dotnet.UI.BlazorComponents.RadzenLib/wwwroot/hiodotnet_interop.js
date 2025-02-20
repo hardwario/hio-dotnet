@@ -90,6 +90,36 @@
             return { error: e.toString() };
         }
     }
+
+    initCopyButtons() {
+        document.querySelectorAll(".copy-btn").forEach(button => {
+            button.onclick = function () {
+                let targetId = this.getAttribute("data-target");
+                let textElement = document.getElementById(targetId);
+                if (textElement) {
+                    navigator.clipboard.writeText(textElement.innerText).then(() => {
+                        this.innerHTML = "✅";
+                        setTimeout(() => {
+                            this.innerHTML = "📋";
+                        }, 1000);
+                    });
+                }
+            };
+        });
+    }
+
+    initCopyAllButton(id, text) {
+        document.querySelectorAll('.' + id).forEach(button => {
+            if (text) {
+                navigator.clipboard.writeText(text);
+                button.innerHTML = "✅";
+                setTimeout(() => {
+                    button.innerHTML = "📋";
+                }, 1000);
+            }
+        });
+    }
+    
 }
 
 class HioHeatmapInterop {
