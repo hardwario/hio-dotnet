@@ -52,7 +52,7 @@
     public async Task OnLoggingInHandler(bool busy)
     {
         isBusy = busy;
-        LoadingOverlayService.Show();
+        LoadingOverlayService.ShowIfBusy(isBusy);
     }
 
     public async Task OnLoggedInHandler(bool isLoggedIn)

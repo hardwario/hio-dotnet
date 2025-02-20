@@ -393,7 +393,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             }
         }
 
-        public async Task StartListening()
+        public async Task StartListening(bool withPPK2 = true)
         {
             OnIsBusy?.Invoke(this, true);
             await Task.Delay(10);
@@ -427,7 +427,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             // Take first available JLink
             var devsn = connected_jlinks[0].SerialNumber.ToString();
 
-            if (ppk2 == null)
+            if (withPPK2 && ppk2 == null)
             {
                 await FindAndConnectPPK(true);
                 await SetPPK2Voltage(3600);

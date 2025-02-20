@@ -14,6 +14,13 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
 
         public LoadingOverlayService() { }
 
+        public void ShowIfBusy(bool isBusy)
+        {
+            if (isBusy)
+                Show();
+            else
+                Hide();
+        }
         public void Show()
         {
             IsBusy = true;

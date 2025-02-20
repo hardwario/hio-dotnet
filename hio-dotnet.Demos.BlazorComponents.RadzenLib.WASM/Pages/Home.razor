@@ -206,11 +206,7 @@
         ConsoleService.OnIsBusy += (s, e) =>
         {
             isBusy = e;
-            if (isBusy)
-                LoadingOverlayService.Show();
-            else
-                LoadingOverlayService.Hide();
-
+            LoadingOverlayService.ShowIfBusy(isBusy);
             Refresh();
         };
 
