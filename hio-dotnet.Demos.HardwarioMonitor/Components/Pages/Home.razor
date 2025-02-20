@@ -42,6 +42,7 @@
         @if (!ConsoleService.IsConsoleListening)
         {
             <RadzenButton Click="OnInitConsoleHandler" Style="margin-top: 5px; width: 100%;">Init Console</RadzenButton>
+            <RadzenButton Click="OnInitConsoleJustJLinkHandler" Style="margin-top: 5px; width: 100%;">Init JLink Only</RadzenButton>
         }
         else
         {
@@ -280,6 +281,10 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    public async Task OnInitConsoleJustJLinkHandler()
+    {
+        await ConsoleService.StartListening(false);
+    }
     public async Task OnInitConsoleHandler()
     {
         await ConsoleService.StartListening();

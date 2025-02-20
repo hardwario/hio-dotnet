@@ -117,7 +117,7 @@ namespace hio_dotnet.HWDrivers.Server
         /// If PPK2 is not initialized, it will try to find and connect to the first available PPK2 device
         /// </summary>
         /// <returns></returns>
-        public async Task<string> JLink_Init()
+        public async Task<string> JLink_Init(bool withppk2 = true)
         {
             if (DriversServerMainDataContext.MCUMultiRTTConsole != null)
             {
@@ -153,24 +153,27 @@ namespace hio_dotnet.HWDrivers.Server
             // Take first available JLink
             var devsn = connected_jlinks[0].SerialNumber.ToString();
 
-            if (DriversServerMainDataContext.PPK2_Driver == null)
+            if (withppk2)
             {
-                var res = DriversServerMainDataContext.FindAndConnectPPK();
-                if (res == "OK")
+                if (DriversServerMainDataContext.PPK2_Driver == null)
+                {
+                    var res = DriversServerMainDataContext.FindAndConnectPPK();
+                    if (res == "OK")
+                    {
+                        PPK2_SetVoltage(3600);
+                        PPK2_TurnOn();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Cannot find any PPK2 devices.");
+                        return "Cannot find any PPK2 devices.";
+                    }
+                }
+                else
                 {
                     PPK2_SetVoltage(3600);
                     PPK2_TurnOn();
                 }
-                else
-                {
-                    Console.WriteLine("Cannot find any PPK2 devices.");
-                    return "Cannot find any PPK2 devices.";
-                }
-            }
-            else
-            {
-                PPK2_SetVoltage(3600);
-                PPK2_TurnOn();
             }
 
             await Task.Delay(2500);
@@ -188,6 +191,11 @@ namespace hio_dotnet.HWDrivers.Server
             }
             catch (Exception ex)
             {
+                if (ex.Message.Contains("JLinkDriver>> Target power supply is not present."))
+                {
+                    Console.WriteLine($"Error while starting listening task: {ex.Message}");
+                    return "Target Chip has no power.";
+                }
                 Console.WriteLine($"Error while creating MCUConsole: {ex.Message}");
                 return "Error while creating MCUConsole.";
             }
@@ -195,13 +203,22 @@ namespace hio_dotnet.HWDrivers.Server
             // Share info about jlink is connected and websocket should subscribe to the new messages
             DriversServerMainDataContext.OnJLinkConnectedEvent();
 
-            DriversServerMainDataContext.cts = new CancellationTokenSource();
-            Task listeningTask = DriversServerMainDataContext.MCUMultiRTTConsole.StartListening(DriversServerMainDataContext.cts.Token);
+            try
+            {
+                DriversServerMainDataContext.cts = new CancellationTokenSource();
+                Task listeningTask = DriversServerMainDataContext.MCUMultiRTTConsole.StartListening(DriversServerMainDataContext.cts.Token);
 
-            DriversServerMainDataContext.IsConsoleListening = true;
+                DriversServerMainDataContext.IsConsoleListening = true;
 
-            //await Task.WhenAny(new Task[] { listeningTask });
-            DriversServerMainDataContext.JLinkTaskQueue.Enqueue(listeningTask);
+                //await Task.WhenAny(new Task[] { listeningTask });
+                DriversServerMainDataContext.JLinkTaskQueue.Enqueue(listeningTask);
+                await Task.Delay(3500);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error while starting listening task: {ex.Message}");
+                return "Error while starting listening task.";
+            }
 
             return "OK";
         }

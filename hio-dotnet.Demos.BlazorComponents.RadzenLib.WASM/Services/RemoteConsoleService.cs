@@ -61,6 +61,12 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
 
         public Guid RemoteSessionId { get => remoteWebSocketClient?.SessionId ?? Guid.Empty; }
 
+        public async Task ReportError(string title, string message, int duration = 3000)
+        {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = title, Detail = message, Duration = duration });
+            OnIsBusy?.Invoke(this, false);
+        }
+
         public async Task StartWSListening()
         {
             if (driversWebSocketClient != null)
@@ -73,7 +79,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                     }
                     catch
                     {
-                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                        await ReportError("Drivers Server Error", "Driver Server is not running.");
                     }
                 });
             }
@@ -91,7 +97,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                     }
                     catch
                     {
-                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                        await ReportError("Remote Server Error", "Remote Server is not running.");
                     }
                 });
             }
@@ -121,7 +127,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                 }
                 catch
                 {
-                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                    await ReportError("Remote Server Error", "Remote Server is not running.");
                 }
             }
             return false;
@@ -150,7 +156,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                 }
                 catch
                 {
-                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                    await ReportError("Remote Server Error", "Remote Server is not running.");
                 }
             }
             return false;
@@ -171,7 +177,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                 }
                 catch
                 {
-                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                    await ReportError("Remote Server Error", "Remote Server is not running.");
                 }
             }
             return false;
@@ -197,13 +203,13 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             {
                 try
                 {
-                    var result = driversWebSocketClient.PPK2_DeviceStatus().Result;
+                    var result = await driversWebSocketClient.PPK2_DeviceStatus();
                     return result;
                 }
                 catch
                 {
-                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
-                }
+                    await ReportError("Cannot get PPK2 Status", "Cannot get PPK2 status over web socket client.");
+                 }
             }
             return false;               
         }
@@ -230,7 +236,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                 }
                 catch
                 {
-                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                    await ReportError("Cannot get statuses", "Driver Server cannot provide statuses about PPK2.");
                 }
             }
         }
@@ -264,7 +270,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             _notificationService.Notify(message);
         }
 
-        public void StopAll(object sender, EventArgs e)
+        public async void StopAll(object sender, EventArgs e)
         {
             if (IsConsoleListening)
             {
@@ -280,7 +286,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                     }
                     catch
                     {
-                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                        await ReportError("Cannot turn off PPK2", "Cannot turn off PPK2 over web socket client.");
                     }
                 }
             }
@@ -299,7 +305,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             if (devices.Count == 0)
             {
                 Console.WriteLine("No PPK2 devices found. Exiting program...");
-                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "PPK2 not found", Detail = "No PPK2 devices found.", Duration = 3000 });
+                await ReportError("PPK2 not found", "No PPK2 devices found.");
                 return;
             }
 
@@ -319,7 +325,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             }
             catch
             {
-                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                await ReportError("Cannot init PPK2", "Cannot initialize PPK2.");
             }
             IsPPK2Connected = true;
 
@@ -345,8 +351,8 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                 }
                 catch
                 {
-                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
-                }
+                    await ReportError("Cannot set PPK2 Voltage", "Cannot set PPK2 voltage.");
+                  }
             }
 
             DeviceVoltage = voltage;
@@ -364,7 +370,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                 }
                 catch
                 {
-                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                    await ReportError("Cannot turn on PPK2", "Cannot turn on PPK2.");
                 }
             }
 
@@ -393,8 +399,9 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                 }
                 catch
                 {
-                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
-                }
+                    await ReportError("Cannot turn off PPK2", "Cannot turn off PPK2.");
+                    return;
+                 }
             }
 
             IsDeviceOn = false;
@@ -408,7 +415,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             return;
         }
 
-        public async Task StartListening()
+        public async Task StartListening(bool withPPK2 = true)
         {
             OnIsBusy?.Invoke(this, true);
             await Task.Delay(10);
@@ -417,11 +424,37 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             {
                 try
                 {
-                    await driversWebSocketClient.JLink_Init();
+                    var res = await driversWebSocketClient.JLink_Init(withPPK2);
+                    if (res == "Cannot find any JLinks.")
+                    {
+                        await ReportError("JLink not found", "Cannot find any JLinks.");
+                        return;
+                    }
+                    if (res == "Error while creating MCUConsole.")
+                    {
+                        await ReportError("Cannot Init JLink", "Cannot initialize JLink.");
+                        return;
+                    }
+                    if (res == "Error while starting listening task.")
+                    {
+                        await ReportError("Cannot Start JLink", "Cannot start JLink listening task.");
+                        return;
+                    }
+                    if (res == "Target Chip has no power.")
+                    {
+                        await ReportError("Target Chip has no power", "Target Chip has no power. Turn on power on to the target chip.");
+                        return;
+                    }
+                    if (res.Replace("\"", "").Replace("'", "").ToLower() != "ok")
+                    {
+                        await ReportError("JLink Connection Error", res);
+                        return;
+                    }
                 }
                 catch
                 {
-                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                    await ReportError("Cannot Init JLink", "Cannot initialize JLink.");
+                    return;
                 }
             }
 
@@ -489,7 +522,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                     }
                     catch
                     {
-                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                        await ReportError("Command send Error", "Cannot send command to JLink.");
                     }
                 }
                 else if (UseRemoteConnection && !IsHostOfRemoteConnection && remoteWebSocketClient != null) 
@@ -500,7 +533,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                     }
                     catch
                     {
-                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                        await ReportError("Command send Error", "Cannot send command throuhg remote server.");
                     }
                 }
 
@@ -508,7 +541,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             else
             {
                 Console.WriteLine("Console is not listening. Cannot send command.");
-                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Console is not listening. Cannot send command.", Duration = 3000 });
+                await ReportError("Console is not listening", "Console is not listening. Cannot send command.");
             }
         }
 
@@ -525,7 +558,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                 }
                 catch
                 {
-                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                    await ReportError("Cannot Stop JLink", "Cannot stop JLink.");
                 }
             }
 

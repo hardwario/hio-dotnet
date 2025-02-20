@@ -68,7 +68,7 @@ namespace hio_dotnet.HWDrivers.Server
             {
                 while (true)
                 {
-                    await Task.Delay(1000);
+                    await Task.Delay(500);
                     if (DriversServerMainDataContext.MCUMultiRTTConsole != null)
                     {
                         if (!DriversServerMainDataContext.JLinkTaskQueue.TryDequeue(out Task jlinktask))
