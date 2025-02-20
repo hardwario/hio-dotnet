@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Radzen;
 using Microsoft.Extensions.Configuration;
+using hio_dotnet.Common.Config;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -16,7 +17,6 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 
 // load configuration file appsettings.json and deserialize to AppConfig
 var config = builder.Configuration.Get<AppConfig>();
-
 MainDataContext.Initialize(config);
 
 builder.Services.AddScoped<HioCloudService>();

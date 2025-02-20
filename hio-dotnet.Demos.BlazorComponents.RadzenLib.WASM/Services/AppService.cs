@@ -1,4 +1,5 @@
-﻿using hio_dotnet.UI.BlazorComponents.RadzenLib.Services;
+﻿using hio_dotnet.Common.Config;
+using hio_dotnet.UI.BlazorComponents.RadzenLib.Services;
 
 namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
 {
@@ -18,6 +19,12 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
                 _hioCloudService.DefaultLogin = MainDataContext.Config.DefaultLoginForHioCloud;
                 _hioCloudService.DefaultPassword = MainDataContext.Config.DefaultPasswordForHioCloud;
             }
+            
+        }
+
+        public async Task LoadCommandsFromFile(string url)
+        {
+            await ZephyrRTOSStandardCommands.LoadCommandsFromFileViaHttp(url);
         }
     }
 }

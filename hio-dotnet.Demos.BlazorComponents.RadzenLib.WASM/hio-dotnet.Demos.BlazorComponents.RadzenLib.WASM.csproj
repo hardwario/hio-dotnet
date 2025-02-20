@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\zephyr_rtos_commands.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.11" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.8" PrivateAssets="all" />
   </ItemGroup>
@@ -16,6 +20,12 @@
     <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />
     <ProjectReference Include="..\hio-dotnet.HWDrivers\hio-dotnet.HWDrivers.csproj" />
     <ProjectReference Include="..\hio-dotnet.UI.BlazorComponents.RadzenLib\hio-dotnet.UI.BlazorComponents.RadzenLib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="wwwroot\zephyr_rtos_commands.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>

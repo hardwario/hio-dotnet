@@ -4,6 +4,7 @@
 @inject AppService AppService
 @inject TooltipService TooltipService
 @inject ThemeService ThemeService
+@inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 
 <RadzenLayout>
@@ -82,6 +83,7 @@
     {
         await JSRuntime.InvokeVoidAsync("toggleThemeStyleSheet", isDark);
         AppService.RegisterHioCloudDefaultLogin();
+        await AppService.LoadCommandsFromFile($"{Navigation.Uri.TrimEnd('/')}/zephyr_rtos_commands.txt");
     }
 
     private async Task ToggleTheme()

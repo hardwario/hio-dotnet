@@ -1,5 +1,6 @@
 ﻿@using Services
 @using hio_dotnet.UI.BlazorComponents.RadzenLib.Common.Models
+@using hio_dotnet.Common.Config
 @using hio_dotnet.HWDrivers.MCU
 @page "/"
 
@@ -101,6 +102,7 @@
                                         <ConsoleComponent @ref=consoleComponentRef 
                                         TextSize="@ConsoleFontSize" 
                                         Output="@ConsoleService.ConsoleOutputShell" 
+                                        Hints="@Hints"
                                         IsSendButtonDisabled="@isDisabled" 
                                         OnSendCommand="HandleSendCommand"
                                         IsActionPanelVisible = "true"
@@ -135,6 +137,8 @@
     public int ConsoleFontSize { get; set; } = 12;
 
     public int Voltage { get; set; } = 3600;
+
+    private List<string> Hints { get; set; } = new List<string>();
 
     public List<ActionCommandButtonData> ActionCommandButtonDataList { get; set; } = new List<ActionCommandButtonData>()
     {
@@ -238,6 +242,8 @@
     {
         if (firstRender)
         {
+            Hints.AddRange(ZephyrRTOSStandardCommands.StandardCommands.Select(c => c.Command).ToList());
+
             if (consoleComponentRef != null)
             {
                 consoleComponentRef.MaxHeight = 59;

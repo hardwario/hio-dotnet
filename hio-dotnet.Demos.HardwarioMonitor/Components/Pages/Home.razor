@@ -100,6 +100,7 @@
                                         <ConsoleComponent @ref=consoleComponentRef 
                                                           TextSize="@ConsoleFontSize" 
                                                           Output="@ConsoleService.ConsoleOutputShell" 
+                                                          Hints ="@Hints"
                                                           IsSendButtonDisabled="@isDisabled" 
                                                           OnSendCommand="HandleSendCommand"
                                                           IsActionPanelVisible = "true"
@@ -138,6 +139,8 @@
     public int ConsoleFontSize { get; set; } = 12;
 
     public int Voltage { get; set; } = 3600;
+
+    private List<string> Hints = new List<string>();
 
     public List<ActionCommandButtonData> ActionCommandButtonDataList { get; set; } = new List<ActionCommandButtonData>()
     {
@@ -241,6 +244,7 @@
     {
         if (firstRender)
         {
+            Hints.AddRange(ZephyrRTOSStandardCommands.StandardCommands.Select(c => c.Command).ToList());
             if (consoleComponentRef != null)
             {
                 consoleComponentRef.MaxHeight = 66;

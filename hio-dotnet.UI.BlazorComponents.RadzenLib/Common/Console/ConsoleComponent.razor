@@ -23,15 +23,23 @@
         </RadzenColumn>
     </RadzenRow>
     
-        <RadzenRow Style="height:auto;" class="chester-actions-panel-container">
+        <RadzenRow class="chester-actions-panel-container">
             <RadzenColumn Style="height:auto;">
                 @if (!HideCommandLine)
                 {
                     <!-- Input area -->
                     <RadzenRow>
-                        <RadzenColumn Width="10">
-                            <RadzenTextBox @ref="commandTextBoxRef" @bind-Value="@command" Placeholder="Type command" Style="width: 100%;" @onkeydown="HandleKeyDown" @onfocus="() => OnCommandLineGotFocus.InvokeAsync()" @onfocusout="() => OnCommandLineLostFocus.InvokeAsync()" />
-                        </RadzenColumn>
+                        <RadzenColumn Width="10" style="overflow: visible;">
+                            <!--<RadzenTextBox @ref="commandTextBoxRef" @bind-Value="@command" Placeholder="Type command" Style="width: 100%;" @onkeydown="HandleKeyDown" @onfocus="() => OnCommandLineGotFocus.InvokeAsync()" @onfocusout="() => OnCommandLineLostFocus.InvokeAsync()" />
+                            -->
+                            <RadzenAutoComplete @ref="commandTextBoxRef" @bind-Value=@command Placeholder="Type Command..."
+                                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                Data=@Hints
+                                                Style="width: 100%;z-index:100;" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Command" }})"
+                                                @onkeydown="HandleKeyDown"
+                                                @onfocus="() => OnCommandLineGotFocus.InvokeAsync()"
+                                                @onfocusout="() => OnCommandLineLostFocus.InvokeAsync()" />
+                            </RadzenColumn>
                         <RadzenColumn Width="2">
                             <RadzenButton Text="Send" Disabled="@IsSendButtonDisabled" Click="SendCommand" Style="width: 100%;" />
                         </RadzenColumn>
@@ -79,6 +87,7 @@
         width: 100%;
         padding: 10px; /* Volitelně přidat padding */
     }
+
 </style>
 
 @code {
@@ -88,6 +97,7 @@
     [Parameter] public EventCallback<string> OnCommandLineLostFocus { get; set; }
     [Parameter] public EventCallback<string> OnNewLineReceived { get; set; }
     [Parameter] public List<string> Output { get; set; } = new List<string>();
+    [Parameter] public List<string> Hints { get; set; } = new List<string>();
     [Parameter] public bool HideCommandLine { get; set; } = false;
     [Parameter] public bool IsSendButtonDisabled { get; set; } = false;
     [Parameter] public int TextSize { get; set; } = 8;
@@ -109,7 +119,7 @@
     private int historyIndex = -1;
     private List<string> commandHistory = new List<string>();
 
-    private RadzenTextBox? commandTextBoxRef;
+    private RadzenAutoComplete? commandTextBoxRef;
 
     private string GetConsoleTextStyle(string line)
     {
