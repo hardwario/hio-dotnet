@@ -1,4 +1,5 @@
-﻿using hio_dotnet.Common.Config;
+﻿using DocumentFormat.OpenXml.Office2010.CustomUI;
+using hio_dotnet.Common.Config;
 using hio_dotnet.HWDrivers.Enums;
 using hio_dotnet.HWDrivers.JLink;
 using hio_dotnet.HWDrivers.MCU;
@@ -49,6 +50,8 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         public event EventHandler<bool> OnIsJLinkConnected;
         public event EventHandler<bool> OnIsJLinkDisconnected;
+
+        public event EventHandler<List<ZephyrRTOSCommand>> OnHintForConsoleRefreshed;
 
         public List<string> ConsoleOutputShell = new List<string>();
         public List<string> ConsoleOutputLog = new List<string>();
@@ -456,6 +459,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
             MCUConsole.NewRTTMessageLineReceived -= ProcessNewRTTLine;
             MCUConsole.NewRTTMessageLineReceived += ProcessNewRTTLine;
+            MCUConsole.NewInternalCommandSent += MCUConsole_NewInternalCommandSent;
 
             cts = new CancellationTokenSource();
             Task listeningTask = MCUConsole.StartListening(cts.Token);
@@ -471,6 +475,11 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
             await Task.WhenAny(new Task[] { listeningTask });
 
+        }
+
+        private void MCUConsole_NewInternalCommandSent(object? sender, string e)
+        {
+            ConsoleOutputShell.Add(e);
         }
 
         private void ProcessNewRTTLine(object sender, Tuple<string, MultiRTTClientBase>? data)
@@ -638,6 +647,17 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Settings Applied", Detail = "LTE settings has been loaded to the device.", Duration = 3000 });
         }
 
+        public async Task LoadCommandsFromDevice()
+        {
+            if (MCUConsole != null && IsConsoleListening)
+            {
+                OnIsBusy?.Invoke(this, true);
+                var commands = await MCUConsole.LoadCommandsFromDeviceHelp("", 0);
+                ZephyrRTOSStandardCommands.StandardCommands.AddRange(commands);
+                OnHintForConsoleRefreshed?.Invoke(this, commands);
+                OnIsBusy?.Invoke(this, false);
+            }
+        }
         public async Task Dispose()
         {
             if (IsConsoleListening)

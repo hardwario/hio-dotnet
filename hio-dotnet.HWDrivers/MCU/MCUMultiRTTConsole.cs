@@ -1,6 +1,8 @@
-﻿using hio_dotnet.HWDrivers.Enums;
+﻿using hio_dotnet.Common.Config;
+using hio_dotnet.HWDrivers.Enums;
 using hio_dotnet.HWDrivers.Interfaces;
 using hio_dotnet.HWDrivers.JLink;
+using Org.BouncyCastle.Crypto.Engines;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -66,7 +68,12 @@ namespace hio_dotnet.HWDrivers.MCU
                 }
             }
         }
-
+        /// <summary>
+        /// List of all consoles lines received
+        /// If it overflows MaxLines (default 200), it will remove the oldest lines
+        /// </summary>
+        public List<Tuple<string, MultiRTTClientBase>> ReceivedLines { get; set; } = new List<Tuple<string, MultiRTTClientBase>>();
+        public int MaxLines { get; set; } = 200;
         public bool IsListening { get; set; } = false;
         public int Subscribers { get; set; } = 0;
 
@@ -80,6 +87,7 @@ namespace hio_dotnet.HWDrivers.MCU
         /// Occurs when new not empty line from RTT channel has been received
         /// </summary>
         public event EventHandler<Tuple<string,MultiRTTClientBase>?> NewRTTMessageLineReceived;
+        public event EventHandler<string> NewInternalCommandSent;
 
 
         /// <summary>
@@ -112,21 +120,22 @@ namespace hio_dotnet.HWDrivers.MCU
                     {
                         foreach (var client in Clients.Values)
                         {
-                            string message = client.Driver?.ReadRtt(client.Channel) ?? string.Empty;
-
+                            var message = client.Driver?.ReadRtt(client.Channel) ?? string.Empty;
                             if (!string.IsNullOrEmpty(message))
                             {
                                 var lines = message.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
                                 foreach (var line in lines)
                                 {
-                                    NewRTTMessageLineReceived?.Invoke(this, new Tuple<string, MultiRTTClientBase>(
+                                    var l = new Tuple<string, MultiRTTClientBase>(
                                         line,
                                         new MultiRTTClientBase()
                                         {
                                             Name = client.Name,
                                             Channel = client.Channel,
                                             DriverType = client.DriverType
-                                        }));
+                                        });
+                                        ReceivedLines.Add(l);
+                                        NewRTTMessageLineReceived?.Invoke(this, l);
                                 }
                             }
                         }
@@ -217,6 +226,174 @@ namespace hio_dotnet.HWDrivers.MCU
                     throw new ArgumentException("Client not found");
                 }
             });
+        }
+
+        public async Task<List<ZephyrRTOSCommand>> LoadCommandsFromDeviceHelp(string parent, int channel)
+        {
+            var client = Clients.Values.FirstOrDefault(x => x.Channel == channel);
+            if (client == null)
+                return new List<ZephyrRTOSCommand>();
+            
+            if (client.Driver?.IsConnected ?? false)
+            {
+                var list = new List<ZephyrRTOSCommand>();
+                var startindex = ReceivedLines.Where(l => l.Item2.Channel == channel).ToList().Count;
+                if (parent == "")
+                {
+                    client.Driver?.WriteRtt(channel, "help");
+                    NewInternalCommandSent?.Invoke(this, "> help");
+                }
+                else
+                {
+                    client.Driver?.WriteRtt(channel, parent + " -h");
+                    NewInternalCommandSent?.Invoke(this, "> " + parent + " -h");
+                }
+                var count = 0;
+                var lastcount = 0;
+                var timeout = 10;
+                lastcount = ReceivedLines.Where(l => l.Item2.Channel == channel).ToList().Count;
+                while (true)
+                {
+                    await Task.Delay(50);
+                    count = ReceivedLines.Where(l => l.Item2.Channel == channel).ToList().Count;
+
+                    if (count == lastcount)
+                        timeout--;
+
+                    lastcount = count;
+                    if (timeout == 0)
+                        break;
+                }
+
+                var responses = ReceivedLines.Where(l => l.Item2.Channel == channel).Select(l => l.Item1).ToList().Skip(startindex).ToList();
+
+                if (responses.Count > 1)
+                {
+                    for (var i = 0; i < responses.Count; i++)
+                    {
+                        if (i < responses.Count && i > 0)
+                        {
+                            var item = responses[i];
+                            if (item.Contains("Subcommands:"))
+                                continue;
+                            if (i - 1 < 0)
+                                continue;
+                            var previtem = responses[i - 1];
+                            if (previtem.Contains(" :") && !item.Contains(" :") && !item.Contains(" - "))
+                            {
+                                responses[i - 1] = previtem + item;
+                                responses.RemoveAt(i);
+                                i--;
+                            }
+                            else if (previtem.Contains(" - ") && !item.Contains(" - ") && !item.Contains(" :"))
+                            {
+                                responses[i - 1] = previtem + item;
+                                responses.RemoveAt(i);
+                                i--;
+                            }
+                        }
+                    }
+                }
+                                
+                var subcommandsDetected = false;
+                var prevR = string.Empty;
+                foreach (var r in responses)
+                {
+                    if (!subcommandsDetected && r.Contains("Subcommands:"))
+                    {
+                        subcommandsDetected = true;
+                    }
+                    else
+                    {
+                        var split = r.Split(" :");
+                        if (split != null && split.Length > 1)
+                        {
+                            var commandStart = split[0].TrimStart().TrimEnd();
+                            if (list.Any(c => c.Command == commandStart))
+                                continue;
+
+                            var commandSubCommands = (await LoadCommandsFromDeviceHelp($"{parent} {commandStart}".TrimStart().TrimEnd(), channel)).ToList();
+
+                            if (commandSubCommands.Count == 0)
+                            {
+                                var cmd = new ZephyrRTOSCommand()
+                                {
+                                    Command = commandStart,
+                                    Description = split[1]
+                                };
+                                list.Add(cmd);
+                            }
+                            else
+                            {
+                                foreach (var csc in commandSubCommands)
+                                {
+                                    var des = csc.Description;
+                                    if (string.IsNullOrEmpty(csc.Description))
+                                        des = split[1];
+                                    var cmd = new ZephyrRTOSCommand()
+                                    {
+                                        Command = $"{commandStart} {csc.Command}",
+                                        Description = des
+                                    };
+                                    list.Add(cmd);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (r.Contains("You can try to call commands with <-h> or <--help> parameter for more information."))
+                                continue;
+
+                            var skip = false;
+                            if (!string.IsNullOrEmpty(prevR))
+                            {
+                                if (prevR.Replace(" :", " - ") == r)
+                                    skip = true;
+                            }
+
+                            if (!skip)
+                            {
+                                var l = r.TrimStart().TrimEnd();
+                                var c = string.Empty;
+                                var d = string.Empty;
+                                if (r.Contains(" - "))
+                                {
+                                    var sp = l.Split(" - ");
+                                    if (sp != null && sp.Length > 1)
+                                    {
+                                        c = sp[0];
+                                        d = sp[1];
+
+                                        if (c == parent)
+                                            continue;
+
+                                        if (parent.Contains(" "))
+                                        {
+                                            var p = parent.Split(" ");
+
+                                            if (c == p[p.Length - 1])
+                                                continue;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    c = l;
+                                }
+                                var cmd = new ZephyrRTOSCommand()
+                                {
+                                    Command = c,
+                                    Description = d
+                                };
+                                list.Add(cmd);
+                            }
+                        }
+                    }
+                    prevR = r;
+                }
+                return list;
+            }
+            return new List<ZephyrRTOSCommand>();
         }
 
         #region ClosingConnection

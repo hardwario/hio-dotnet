@@ -35,11 +35,12 @@ namespace hio_dotnet.HWDrivers.JLink
             CheckErrorCode(JLink.Connect());
 
             StartRtt();
-            IsOpen = true;
+            IsConnected = true;
             //CheckRttBufferCount();
         }
 
-        public bool IsOpen = false;
+        public bool IsConnected { get; set; } = false;
+
         private string _serialNumber = "0";
         private string _mcu = "nRF52840_xxAA";
         private int _speed = 4000;
@@ -107,7 +108,7 @@ namespace hio_dotnet.HWDrivers.JLink
             CheckErrorCode(JLink.Connect());
             
             StartRtt();
-            IsOpen = true;
+            IsConnected = true;
         }
 
         private void SetMcuType(string mcuType)
@@ -241,7 +242,7 @@ namespace hio_dotnet.HWDrivers.JLink
             if (!File.Exists(filename))
                 throw new FileNotFoundException($"FirmwareLoader>> Cannot find the file: {filename}");
 
-            if (!IsOpen)
+            if (!IsConnected)
                 throw new Exception("FirmwareLoader>> Connection is not open.");
             
             try
@@ -279,10 +280,10 @@ namespace hio_dotnet.HWDrivers.JLink
 
         public void Close()
         {
-            if (IsOpen)
+            if (IsConnected)
             {
                 JLink.Close();
-                IsOpen = false;
+                IsConnected = false;
             }
         }
 

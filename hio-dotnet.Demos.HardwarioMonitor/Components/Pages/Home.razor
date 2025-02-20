@@ -43,7 +43,10 @@
 
         <CreateRemoteSession SessionId="@ConsoleService.RemoteSessionId" Style="margin-top: 5px; width:100%;" OnCreateRemoteSession="@OnCreateRemoteSessionHanlder" OnCancelRemoteSession="@OnCancelRemoteSessionHanlder" />
         <ConnectToRemoteSession SessionId="@ConsoleService.RemoteSessionId" Style="margin-top: 5px; width:100%;" OnConnectToRemoteSession="@OnConnectToRemoteSessionHanlder" OnCancelRemoteSession="@OnCancelRemoteSessionHanlder" />
-
+        @if (ConsoleService.IsConsoleListening)
+        {
+            <RadzenButton Click="LoadCommandsFromDevice" Style="margin-top: 5px; width: 100%;">Load Commands From Device</RadzenButton>
+        }
         <RadzenRow Style="margin-top: 5px; width: 100%;">
             <RadzenColumn>
                 <RadzenStack Orientation="Orientation.Horizontal">
@@ -210,6 +213,11 @@
     {
         ConsoleService.InitArrays();
         ConsoleService.NewRTTMessageLineReceived += NewLineReceived;
+        ConsoleService.OnHintForConsoleRefreshed += (s, e) =>
+        {
+            Hints.AddRange(e.Select(h => h.Command).ToList());
+            Refresh();
+        };
         ConsoleService.OnIsBusy += (s, e) =>
         {
             isBusy = e;
@@ -374,5 +382,10 @@
             isDisabled = false;
         }
         await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task LoadCommandsFromDevice()
+    {
+        await ConsoleService.LoadCommandsFromDevice();
     }
 }
