@@ -272,5 +272,23 @@ namespace hio_dotnet.HWDrivers.Server
             return "OK";
         }
 
+        public async Task<string> JLink_LoadAllCommandsFromHelp(int channel = 0, string parent = "")
+        {
+            if (DriversServerMainDataContext.MCUMultiRTTConsole == null)
+                return "JLink RTT Console not initialized";
+            if (!DriversServerMainDataContext.IsConsoleListening)
+                return "JLink RTT Console is not listening";
+            var res = await DriversServerMainDataContext.MCUMultiRTTConsole.LoadCommandsFromDeviceHelp(parent, 0);
+            if (res != null)
+            {
+                if (res.Count > 0)
+                {
+                    var json = System.Text.Json.JsonSerializer.Serialize(res);
+                    return json;
+                }
+            }
+            return "OK";
+        }
+
     }
 }

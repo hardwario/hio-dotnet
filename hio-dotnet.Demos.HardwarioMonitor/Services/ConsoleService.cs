@@ -647,12 +647,19 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Settings Applied", Detail = "LTE settings has been loaded to the device.", Duration = 3000 });
         }
 
-        public async Task LoadCommandsFromDevice()
+        public async Task LoadCommandsFromDevice(string parent = "")
         {
             if (MCUConsole != null && IsConsoleListening)
             {
                 OnIsBusy?.Invoke(this, true);
-                var commands = await MCUConsole.LoadCommandsFromDeviceHelp("", 0);
+                var commands = await MCUConsole.LoadCommandsFromDeviceHelp(parent, 0);
+                if (!string.IsNullOrEmpty(parent))
+                {
+                    foreach (var cmd in commands)
+                    {
+                        cmd.Command = parent + " " + cmd.Command;
+                    }
+                }
                 ZephyrRTOSStandardCommands.StandardCommands.AddRange(commands);
                 OnHintForConsoleRefreshed?.Invoke(this, commands);
                 OnIsBusy?.Invoke(this, false);

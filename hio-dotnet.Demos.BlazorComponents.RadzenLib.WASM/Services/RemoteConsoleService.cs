@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.JSInterop;
 using hio_dotnet.HWDrivers.Server;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 
 namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
 {
@@ -50,6 +51,8 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
 
         public event EventHandler<bool> OnIsJLinkConnected;
         public event EventHandler<bool> OnIsJLinkDisconnected;
+
+        public event EventHandler<List<ZephyrRTOSCommand>> OnHintForConsoleRefreshed;
 
         public List<string> ConsoleOutputShell = new List<string>();
         public List<string> ConsoleOutputLog = new List<string>();
@@ -616,6 +619,43 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             await SendCommand("config save");
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Settings Applied", Detail = "LTE settings has been loaded to the device.", Duration = 3000 });
         }
+
+
+        public async Task LoadCommandsFromDevice(string parent = "")
+        {
+            if (driversWebSocketClient != null && IsConsoleListening)
+            {
+                OnIsBusy?.Invoke(this, true);
+                var res = await driversWebSocketClient.JLink_LoadAllCommandsFromHelp(0, parent);
+                res = res.TrimStart('"').TrimEnd('"');
+                if (!string.IsNullOrEmpty(res))
+                {
+                    var commands = new List<ZephyrRTOSCommand>();
+                    try
+                    {
+                        commands = System.Text.Json.JsonSerializer.Deserialize<List<ZephyrRTOSCommand>>(res);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error parsing commands from device: {ex.Message}");
+                    }
+                    if (commands.Count > 0)
+                    {
+                        if (!string.IsNullOrEmpty(parent))
+                        {
+                            foreach (var cmd in commands)
+                            {
+                                cmd.Command = parent + " " + cmd.Command;
+                            }
+                        }
+                        ZephyrRTOSStandardCommands.StandardCommands.AddRange(commands);
+                        OnHintForConsoleRefreshed?.Invoke(this, commands);
+                    }
+                }
+                OnIsBusy?.Invoke(this, false);
+            }
+        }
+
 
         public async Task Dispose()
         {

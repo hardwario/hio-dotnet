@@ -304,5 +304,26 @@ namespace hio_dotnet.HWDrivers.Server
             var response = await SendApiRequest(request);
             return response;
         }
+
+        public async Task<string> JLink_LoadAllCommandsFromHelp(int channel, string parent)
+        {
+            var uri = $"/api/jlink/loadcommandsfromhelp/{channel}";
+            if (!string.IsNullOrEmpty(parent))
+            {
+                uri += $"/{parent}";
+            }
+            var request = new DriversWebSocketRequest()
+            {
+                Message = uri,
+                Id = Guid.NewGuid()
+            };
+            var timeout = 30000;
+            if (parent == "")
+            {
+                timeout = 80000;
+            }
+            var response = await SendApiRequest(request);
+            return response;
+        }
     }
 }

@@ -348,5 +348,37 @@ namespace hio_dotnet.HWDrivers.Server
             }
         }
 
+        public async Task<string> JLink_LoadAllCommandsFromHelp(int channel, string parent)
+        {
+            using (var httpClient = new HttpClient())
+            {
+                httpClient.BaseAddress = new System.Uri(_baseUrl);
+
+                // encode message to be save as part of the url
+                parent = System.Web.HttpUtility.UrlEncode(parent);
+
+                var url = $"/api/jlink/loadcommandsfromhelp/{channel}";
+                if (!string.IsNullOrEmpty(parent))
+                {
+                    url += $"/{parent}";
+                }
+                try
+                {
+                    var response = await httpClient.GetAsync(url);
+                    var cnt = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"An error occurred while sending command by channel to jlink. Response: {cnt}");
+                    }
+                    response.EnsureSuccessStatusCode();
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    return responseBody;
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception("An error occurred while sending command by channel to jlink.", ex);
+                }
+            }
+        }
     }
 }

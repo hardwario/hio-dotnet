@@ -4,6 +4,7 @@
 
 @inject ConsoleService ConsoleService
 @inject LoadingOverlayService LoadingOverlayService
+@inject DialogService DialogService
 
 <LoadingOverlay />
 
@@ -89,7 +90,7 @@
             </RadzenColumn>
         </RadzenRow>
         <hr style="margin-top: 5px; width: 100%;" />
-        
+
     </RadzenSidebar>
     <RadzenBody Style="padding:5px;height: 100%;">
         <RadzenRow Style="height: 100%;">
@@ -133,6 +134,7 @@
     private bool isDisabled = false;
     private bool isLogScrollingAutomatically = true;
     private bool isShellScrollingAutomatically = true;
+    private bool justAppSetting = false;
 
     private List<string> outputConfig = new List<string>();
     private List<string> output = new List<string>();
@@ -140,7 +142,6 @@
     ConsoleComponent? consoleComponentLogRef;
 
     public int ConsoleFontSize { get; set; } = 12;
-
     public int Voltage { get; set; } = 3600;
 
     private List<string> Hints = new List<string>();
@@ -384,8 +385,40 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task LoadCommandsFromDevice()
+    private async Task LoadCommandsFromDevice()
     {
-        await ConsoleService.LoadCommandsFromDevice();
+        var result = await DialogService.OpenAsync("Load Commands From Device", ds =>
+    @<RadzenStack Gap="1.5rem">
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenText Text="@("Are you sure you want to load commands from device? This might take a while.")" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenLabel Component="jas" Text="Load Just App Setting" />
+                <RadzenCheckBox @bind-Value="justAppSetting" Name="jas" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <RadzenButton Text="Ok" Click="() => ds.Close(true)" Style="width: 80px;" />
+                <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenStack>
+    );
+
+        if (result)
+        {
+            if (justAppSetting)
+            {
+                await ConsoleService.LoadCommandsFromDevice("app");
+            }
+            else 
+            {
+                await ConsoleService.LoadCommandsFromDevice();
+            }
+        }
     }
 }

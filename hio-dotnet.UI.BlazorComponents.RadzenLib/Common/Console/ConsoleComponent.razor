@@ -35,7 +35,7 @@
                             <RadzenAutoComplete @ref="commandTextBoxRef" @bind-Value=@command Placeholder="Type Command..."
                                                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                                 Data=@Hints
-                                                Style="width: 100%;z-index:100;" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Command" }})"
+                                                Style="width: 100%;" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Command" }})"
                                                 @onkeydown="HandleKeyDown"
                                                 @onfocus="() => OnCommandLineGotFocus.InvokeAsync()"
                                                 @onfocusout="() => OnCommandLineLostFocus.InvokeAsync()" />

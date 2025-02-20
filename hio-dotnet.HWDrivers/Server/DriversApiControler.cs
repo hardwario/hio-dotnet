@@ -102,6 +102,14 @@ namespace hio_dotnet.HWDrivers.Server
             return DriversServerMainDataContext.DriversCommonController.JLink_SendCommandByName(name, message);
         }
 
+        // GET: /api/jlink/loadcommandsfromhelp/{channel}/{parent}
+        [Route(HttpVerbs.Get, "/jlink/loadcommandsfromhelp/{channel}/{parent}")]
+        public async Task<string> JLink_LoadAllCommandsFromHelp(int channel, string parent)
+        {
+            parent = System.Net.WebUtility.UrlDecode(parent);
+            return await DriversServerMainDataContext.DriversCommonController.JLink_LoadAllCommandsFromHelp(channel, parent);
+        }
+
         // POST: /api/upload
         [Route(HttpVerbs.Post, "/upload")]
         public async Task<string> UploadFile()
