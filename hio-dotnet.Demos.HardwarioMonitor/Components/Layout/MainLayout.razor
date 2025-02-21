@@ -1,7 +1,11 @@
-﻿@inherits LayoutComponentBase
+﻿@using Services
+
+@inherits LayoutComponentBase
 
 @inject TooltipService TooltipService
 @inject ThemeService ThemeService
+@inject ConsoleService ConsoleService
+@inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 
 <RadzenLayout>
@@ -76,6 +80,7 @@
     protected override async Task OnParametersSetAsync()
     {
         await JSRuntime.InvokeVoidAsync("toggleThemeStyleSheet", isDark);
+        ConsoleService.LoadCommandsFromStatic();
     }
 
     private async Task ToggleTheme()

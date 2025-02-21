@@ -77,6 +77,14 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         public Guid RemoteSessionId { get => remoteWebSocketClient?.SessionId ?? Guid.Empty; }
 
+        public async Task LoadCommandsFromFile(string url)
+        {
+            await ZephyrRTOSStandardCommands.LoadCommandsFromFileViaHttp(url);
+        }
+        public void LoadCommandsFromStatic()
+        {
+            ZephyrRTOSStandardCommands.LoadCommandsFromFile(ZephyrRTOSStandardCommands.DefaultCommandsLines);
+        }
         private void ShowNotification(NotificationMessage message)
         {
             message.Style = MainDataContext.NotificationPosition;

@@ -112,6 +112,7 @@
         {
             AutomatedCommandsService.OnAutomatedCommandExecutedRequest += async (s, c) => await Execute(c);
             AutomatedCommandsService.OnRunningCommandStateChanged += async (s, c) => await InvokeAsync(StateHasChanged);
+            /*
             timer = new Timer(async (e) =>
             {
                 if (radzenTabsRef != null)
@@ -126,6 +127,7 @@
                 timer = null;
 
             }, null, 0, 500);
+            */
         }
     }
 

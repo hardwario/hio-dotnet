@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text.Json;
 using Microsoft.Maui.LifecycleEvents;
 using hio_dotnet.Common.Config;
+using Blazored.LocalStorage;
 
 namespace hio_dotnet.Demos.HardwarioMonitor
 {
@@ -41,6 +42,8 @@ namespace hio_dotnet.Demos.HardwarioMonitor
             builder.Services.AddScoped<HioCloudService>();
             builder.Services.AddScoped<ThingsBoardService>();
             builder.Services.AddScoped<LoadingOverlayService>();
+            builder.Services.AddScoped<AutomatedCommandsService>();
+            builder.Services.AddBlazoredLocalStorage();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();

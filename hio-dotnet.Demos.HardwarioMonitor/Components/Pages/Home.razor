@@ -5,6 +5,7 @@
 @inject ConsoleService ConsoleService
 @inject LoadingOverlayService LoadingOverlayService
 @inject DialogService DialogService
+@inject AutomatedCommandsService AutomatedCommandsService
 
 <LoadingOverlay />
 
@@ -48,6 +49,8 @@
         {
             <RadzenButton Click="LoadCommandsFromDevice" Style="margin-top: 5px; width: 100%;">Load Commands From Device</RadzenButton>
         }
+        <RadzenButton Click="OpenAutomatedCommandsWindow" Style="margin-top: 5px; width: 100%;">Automated Commands</RadzenButton>
+
         <RadzenRow Style="margin-top: 5px; width: 100%;">
             <RadzenColumn>
                 <RadzenStack Orientation="Orientation.Horizontal">
@@ -420,5 +423,29 @@
                 await ConsoleService.LoadCommandsFromDevice();
             }
         }
+    }
+
+    private async Task Execute(string command)
+    {
+        await ConsoleService.SendCommand(command);
+    }
+
+    private async Task OpenAutomatedCommandsWindow()
+    {
+        var result = await DialogService.OpenAsync("Automated Commands", ds =>
+    @<RadzenStack Gap="1.5rem">
+        <RadzenRow>
+            <RadzenColumn>
+                <AutomatedCommands OnCommandExecute="@Execute" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <RadzenButton Text="Close" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenStack>
+    , new DialogOptions() { Resizable = false, Style = "width:40%;" });
+
     }
 }

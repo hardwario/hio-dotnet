@@ -81,5 +81,88 @@ namespace hio_dotnet.Common.Config
                 }
             }
         }
+
+        public static List<string> DefaultCommandsLines => DefaultCommands.Split(Environment.NewLine).ToList();
+        public static string DefaultCommands { get; } = @"
+Command:kernel reboot cold Help: Full reset of MCU, including peripherals and registers.  
+Command:kernel reboot warm Help: Deep reset of MCU, keeping some peripheral states.  
+Command:kernel uptime Help: Display system uptime in milliseconds.  
+Command:kernel version Help: Show Zephyr RTOS version.  
+
+Command:device list Help: List all registered devices.  
+Command:device status <device_name> Help: Show status of a specific device.  
+Command:device busy <device_name> Help: Check if a device is currently busy.  
+
+Command:memory heap Show Help: Display heap memory statistics.  
+Command:memory stacks Help: Show stack usage for all active threads.  
+
+Command:threads Help: Display information about active threads.  
+Command:threads analyze Help: Analyze and show detailed thread statistics.  
+
+Command:logging enable Help: Enable Zephyr logging system.  
+Command:logging disable Help: Disable Zephyr logging system.  
+Command:logging status Help: Show logging system status.  
+Command:logging backends Help: List available logging backends.  
+
+Command:uptime Help: Show system uptime in milliseconds.  
+Command:cpu load Help: Display CPU load statistics.  
+
+Command:sensors list Help: List all available sensors in the system.  
+Command:sensors get <sensor_name> Help: Read values from a specified sensor.  
+
+Command:net iface Help: Show network interfaces and their statuses.  
+Command:net route Help: Display network routing table.  
+Command:net ping <ip_address> Help: Send ICMP echo request to a specified IP address.  
+Command:net stats Help: Show network stack statistics.  
+
+Command:bluetooth scan on Help: Start Bluetooth device scanning.  
+Command:bluetooth scan off Help: Stop Bluetooth device scanning.  
+Command:bluetooth connect <device_address> Help: Connect to a Bluetooth device.  
+Command:bluetooth disconnect <device_address> Help: Disconnect from a Bluetooth device.  
+Command:bluetooth advertise on Help: Start Bluetooth advertising.  
+Command:bluetooth advertise off Help: Stop Bluetooth advertising.  
+
+Command:wifi scan Help: Scan for available Wi-Fi networks.  
+Command:wifi connect <SSID> <password> Help: Connect to a Wi-Fi network.  
+Command:wifi disconnect Help: Disconnect from the current Wi-Fi network.  
+Command:wifi status Help: Show current Wi-Fi connection status.  
+
+Command:fs mount Help: Mount a file system.  
+Command:fs unmount Help: Unmount a file system.  
+Command:fs listdir <path> Help: List files and directories in a specified path.  
+Command:fs read <file> Help: Read contents of a file.  
+Command:fs write <file> <data> Help: Write data to a file.  
+Command:fs delete <file> Help: Delete a file from the file system.  
+
+Command:flash write <address> <data> Help: Write data to flash memory at a specific address.  
+Command:flash read <address> <size> Help: Read data from flash memory.  
+Command:flash erase <address> <size> Help: Erase a section of flash memory.  
+
+Command:pm state Help: Show current power management state.  
+Command:pm suspend Help: Suspend the system to low power mode.  
+Command:pm resume Help: Resume from low power mode.  
+
+Command:gpio get <pin> Help: Read the state of a GPIO pin.  
+Command:gpio set <pin> <value> Help: Set a GPIO pin to high or low.  
+Command:gpio toggle <pin> Help: Toggle the state of a GPIO pin.  
+
+Command:pwm set <device> <channel> <duty_cycle> Help: Set PWM duty cycle on a specific channel.  
+Command:pwm get <device> <channel> Help: Get the current PWM settings for a channel.  
+
+Command:i2c scan <bus> Help: Scan for devices on an I2C bus.  
+Command:i2c read <bus> <device_addr> <register> Help: Read a register from an I2C device.  
+Command:i2c write <bus> <device_addr> <register> <data> Help: Write data to an I2C device.  
+
+Command:spi read <bus> <device> <size> Help: Read data from an SPI device.  
+Command:spi write <bus> <device> <data> Help: Write data to an SPI device.  
+
+Command:adc read <channel> Help: Read analog value from an ADC channel.  
+
+Command:entropy get Help: Get random entropy data from hardware entropy source.  
+
+Command:settings save Help: Save current runtime settings to non-volatile storage.  
+Command:settings load Help: Load saved settings from non-volatile storage.  
+
+";
     }
 }
