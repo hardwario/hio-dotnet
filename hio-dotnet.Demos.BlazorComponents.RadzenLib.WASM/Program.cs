@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Radzen;
 using Microsoft.Extensions.Configuration;
 using hio_dotnet.Common.Config;
+using Blazored.LocalStorage;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -27,7 +28,9 @@ builder.Services.AddScoped<ThingsBoardService>(sp => new ThingsBoardService(base
                                                                             defaultPass: config?.DefaultPasswordForThingsBoard));
 builder.Services.AddScoped<RemoteConsoleService>();
 builder.Services.AddScoped<LoadingOverlayService>();
+builder.Services.AddScoped<AutomatedCommandsService>();
 builder.Services.AddScoped<AppService>();
+builder.Services.AddBlazoredLocalStorage();
 
 if (config != null)
 {

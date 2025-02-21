@@ -74,4 +74,8 @@
     <ProjectReference Include="..\hio-dotnet.LibSerialPort\hio-dotnet.LibSerialPort.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />
+  </ItemGroup>
+
 </Project>
