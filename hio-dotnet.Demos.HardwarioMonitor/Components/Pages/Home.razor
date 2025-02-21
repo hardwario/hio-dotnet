@@ -51,6 +51,8 @@
         }
         <RadzenButton Click="OpenAutomatedCommandsWindow" Style="margin-top: 5px; width: 100%;">Automated Commands</RadzenButton>
 
+        <RadzenButton Click="LoadFirmware" Style="margin-top: 5px; width: 100%;">Load Firmware</RadzenButton>
+
         <RadzenRow Style="margin-top: 5px; width: 100%;">
             <RadzenColumn>
                 <RadzenStack Orientation="Orientation.Horizontal">
@@ -105,21 +107,21 @@
                                 <RadzenSplitter>
                                     <RadzenSplitterPane Size="50%" Min="30px" Max="70%">
                                         <ConsoleComponent @ref=consoleComponentRef 
-                                                          TextSize="@ConsoleFontSize" 
-                                                          Output="@ConsoleService.ConsoleOutputShell" 
-                                                          Hints ="@Hints"
-                                                          IsSendButtonDisabled="@isDisabled" 
-                                                          OnSendCommand="HandleSendCommand"
-                                                          IsActionPanelVisible = "true"
-                                                          ActionCommandButtonDataList="@ActionCommandButtonDataList"
-                                                          OnActionSendCommandHandler="onSendCommandHandler" />
+                                        TextSize="@ConsoleFontSize" 
+                                        Output="@ConsoleService.ConsoleOutputShell" 
+                                        Hints ="@Hints"
+                                        IsSendButtonDisabled="@isDisabled" 
+                                        OnSendCommand="HandleSendCommand"
+                                        IsActionPanelVisible = "true"
+                                        ActionCommandButtonDataList="@ActionCommandButtonDataList"
+                                        OnActionSendCommandHandler="onSendCommandHandler" />
                                     </RadzenSplitterPane>
                                     <RadzenSplitterPane>
                                         <ConsoleComponent @ref=consoleComponentLogRef 
-                                                          TextSize="@ConsoleFontSize" 
-                                                          Headline="Log" 
-                                                          Output="@ConsoleService.ConsoleOutputLog" 
-                                                          HideCommandLine="true" />
+                                        TextSize="@ConsoleFontSize" 
+                                        Headline="Log" 
+                                        Output="@ConsoleService.ConsoleOutputLog" 
+                                        HideCommandLine="true" />
                                     </RadzenSplitterPane>
                                 </RadzenSplitter>
                             </RadzenSplitterPane>
@@ -445,6 +447,33 @@
             </RadzenStack>
         </RadzenStack>
     </RadzenStack>
+    , new DialogOptions() { Resizable = false, Style = "width:40%;" });
+
+    }
+
+
+    private async Task LoadFirmwareExec(string hash, string filename, DialogService ds)
+    {
+        ds.Close(true);
+        await Task.Delay(1);
+        await ConsoleService.LoadFirmware(hash, filename);
+    }
+
+    private async Task LoadFirmware()
+    {
+        var result = await DialogService.OpenAsync("Automated Commands", ds =>
+    @<RadzenStack Gap="1.5rem">
+            <RadzenRow>
+                <RadzenColumn>
+                <hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Firmware.FirmwareLoader OnRemoteFirmwareLoadedRequested="@(async (h) => await LoadFirmwareExec(h,"", ds))" OnLocalFirmwareLoadedRequested="@(async (f) => await LoadFirmwareExec("",f, ds))" />
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+                <RadzenStack Orientation="Orientation.Horizontal">
+                    <RadzenButton Text="Close" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+                </RadzenStack>
+            </RadzenStack>
+        </RadzenStack>
     , new DialogOptions() { Resizable = false, Style = "width:40%;" });
 
     }

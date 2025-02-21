@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Office2010.CustomUI;
+using hio_dotnet.APIs.HioCloud;
 using hio_dotnet.Common.Config;
 using hio_dotnet.HWDrivers.Enums;
 using hio_dotnet.HWDrivers.JLink;
@@ -577,7 +578,11 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
             IsConsoleListening = false;
 
-            MCUConsole?.Dispose();
+            try
+            {
+                MCUConsole?.Dispose();
+            }
+            catch { }
 
             OnIsJLinkDisconnected?.Invoke(this, true);
 
@@ -673,6 +678,76 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
                 OnIsBusy?.Invoke(this, false);
             }
         }
+
+        public async Task LoadFirmware(string hash = "", string filename = "")
+        {
+            if (string.IsNullOrEmpty(hash) && string.IsNullOrEmpty(filename))
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Firmware hash and filename are empty. Fill at least one.", Duration = 3000 });
+                return;
+            }
+            OnIsBusy?.Invoke(this, true);
+
+            if (!string.IsNullOrEmpty(hash) && string.IsNullOrEmpty(filename))
+            {
+                //var url = $"https://firmware.hardwario.com/chester/{hash}/hex";
+                filename = $"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\\{hash}.hex";
+                await HioFirmwareDownloader.DownloadFirmwareByHashAsync(hash, filename);
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Firmware Downloaded", Detail = "Firmware has been downloaded.", Duration = 3000 });
+            }
+            if (MCUConsole != null && IsConsoleListening)
+            {
+                cts.Cancel();
+                await Task.Delay(100);
+                MCUConsole.ReconnectJLink();
+                //MCUConsole.CloseAll();
+                //IsConsoleListening = false;
+                //OnIsJLinkConnected?.Invoke(this, false);
+                await Task.Delay(150);
+
+                try
+                {
+                    var res = MCUConsole.LoadFirmware("ConfigConsole", filename);
+                    if (res)
+                    {
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Firmware Loaded", Detail = "Waiting for reboot of MCU", Duration = 13000 });
+
+                        Console.WriteLine("Waiting 10 seconds after reboot of MCU");
+                        await Task.Delay(10000);
+
+                        MCUConsole.ReconnectJLink();
+                        cts = new CancellationTokenSource();
+                        Task listeningTask = MCUConsole.StartListening(cts.Token);
+
+                        IsConsoleListening = true;
+
+                        await Task.Delay(2000);
+
+                        OnIsBusy?.Invoke(this, false);
+                        await Task.Delay(10);
+                        OnIsJLinkConnected?.Invoke(this, true);
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "JLink Connected", Detail = "JLink is connected now.", Duration = 3000 });
+
+                        await Task.WhenAny(new Task[] { listeningTask });
+                    }
+                    else
+                    {
+                        OnIsBusy?.Invoke(this, false);
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error during FW upload", Detail = "Error while loading firmware.", Duration = 3000 });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error during FW upload", Detail = $"Error while loading firmware: {ex.Message}", Duration = 3000 });
+                }
+            }
+            else
+            {
+                OnIsBusy?.Invoke(this, false);
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Console is not listening. Cannot load firmware.", Duration = 3000 });
+            }
+        }
+
         public async Task Dispose()
         {
             if (IsConsoleListening)

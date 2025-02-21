@@ -263,7 +263,7 @@ if (JLINK_COMBINED_CONSOLE_TEST)
         cts.Cancel();
 
         // Load firmware
-        await multiconsole.LoadFirmware("ConfigConsole", savePath);
+        var res = multiconsole.LoadFirmware("ConfigConsole", savePath);
 
         // wait some time after reboot of MCU
         Console.WriteLine("Waiting 10 seconds after reboot of MCU");

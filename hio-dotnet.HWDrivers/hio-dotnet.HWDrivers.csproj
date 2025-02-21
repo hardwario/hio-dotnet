@@ -78,4 +78,8 @@
     <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="MCU\Models\" />
+  </ItemGroup>
+
 </Project>

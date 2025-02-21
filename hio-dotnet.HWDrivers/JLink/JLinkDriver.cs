@@ -231,7 +231,7 @@ namespace hio_dotnet.HWDrivers.JLink
         #endregion
 
         #region FWLoading
-        public void LoadFirmware(string filename)
+        public bool LoadFirmware(string filename)
         {
             if (string.IsNullOrEmpty(filename))
                 throw new ArgumentException("FirmwareLoader>> Filename cannot be empty or null.");
@@ -251,7 +251,8 @@ namespace hio_dotnet.HWDrivers.JLink
                 var res = JLink.DownloadFile(filename, flashStartAddress);
                 if (res < 0)
                 {
-                    throw new Exception("FirmwareLoader>> Cannot load the firmware.");
+                    return false;
+                    //throw new Exception("FirmwareLoader>> Cannot load the firmware.");
                 }
                 else
                 {
@@ -266,12 +267,14 @@ namespace hio_dotnet.HWDrivers.JLink
             catch (Exception ex)
             {
                 LogMessage($"Loading failed: {ex.Message}");
-                throw;
+                //throw;
+                return false;
             }
             finally
             {
                 Close();
             }
+            return true;
         }
 
         #endregion

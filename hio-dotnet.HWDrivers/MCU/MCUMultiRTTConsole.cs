@@ -212,20 +212,21 @@ namespace hio_dotnet.HWDrivers.MCU
         /// </summary>
         /// <param name="filename"></param>
         /// <returns></returns>
-        public Task LoadFirmware(string name, string filename)
+        public bool LoadFirmware(string name, string filename)
         {
-            return Task.Run(() =>
-            {
+            //return Task.Run(() =>
+            //{
                 if (Clients.TryGetValue(name, out var client))
                 {
                     if (client.FWLoader != null)
-                        client.FWLoader.LoadFirmware(filename);
+                        return client.FWLoader.LoadFirmware(filename);
                 }
                 else
                 {
                     throw new ArgumentException("Client not found");
                 }
-            });
+                return true;
+            //});
         }
 
         public async Task<List<ZephyrRTOSCommand>> LoadCommandsFromDeviceHelp(string parent, int channel)

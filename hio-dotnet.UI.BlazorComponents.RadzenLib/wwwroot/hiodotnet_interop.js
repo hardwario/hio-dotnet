@@ -272,3 +272,9 @@ class HioJsonViewerInterop {
 window.hiodotnet = new HioDotnetInterop()
 window.hioheatmap = new HioHeatmapInterop()
 window.hiojsonviewer = new HioJsonViewerInterop()
+
+window.clickOnElement = (element) => {
+    if (element) {
+        element.click();
+    }
+};
