@@ -322,7 +322,35 @@ namespace hio_dotnet.HWDrivers.Server
             {
                 timeout = 80000;
             }
-            var response = await SendApiRequest(request);
+            var response = await SendApiRequest(request, timeout);
+            return response;
+        }
+
+
+        public async Task<string> JLink_UploadFirmware(string hash, string filename)
+        {
+            var request = new DriversWebSocketRequest();
+            var timeout = 60000;
+            if (filename == "")
+            {
+                timeout = 120000;
+            }
+
+            if (string.IsNullOrEmpty(hash) && !string.IsNullOrEmpty(filename))
+            {
+
+                var u = $"/api/jlink/uploadfirmwarebyfilename/{filename}";
+                request.Message = u;
+                request.Id = Guid.NewGuid();
+            }
+            else if (!string.IsNullOrEmpty(hash) && string.IsNullOrEmpty(filename))
+            {
+
+                var u = $"/api/jlink/uploadfirmwarebyhash/{hash}";
+                request.Message = u;
+                request.Id = Guid.NewGuid();
+            }
+            var response = await SendApiRequest(request, timeout);
             return response;
         }
     }

@@ -110,6 +110,21 @@ namespace hio_dotnet.HWDrivers.Server
             return await DriversServerMainDataContext.DriversCommonController.JLink_LoadAllCommandsFromHelp(channel, parent);
         }
 
+        // GET: /api/jlink/uploadfirmwarebyhash/{hash}
+        [Route(HttpVerbs.Get, "/jlink/uploadfirmwarebyhash/{hash}")]
+        public async Task<string> JLink_UploadFirmwareByHash(string hash)
+        {
+            return await DriversServerMainDataContext.DriversCommonController.JLink_LoadFirmware(hash, "");
+        }
+
+        // GET: /api/jlink/uploadfirmwarebyfilename/{filename}
+        [Route(HttpVerbs.Get, "/jlink/uploadfirmwarebyfilename/{filename}")]
+        public async Task<string> JLink_UploadFirmwareByFilename(string filename)
+        {
+            filename = System.Net.WebUtility.UrlDecode(filename);
+            return await DriversServerMainDataContext.DriversCommonController.JLink_LoadFirmware("",filename);
+        }
+
         // POST: /api/upload
         [Route(HttpVerbs.Post, "/upload")]
         public async Task<string> UploadFile()

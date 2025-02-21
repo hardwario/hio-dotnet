@@ -690,10 +690,19 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
             if (!string.IsNullOrEmpty(hash) && string.IsNullOrEmpty(filename))
             {
-                //var url = $"https://firmware.hardwario.com/chester/{hash}/hex";
-                filename = $"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\\{hash}.hex";
-                await HioFirmwareDownloader.DownloadFirmwareByHashAsync(hash, filename);
-                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Firmware Downloaded", Detail = "Firmware has been downloaded.", Duration = 3000 });
+                try
+                {
+                    //var url = $"https://firmware.hardwario.com/chester/{hash}/hex";
+                    filename = $"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\\{hash}.hex";
+                    await HioFirmwareDownloader.DownloadFirmwareByHashAsync(hash, filename);
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Firmware Downloaded", Detail = "Firmware has been downloaded.", Duration = 3000 });
+                }
+                catch (Exception ex)
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = $"Error while downloading firmware: {ex.Message}", Duration = 3000 });
+                    OnIsBusy?.Invoke(this, false);
+                    return;
+                }
             }
             if (MCUConsole != null && IsConsoleListening)
             {

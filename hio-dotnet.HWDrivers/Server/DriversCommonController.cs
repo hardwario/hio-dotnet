@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using hio_dotnet.APIs.HioCloud;
 
 namespace hio_dotnet.HWDrivers.Server
 {
@@ -288,6 +289,81 @@ namespace hio_dotnet.HWDrivers.Server
                 }
             }
             return "OK";
+        }
+
+        public async Task<string> JLink_LoadFirmware(string hash = "", string filename = "")
+        {
+            if (string.IsNullOrEmpty(hash) && string.IsNullOrEmpty(filename))
+            {
+                return "Firmware hash and filename are empty. Fill at least one";
+            }
+
+            if (!string.IsNullOrEmpty(hash) && string.IsNullOrEmpty(filename))
+            {
+                try
+                {
+                    //var url = $"https://firmware.hardwario.com/chester/{hash}/hex";
+                    filename = $"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\\{hash}.hex";
+                    await HioFirmwareDownloader.DownloadFirmwareByHashAsync(hash, filename);
+                }
+                catch (Exception ex)
+                {
+                    return $"Error while downloading firmware: {ex.Message}";
+                }
+            }
+            if (DriversServerMainDataContext.MCUMultiRTTConsole != null && DriversServerMainDataContext.MCUMultiRTTConsole.IsListening)
+            {
+                DriversServerMainDataContext.cts.Cancel();
+                await Task.Delay(100);
+                DriversServerMainDataContext.MCUMultiRTTConsole.ReconnectJLink();
+                //MCUConsole.CloseAll();
+                //IsConsoleListening = false;
+                //OnIsJLinkConnected?.Invoke(this, false);
+                await Task.Delay(150);
+
+                try
+                {
+                    var res = DriversServerMainDataContext.MCUMultiRTTConsole.LoadFirmware("ConfigConsole", filename);
+                    if (res)
+                    {
+                        Console.WriteLine("Waiting 10 seconds after reboot of MCU");
+                        await Task.Delay(10000);
+
+                        DriversServerMainDataContext.MCUMultiRTTConsole.ReconnectJLink();
+                        DriversServerMainDataContext.cts = new CancellationTokenSource();
+                        
+                        try
+                        {
+                            DriversServerMainDataContext.cts = new CancellationTokenSource();
+                            Task listeningTask = DriversServerMainDataContext.MCUMultiRTTConsole.StartListening(DriversServerMainDataContext.cts.Token);
+
+                            DriversServerMainDataContext.IsConsoleListening = true;
+
+                            //await Task.WhenAny(new Task[] { listeningTask });
+                            DriversServerMainDataContext.JLinkTaskQueue.Enqueue(listeningTask);
+                            await Task.Delay(3500);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error while starting listening task: {ex.Message}");
+                            return "Error while starting listening task.";
+                        }
+                        return "OK";
+                    }
+                    else
+                    {
+                        return "Error while loading firmware.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                     return "Error while loading firmware.";
+                }
+            }
+            else
+            {
+                return "Console is not listening. Cannot load firmware.";
+            }
         }
 
     }

@@ -656,6 +656,32 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             }
         }
 
+        public async Task LoadFirmware(string hash = "", string filename = "")
+        {
+            try
+            {
+                var res = await driversWebSocketClient.JLink_UploadFirmware(hash, filename);
+                if (!string.IsNullOrEmpty(res))
+                {
+                    if (res.Replace("\"", "").ToLower() == "ok")
+                    {
+                        IsConsoleListening = true;
+                        OnIsBusy?.Invoke(this, false);
+                        await Task.Delay(10);
+                        OnIsJLinkConnected?.Invoke(this, true);
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Firmware Loaded", Detail = "Firmware has been loaded to the device.", Duration = 3000 });
+                    }
+                    else
+                    {
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Firmware Load Error", Detail = res, Duration = 3000 });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading firmware: {ex.Message}");
+            }
+        }
 
         public async Task Dispose()
         {
