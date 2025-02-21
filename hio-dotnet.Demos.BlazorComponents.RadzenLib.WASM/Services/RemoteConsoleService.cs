@@ -660,6 +660,8 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
         {
             try
             {
+                OnIsBusy?.Invoke(this, true);
+                await Task.Delay(10);
                 var res = await driversWebSocketClient.JLink_UploadFirmware(hash, filename);
                 if (!string.IsNullOrEmpty(res))
                 {

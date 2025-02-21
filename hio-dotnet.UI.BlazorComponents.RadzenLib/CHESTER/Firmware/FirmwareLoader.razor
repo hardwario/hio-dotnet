@@ -123,11 +123,11 @@
         {
             if (!isLocalFirmware)
             {
-                await OnRemoteFirmwareLoadedRequested.InvokeAsync(firmwareFileHash);
+                await OnRemoteFirmwareLoadedRequested.InvokeAsync(firmwareFileHash.TrimStart('\"').TrimEnd('\"'));
             }
             else 
             {
-                await OnLocalFirmwareLoadedRequested.InvokeAsync(firmwareFileName);
+                await OnLocalFirmwareLoadedRequested.InvokeAsync(firmwareFileName.TrimStart('\"').TrimEnd('\"'));
             }
         }
     }

@@ -285,6 +285,7 @@ namespace hio_dotnet.HWDrivers.Server
 
         public async Task<string> JLink_SendCommandByChannel(int channel, string message)
         {
+            message = System.Net.WebUtility.UrlEncode(message);
             var request = new DriversWebSocketRequest()
             {
                 Message = $"/api/jlink/sendcommandbychannel/{channel}/{message}",
@@ -296,6 +297,7 @@ namespace hio_dotnet.HWDrivers.Server
 
         public async Task<string> JLink_SendCommandByName(string name, string message)
         {
+            message = System.Net.WebUtility.UrlEncode(message);
             var request = new DriversWebSocketRequest()
             {
                 Message = $"/api/jlink/sendcommandbyname/{name}/{message}",
@@ -338,7 +340,7 @@ namespace hio_dotnet.HWDrivers.Server
 
             if (string.IsNullOrEmpty(hash) && !string.IsNullOrEmpty(filename))
             {
-
+                filename = System.Net.WebUtility.UrlEncode(filename);
                 var u = $"/api/jlink/uploadfirmwarebyfilename/{filename}";
                 request.Message = u;
                 request.Id = Guid.NewGuid();
