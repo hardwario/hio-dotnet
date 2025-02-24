@@ -1,0 +1,235 @@
+﻿@using Services
+
+@inject AutomatedCommandsService AutomatedCommandsService
+@inject DialogService DialogService
+
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenTabs @ref=radzenTabsRef @bind-SelectedIndex="@selectedIndex">
+            <Tabs>
+                @foreach(var tab in AutomatedCommandsService.AutomatedCommandsTabs)
+                {
+                    <RadzenTabsItem Text="@tab.Name">
+                        <RadzenRow>
+                            <RadzenColumn>
+                                <RadzenDataGrid @ref=radzenDataGridRef Data="@tab.AutomatedCommands" TItem="Dto.AutomatedCommand" Class="rz-datatable-sm" Style="width: 100%;">
+                                    <Columns>
+                                        <RadzenDataGridColumn TItem="Dto.AutomatedCommand" Title="Command">
+                                            <Template Context="command">
+                                                <RadzenTextBox @bind-Value="@command.Command" Style="width:100%;min-width:25rem;" />
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="Dto.AutomatedCommand" Title="State">
+                                            <Template Context="command">
+                                                @switch (command.State)
+                                                {
+                                                    case Dto.AutomatedCommandStates.None: <span>👌</span>; break;
+                                                    case Dto.AutomatedCommandStates.WaitingBefore: <span>⏳</span>; break;
+                                                    case Dto.AutomatedCommandStates.Running: <span>🏃</span>; break;
+                                                    case Dto.AutomatedCommandStates.WaitingAfter: <span>⌛</span>; break;
+                                                    case Dto.AutomatedCommandStates.Done: <span>✅</span>; break;
+                                                }
+                                            </Template>
+                                        </RadzenDataGridColumn>
+
+                                        <RadzenDataGridColumn TItem="Dto.AutomatedCommand" Title="Delay Before">
+                                            <Template Context="command">
+                                                <RadzenNumeric @bind-Value="@command.DelayBefore" Style="width:100%;" />
+                                            </Template>
+                                        </RadzenDataGridColumn>
+
+                                        <RadzenDataGridColumn TItem="Dto.AutomatedCommand" Title="Delay After">
+                                            <Template Context="command">
+                                                <RadzenNumeric @bind-Value="@command.DelayAfter" Style="width:100%;" />
+                                            </Template>
+                                        </RadzenDataGridColumn>
+
+                                        <RadzenDataGridColumn TItem="Dto.AutomatedCommand" Title="Active">
+                                            <Template Context="command">
+                                                <RadzenCheckBox @bind-Value="@command.IsActive" />
+                                            </Template>
+                                        </RadzenDataGridColumn>
+
+                                        <RadzenDataGridColumn TItem="Dto.AutomatedCommand" Title="Actions">
+                                            <Template Context="command">
+                                                <RadzenButton Text="Test" Click="@(e => Execute(command.Command))" Style="width:100%;" />
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                    </Columns>
+                                </RadzenDataGrid>
+                            </RadzenColumn>
+                        </RadzenRow>
+                        <RadzenRow>
+                            <RadzenColumn>
+                                <RadzenButton Text="Add Commands" Click="@(e => OpenAddBatchCommandsWindow(tab.Id))" Style="margin-top:1rem; width:100%;" />
+                            </RadzenColumn>
+                        </RadzenRow>
+                        <RadzenRow>
+                            <RadzenColumn>
+                                <RadzenButton Text="Run All" Click="@(e => RunAutomation(tab.Id))" Style="margin-top:1rem; width:100%;" />
+                            </RadzenColumn>
+                        </RadzenRow>
+                        <RadzenRow Style="margin-top:2rem; width:100%;">
+                            <RadzenColumn Style="width:100%;">
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
+                                    <RadzenButton Text="Remove Tab" ButtonStyle="ButtonStyle.Danger" Click="@(e => RemoveActualTab(tab.Id))" Style="margin-top:1rem;" />
+                                </RadzenStack>
+                            </RadzenColumn>
+                        </RadzenRow>
+                    </RadzenTabsItem>
+                }
+                <RadzenTabsItem>
+                    <Template>
+                        <RadzenButton Text="+" Click="@AddNewTab" Style="margin-top:0.1rem;" Size="ButtonSize.ExtraSmall" />
+                    </Template>
+                </RadzenTabsItem>
+            </Tabs>
+        </RadzenTabs>
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    [Parameter] public EventCallback<string> OnCommandExecute { get; set; }
+
+    private int selectedIndex = 0;
+    private int batchTimeBefore = 0;
+    private int batchTimeAfter = 0;
+    private string selectedTabId = string.Empty;
+    private string batchOfCommands = string.Empty;
+    private Timer? timer;
+
+    private RadzenDataGrid<Dto.AutomatedCommand>? radzenDataGridRef;
+    private RadzenTabs? radzenTabsRef;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AutomatedCommandsService.LoadAutomatedCommandsTabs();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            AutomatedCommandsService.OnAutomatedCommandExecutedRequest += async (s, c) => await Execute(c);
+            AutomatedCommandsService.OnRunningCommandStateChanged += async (s, c) => await InvokeAsync(StateHasChanged);
+            /*
+            timer = new Timer(async (e) =>
+            {
+                if (radzenTabsRef != null)
+                {
+                    selectedIndex = 0;
+                    radzenTabsRef.SelectedIndex = 0;
+                    radzenTabsRef.Reload();
+                    await InvokeAsync(StateHasChanged);
+                }
+
+                timer?.Dispose();
+                timer = null;
+
+            }, null, 0, 500);
+            */
+        }
+    }
+
+    public async Task Execute(string command)
+    {
+        if (OnCommandExecute.HasDelegate)
+        {
+            await OnCommandExecute.InvokeAsync(command);
+        }
+    }
+
+    public async Task RunAutomation(string tabId)
+    {
+        await AutomatedCommandsService.RunAutomation(tabId);
+    }
+
+    public async Task AddNewTab()
+    {
+        await AutomatedCommandsService.AddNewTab();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task RemoveActualTab(string tabId)
+    {
+        var result = await DialogService.OpenAsync("Remove Tab", ds =>
+    @<RadzenStack Gap="1.5rem">
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenText Text="Are you sure you want to remove the tab?" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <RadzenButton Text="Remove" Click="() => ds.Close(true)" ButtonStyle="ButtonStyle.Light" />
+                <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenStack>
+    , new DialogOptions() { Resizable = false, Style = "width:40%;" });
+
+
+        if (result == true)
+        {
+            await AutomatedCommandsService.RemoveTab(tabId);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task OpenAddBatchCommandsWindow(string tabId)
+    {
+        var result = await DialogService.OpenAsync("Automated Commands", ds =>
+    @<RadzenStack Gap="1.5rem">
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenTextArea @bind-Value="@batchOfCommands" Style="width:100%;min-height:250px;" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenLabel Text="Delay Before" Component="batchTimeBeforeNum" />
+                <RadzenNumeric @bind-Value="@batchTimeBefore" Name="batchTimeBeforeNum" Style="width:100%;" Min="0" Max="100000" Step="100" />
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenLabel Text="Delay After" Component="batchTimeAfterNum" />
+                <RadzenNumeric @bind-Value="@batchTimeAfter" Name="batchTimeAfterNum" Style="width:100%;" Min="0" Max="100000" Step="100" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <RadzenButton Text="Add" Click="() => ds.Close(true)" ButtonStyle="ButtonStyle.Light" />
+                <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenStack>
+    , new DialogOptions() { Resizable = false, Style = "width:40%;" });
+
+
+        if (result == true)
+        {
+            var commands = batchOfCommands.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            if (commands != null && commands.Length > 0)
+            {
+                foreach (var command in commands)
+                {
+                    await AutomatedCommandsService.AddNewCommand(tabId, command, batchTimeBefore, batchTimeAfter);
+                }
+                //await InvokeAsync(StateHasChanged);
+                if (radzenDataGridRef != null)
+                {
+                    await radzenDataGridRef.Reload();
+                }
+            }
+            if (commands != null && commands.Length == 0)
+            {
+                await AutomatedCommandsService.AddNewCommand(tabId, batchOfCommands, batchTimeBefore, batchTimeAfter);
+                //await InvokeAsync(StateHasChanged);
+                if (radzenDataGridRef != null)
+                {
+                    await radzenDataGridRef.Reload();
+                }
+            }
+        }
+
+    }
+}

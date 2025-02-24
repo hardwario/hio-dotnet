@@ -1,0 +1,236 @@
+﻿@using System.IO;
+@using System.Text.Json
+@using Services
+@using hio_dotnet.APIs.ThingsBoard.Models
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.ThingsBoard.Models
+@using Microsoft.JSInterop;
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.HioCloud
+@using hio_dotnet.Common.Models.DataSimulation
+
+@inject IJSRuntime JSRuntime
+@inject ThingsBoardService ThingsBoardService
+@inject HioCloudService HioCloudService
+@inject DialogService DialogService
+@inject NotificationService NotificationService
+
+<RadzenRow Style="margin-top:2rem;">
+    <RadzenColumn>
+        <RadzenButton Text="Select Props" Click="OpenPropsDialog" />
+    </RadzenColumn>
+</RadzenRow>
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenText Text="Select Number of messages" />
+                <RadzenNumeric Min="1" Max="100" @bind-Value="SimulateMessagesNum" TValue="int" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenText Text="Select Number of Minutes between messages" />
+                <RadzenNumeric Min="1" Max="100" @bind-Value="SimulateMessagesNumMinutes" TValue="int" />
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenColumn>
+</RadzenRow>
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenButton Text="Simulate" Click="SendSimulatedData" Style="height:100%;" />
+    </RadzenColumn>
+</RadzenRow>
+
+
+@code {
+    [Parameter] public DeviceOpenedTab Tab { get; set; } = new DeviceOpenedTab();
+    [Parameter] public string ConnectionToken { get; set; } = string.Empty;
+
+    private HioCloudFlattenJSONForDevice? flatener;
+
+    public List<string> SimulatedMessages { get; set; } = new List<string>();
+    public string SimulatedMessage { get; set; } = string.Empty;
+    public int SimulateMessagesNum { get; set; } = 2;
+    public int SimulateMessagesNumMinutes { get; set; } = 15;
+
+    public string SimulatorJSDataProcessingScriptBase { get; set; } = string.Empty;
+    public string SimulatorJSDataProcessingScript { get; set; } = string.Empty;
+
+    private object? result;
+
+    private CHESTER.HioCloud.Models.Device hioDevice = new CHESTER.HioCloud.Models.Device();
+
+    public Device DeviceData
+    {
+        get
+        {
+            var d = Tab.Data as Device;
+            if (d == null)
+            {
+                d = new Device();
+            }
+            return d;
+        }
+    }
+
+
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+
+    private async Task loadKeys()
+    {
+        if (ThingsBoardService.DevicesDataKeys.ContainsKey(DeviceData.Id.Id))
+        {
+            Tab.Keys.Clear();
+            foreach (var key in ThingsBoardService.DevicesDataKeys[DeviceData.Id.Id])
+            {
+                Tab.Keys.Add(new KeyToCheck() { Key = key, Checked = false });
+            }
+            await InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+            var res = await ThingsBoardService.GetDeviceKeys(DeviceData.Id.Id);
+            if (res)
+            {
+                if (ThingsBoardService.DevicesDataKeys.TryGetValue(DeviceData.Id.Id, out var ks))
+                {
+                    Tab.Keys.Clear();
+                    foreach (var key in ks)
+                    {
+                        Tab.Keys.Add(new KeyToCheck() { Key = key, Checked = false });
+                    }
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+        }
+    }
+
+    private void CreateFullTestScript(string message)
+    {
+        if (SimulatorJSDataProcessingScriptBase != null)
+        {
+            var time = hio_dotnet.Common.Helpers.TimeHelpers.DateTimeToUnixTimestamp(DateTime.Now);
+
+            SimulatorJSDataProcessingScript = $@"
+                const data = [];
+                const sharedtimestamp = {time};
+                const job = {{ message: {{ body: {message} }} }};
+            {SimulatorJSDataProcessingScriptBase}
+                return data;
+            ";
+        }
+    }
+
+    private async Task SendSimulatedData()
+    {
+
+        try
+        {
+            if (flatener == null)
+                return;
+            var type = flatener?.GetSelectedType();
+            if (type == null)
+                return;
+            var messageObject = Activator.CreateInstance(type);
+            if (messageObject == null)
+                return;
+            var messageObjectPrevious = Activator.CreateInstance(type);
+
+            var actualtime = DateTime.UtcNow;
+            var lasttime = actualtime;
+            var timestamp = hio_dotnet.Common.Helpers.TimeHelpers.DateTimeToUnixTimestamp(actualtime) / 1000;
+            BaseSimulator.GetSimulatedData(messageObject, null, true, timestamp);
+            SimulatedMessages.Clear();
+            messageObjectPrevious = messageObject;
+
+            for (int i = 0; i < SimulateMessagesNum; i++)
+            {
+                var time = lasttime.AddMinutes(-SimulateMessagesNumMinutes);
+                timestamp = hio_dotnet.Common.Helpers.TimeHelpers.DateTimeToUnixTimestamp(time) / 1000;
+                
+                var mo = Activator.CreateInstance(type);
+                if (mo != null)
+                {
+                    BaseSimulator.GetSimulatedData(mo, messageObjectPrevious, true, timestamp);
+                    SimulatedMessages.Add(JsonSerializer.Serialize(mo));
+                    messageObjectPrevious = mo;
+                }
+
+                lasttime = time;
+            }
+
+            foreach (var msg in SimulatedMessages)
+            {
+
+                CreateFullTestScript(msg);
+                if (string.IsNullOrEmpty(SimulatorJSDataProcessingScript))
+                    return;
+
+                result = await JSRuntime.InvokeAsync<object>("hiodotnet.parseTimestampData", SimulatorJSDataProcessingScript);
+
+                if (result != null)
+                {
+                    // deserialize result as object
+                    var simulatedMessageObject = System.Text.Json.JsonSerializer.Deserialize<object>(result.ToString());
+
+                    if (simulatedMessageObject != null)
+                    {
+                        Console.WriteLine($"Result of data processing: {simulatedMessageObject}");
+                        var str = JsonSerializer.Serialize(simulatedMessageObject);
+                        if (!string.IsNullOrEmpty(str))
+                        {
+                            await ThingsBoardService.SendTelemetryData(str, ConnectionToken);
+                        }
+                    }                    
+                }
+            }
+
+            if (ThingsBoardService.DevicesDataKeys.ContainsKey(DeviceData.Id.Id))
+                ThingsBoardService.DevicesDataKeys.Remove(DeviceData.Id.Id);
+
+            await loadKeys();
+
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Simulation done", Detail = "You can get history data now.", Duration = 4000 });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Simulation failed", Detail = "Please check the console for the details.", Duration = 4000 });
+        }
+    }
+
+    private async Task SavePropsForDevice(DialogService ds)
+    {
+        var finaldata = flatener?.GetFinalMessageData();
+        if (flatener != null)
+        {
+            hioDevice = flatener.Device;
+            SimulatorJSDataProcessingScriptBase = flatener.GetConnectorData();
+        }
+
+        ds.Close(true);
+    }
+
+    private async Task OpenPropsDialog()
+    {
+        hioDevice.Name = DeviceData.Name;
+
+        var result = await DialogService.OpenAsync("Select Properties", ds =>
+    @<RadzenStack Gap="1.5rem">
+        <RadzenStack Orientation="Orientation.Vertical">
+            <RadzenRow>
+                <RadzenColumn>
+                    <HioCloudFlattenJSONForDevice @ref=flatener Device="@hioDevice" HasTitle="true" UseSimulatedMessage="true" />
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                <RadzenButton Text="Ok" Click="@(async () => await SavePropsForDevice(ds))" ButtonStyle="ButtonStyle.Light" />
+                <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenStack>
+           , new DialogOptions() { Resizable = true, Style = "width:100%;" });
+    }
+}

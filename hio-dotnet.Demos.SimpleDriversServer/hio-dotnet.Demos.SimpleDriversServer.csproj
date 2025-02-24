@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>hio_dotnet.Demos.SimpleDriversServer</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />
+    <ProjectReference Include="..\hio-dotnet.HWDrivers\hio-dotnet.HWDrivers.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -5,9 +5,12 @@
 @using hio_dotnet.UI.BlazorComponents.RadzenLib.ThingsBoard.Models
 @using Microsoft.JSInterop;
 @using System.Globalization
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.HioCloud
 
 @inject IJSRuntime JSRuntime
 @inject ThingsBoardService ThingsBoardService
+@inject HioCloudService HioCloudService
+@inject DialogService DialogService
 
 <RadzenRow>
     <RadzenColumn>
@@ -17,6 +20,18 @@
     <RadzenColumn>
         <RadzenText Text="Device Id:" />
         <RadzenText Text="@DeviceData.Id.Id.ToString()" />
+    </RadzenColumn>
+    <RadzenColumn>
+        <RadzenText Text="Connection Token:" />
+        <RadzenStack Orientation="Orientation.Horizontal">
+            <RadzenText Text="@ConnectionToken" />
+            <hio_dotnet.UI.BlazorComponents.RadzenLib.Common.Buttons.CopyButton TextToCopy="@ConnectionToken" IsJustIcon="true"  />
+        </RadzenStack>
+    </RadzenColumn>
+</RadzenRow>
+<RadzenRow>
+    <RadzenColumn>
+        <ThingsBoardHioCloudMessagesSimulator Tab="@Tab" ConnectionToken="@ConnectionToken" />
     </RadzenColumn>
 </RadzenRow>
 
@@ -92,7 +107,7 @@
             @foreach (var key in Tab.KeysWithDataPoints)
             {
                 <RadzenColumn>
-                   <ThingsBoardNumbersDataList Key="@key" />
+                    <ThingsBoardNumbersDataList Key="@key" />
                 </RadzenColumn>
             }
         </RadzenRow>
@@ -168,6 +183,8 @@
     private DateTime start = DateTime.UtcNow.AddDays(-1);
     private DateTime end = DateTime.UtcNow;
 
+    public string ConnectionToken { get; set; } = string.Empty;
+
     public Device DeviceData
     { 
         get 
@@ -179,6 +196,21 @@
             }
             return d;
         } 
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            var connectionToken = await ThingsBoardService.GetConnectionToken(DeviceData.Id.Id.ToString() ?? string.Empty);
+            ConnectionToken = connectionToken;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+
+        await base.OnParametersSetAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -221,7 +253,10 @@
 
     private async Task onGetLatestDataHandler()
     {
-        var keysToCheck = Tab.Keys.Where(k => k.Checked).Select(k => k.Key).ToList();
+        var keysToCheck = Tab.Keys.Where(k => k.Checked)?.Select(k => k.Key).ToList();
+        if (keysToCheck == null || keysToCheck.Count == 0)
+            return;
+
         var keysString = string.Join(",", keysToCheck);
         data = await ThingsBoardService.GetLatestData(DeviceData.Id.Id, keysString);
 
@@ -233,7 +268,9 @@
 
     private async Task onGetDataHistoryHandler()
     {
-        var keysToCheck = Tab.Keys.Where(k => k.Checked).Select(k => k.Key).ToList();
+        var keysToCheck = Tab.Keys.Where(k => k.Checked)?.Select(k => k.Key).ToList();
+        if (keysToCheck == null || keysToCheck.Count == 0)
+            return;
         var keysString = string.Join(",", keysToCheck);
         data = await ThingsBoardService.GetDataHistory(DeviceData.Id.Id, keysString, start, end);
 
@@ -261,4 +298,5 @@
             ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         });
     }
+
 }

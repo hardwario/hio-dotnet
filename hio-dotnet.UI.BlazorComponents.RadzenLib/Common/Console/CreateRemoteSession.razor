@@ -1,0 +1,135 @@
+﻿@using Services
+@using Microsoft.JSInterop
+
+@inject DialogService DialogService
+@inject NotificationService NotificationService
+@inject IJSRuntime JSRuntime
+
+@if (SessionId == Guid.Empty)
+{
+    <RadzenButton Text="Create Session" Disabled="@Disabled" Click="Login" Style="@Style" class="@Class" ButtonStyle="@ButtonStyle" />
+}
+else
+{
+    <RadzenButton Text="Session Details" Disabled="@Disabled" Click="OpenDetails" Style="@Style" class="@Class" ButtonStyle="@ButtonStyle" />
+}
+
+@code {
+    [Parameter] public string Style { get; set; } = string.Empty;
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public ButtonStyle ButtonStyle { get; set; } = ButtonStyle.Primary;
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public Guid SessionId { get; set; } = Guid.Empty;
+    [Parameter] public EventCallback<Tuple<string,string>> OnCreateRemoteSession { get; set; }
+    [Parameter] public EventCallback<Guid> OnCancelRemoteSession { get; set; }
+
+    private string login = string.Empty;
+
+    private string password = string.Empty;
+
+    private async Task Login()
+    {
+        var result = await DialogService.OpenAsync("Create Remote Session", ds =>
+    @<RadzenStack Gap="1.5rem">
+        <RadzenStack Orientation="Orientation.Vertical">
+            <RadzenRow>
+                <RadzenColumn Size="3">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                        <RadzenText Text="Login:" />
+                    </RadzenStack>
+                </RadzenColumn>
+                <RadzenColumn Size="9">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                        <RadzenTextBox Name="loginInput" @bind-Value="@login" Style="width: 100%;" />
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenRow>
+                <RadzenColumn Size="3">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                        <RadzenLabel Text="Password:" />
+                    </RadzenStack>
+                </RadzenColumn>
+                <RadzenColumn Size="9">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                        <RadzenPassword @bind-Value="@password" Name="passwordinput" Style="width: 100%;" onkeydown="@(async (KeyboardEventArgs e) => OnKeyDown(e, ds))" />
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                <RadzenButton Text="Login" Click="() => ds.Close(true)" />
+                <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenStack>
+    );
+
+        if (result == true)
+        {
+            if (OnCreateRemoteSession.HasDelegate)
+            {
+                await OnCreateRemoteSession.InvokeAsync(new Tuple<string,string>(login, password));
+                await Task.Delay(500);
+                await OpenDetails();
+            }
+        }
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e, DialogService ds)
+    {
+        if (e.Key == "Enter")
+        {
+            await JSRuntime.InvokeVoidAsync("document.activeElement.blur");
+            ds.Close(true);
+            await Task.Delay(500);
+            await OpenDetails();
+        }
+    }
+
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+
+    private async Task OpenDetails()
+    {
+        var result = await DialogService.OpenAsync("Session Details", ds =>
+    @<RadzenStack Gap="1.5rem">
+        <RadzenStack Orientation="Orientation.Vertical">
+            <RadzenRow>
+                <RadzenColumn Size="3">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                        <RadzenText Text="@($"Session Id:{SessionId.ToString()}")" />
+                    </RadzenStack>
+                </RadzenColumn>
+                <RadzenColumn Size="9">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                        <hio_dotnet.UI.BlazorComponents.RadzenLib.Common.Buttons.CopyButton TextToCopy="@SessionId.ToString()" IsJustIcon="true"/> 
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                <RadzenButton Text="Create New Session" Click="() => ds.Close(true)" />
+                <RadzenButton Text="Stop Session" Click="@(async () => await OnCancel(ds))" />
+                <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenStack>
+    );
+
+        if (result == true)
+        {
+            await Login();
+        }
+    }
+
+    private async Task OnCancel(DialogService ds)
+    {
+        if (OnCancelRemoteSession.HasDelegate)
+        {
+            await OnCancelRemoteSession.InvokeAsync(SessionId);
+            ds.Close(true);
+        }
+    }
+}

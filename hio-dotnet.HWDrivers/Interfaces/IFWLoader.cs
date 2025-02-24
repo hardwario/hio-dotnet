@@ -8,6 +8,6 @@ namespace hio_dotnet.HWDrivers.Interfaces
 {
     public interface IFWLoader
     {
-        void LoadFirmware(string filename);
+        bool LoadFirmware(string filename);
     }
 }

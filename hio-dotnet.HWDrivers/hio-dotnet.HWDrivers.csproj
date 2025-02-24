@@ -7,24 +7,43 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Platforms>AnyCPU</Platforms>
+    <_ExtraTrimmerArgs>--keep-metadata parametername</_ExtraTrimmerArgs>
   </PropertyGroup>
 
-
+<!--
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <DefineConstants>WINDOWS</DefineConstants>
   </PropertyGroup>
+  
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
     <DefineConstants>LINUX;OSX</DefineConstants>
   </PropertyGroup>
-
+-->
+  <Target Name="DisplayMessages" BeforeTargets="BeforeBuild">
+    <Message Importance="High" Text="RID = $(RuntimeIdentifier)" />
+  </Target>
+  
   <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+    <DefineConstants>WINDOWS;X64</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x86'">
     <DefineConstants>WINDOWS</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'linux-x64'">
+    <DefineConstants>LINUX;X64</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'linux-arm'">
     <DefineConstants>LINUX</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'linux-arm64'">
+    <DefineConstants>LINUX;ARM64</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'osx-x64'">
     <DefineConstants>MACOS</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants>WINDOWS;SERIALPORT</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,8 +52,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+    <PackageReference Include="EmbedIO" Version="3.5.2" />
+    <PackageReference Include="MimeKit" Version="4.10.0" />
     <PackageReference Include="System.Management" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(DefineConstants)' == '' OR !$(DefineConstants.Contains('LIBSERIALPORT')) ">
+    <PackageReference Include="System.IO.Ports" Version="9.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,6 +68,19 @@
     <Content Include="JLink\Driver\JLink_x64.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(DefineConstants)' != '' AND $(DefineConstants.Contains('LIBSERIALPORT')) ">
+    <ProjectReference Include="..\hio-dotnet.LibSerialPort\hio-dotnet.LibSerialPort.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\hio-dotnet.APIs.HioCloudv2\hio-dotnet.APIs.HioCloud.csproj" />
+    <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="MCU\Models\" />
   </ItemGroup>
 
 </Project>

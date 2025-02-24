@@ -11,15 +11,15 @@ namespace hio_dotnet.Common.Models.Common
     public class Accelerometer
     {
         [SimulationAttribute(false, 0.01, 0.1)]
-        [JsonPropertyName("acceleration_x")]
+        [JsonPropertyName("accel_x")]
         public double AccelerationX { get; set; } = 0.0;
 
         [SimulationAttribute(false, 0.01, 0.1)]
-        [JsonPropertyName("acceleration_y")]
+        [JsonPropertyName("accel_y")]
         public double AccelerationY { get; set; } = 0.0;
 
         [SimulationAttribute(false, 0.01, 0.1)]
-        [JsonPropertyName("acceleration_z")]
+        [JsonPropertyName("accel_z")]
         public double AccelerationZ { get; set; } = 0.0;
 
         [SimulationAttribute(false, 0, 6)]

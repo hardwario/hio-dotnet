@@ -9,6 +9,7 @@ using hio_dotnet.Common.Models.CatalogApps;
 using hio_dotnet.Common.Models.CatalogApps.Clime;
 using hio_dotnet.Common.Models.CatalogApps.Counter;
 using hio_dotnet.Common.Models.CatalogApps.Dust;
+using hio_dotnet.Common.Models.CatalogApps.Meteo;
 using hio_dotnet.Common.Models.CatalogApps.Push;
 using hio_dotnet.Common.Models.CatalogApps.Radon;
 using hio_dotnet.Common.Models.DataSimulation;
@@ -23,6 +24,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Xml.Linq;
 
 var JLINK_TEST = false;
 var JLINK_COMBINED_CONSOLE_TEST = false;
@@ -38,6 +40,7 @@ var HIO_WMBUSMETER_TEST = false;
 var HIO_SIMULATOR_TEST = false;
 var HIO_SIMULATOR_HANDLER_TEST = false;
 var HIO_CLOUD_AND_THINGSBOARD_DEPLOY_MULTIPLEDEVICES = false;
+var GENERATE_TIMESTAMP_DATA = false;
 
 #if WINDOWS
 Console.WriteLine("Running on Windows");
@@ -260,7 +263,7 @@ if (JLINK_COMBINED_CONSOLE_TEST)
         cts.Cancel();
 
         // Load firmware
-        await multiconsole.LoadFirmware("ConfigConsole", savePath);
+        var res = multiconsole.LoadFirmware("ConfigConsole", savePath);
 
         // wait some time after reboot of MCU
         Console.WriteLine("Waiting 10 seconds after reboot of MCU");
@@ -1397,7 +1400,7 @@ if (HIO_CLOUD_AND_THINGSBOARD_DEPLOY_MULTIPLEDEVICES)
     }
 
     // create connector for hio cloud for multiple devices
-    var connector = HioCloudConnector.GetConnectorStringMultipleDevices(sntokens, "http://localhost:8080");
+    var connector = HioCloudConnector.GetConnectorStringMultipleDevices(sntokens, basedomain: "http://localhost:8080");
 
     Console.WriteLine("\n\nConnector:\n");
     Console.WriteLine(connector);
@@ -1412,6 +1415,59 @@ if (HIO_CLOUD_AND_THINGSBOARD_DEPLOY_MULTIPLEDEVICES)
         .WithThingsBoardConnectionToken(connector));
 
 }
+#endregion
+
+#region GENERATE_TIMESTAMP_DATA
+
+if (GENERATE_TIMESTAMP_DATA)
+{
+    var message = new ChesterRadonCloudMessage();
+    BaseSimulator.GetSimulatedData(message);
+
+    var result = TimeStampFormatDataConverter.GetJSActiveCode(message).ToList();
+
+
+    var names = TimeStampFormatDataConverter.GetJSActiveCode(message, returnJustNames: true).ToList();
+
+
+    var sndata = new Dictionary<string, string>();
+
+    var sb = new StringBuilder();
+    foreach(var res in result)
+    {
+        sb.AppendLine(res.ToString());
+    }
+    var r = sb.ToString();
+    sndata.Add("2159018266", r);
+
+
+    var message1 = new ChesterMeteoCloudMessage();
+    BaseSimulator.GetSimulatedData(message1);
+
+    var names1 = TimeStampFormatDataConverter.GetJSActiveCode(message1, returnJustNames: true).ToList();
+
+
+    var result1 = TimeStampFormatDataConverter.GetJSActiveCode(message1, propsToInclude:names1.Take(2).ToList()).ToList();
+
+    var sb1 = new StringBuilder();
+    foreach (var res in result1)
+    {
+        sb1.AppendLine(res.ToString());
+    }
+    r = sb1.ToString();
+    sndata.Add("2159019108", r);
+
+    var script_base = HioCloudConnector.GetConnectorStringMultipleDevices_FromActiveJSCode(new Dictionary<string, string>() {
+        { "2159019108", "abcdef" },
+        { "2159018266", "fedcba" },
+        { "111111", "222222" },
+        { "333333", "444444" }
+    }, sndata);
+
+    Console.WriteLine(script_base);
+}
+
+
 #endregion
 
 Console.WriteLine("Program ends. Goodbye");

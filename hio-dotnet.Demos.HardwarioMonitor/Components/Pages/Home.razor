@@ -3,24 +3,15 @@
 @page "/"
 
 @inject ConsoleService ConsoleService
+@inject LoadingOverlayService LoadingOverlayService
+@inject DialogService DialogService
+@inject AutomatedCommandsService AutomatedCommandsService
 
-<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-    <!-- Loading overlay -->
-    @if (isBusy)
-    {
-        <RadzenCard Style="z-index: 3; text-align: center; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, .5)">
-            <div style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%;">
-                <RadzenProgressBarCircular ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
-                    <Template>Wait</Template>
-                </RadzenProgressBarCircular>
-            </div>
-        </RadzenCard>
-    }
-</RadzenStack>
+<LoadingOverlay />
 
 <RadzenLayout Style="height: 100%; grid-template-rows: 1fr; grid-template-columns: 1fr auto; grid-template-areas: 'rz-body rz-sidebar'">
     <RadzenSidebar Style="padding: 5px;">
-        @if (!ConsoleService.IsPPK2Connected())
+        @if (!ConsoleService.IsPPK2Connected)
         {
             <RadzenButton Click="OnInitPPK2Handler" Style="margin-top: 5px; width: 100%;">Init PPK2</RadzenButton>
         }
@@ -42,6 +33,7 @@
         @if (!ConsoleService.IsConsoleListening)
         {
             <RadzenButton Click="OnInitConsoleHandler" Style="margin-top: 5px; width: 100%;">Init Console</RadzenButton>
+            <RadzenButton Click="OnInitConsoleJustJLinkHandler" Style="margin-top: 5px; width: 100%;">Init JLink Only</RadzenButton>
         }
         else
         {
@@ -51,10 +43,20 @@
         <RadzenButton Click="SaveShellToFile" Style="margin-top: 5px; width: 100%;">Save Console To File</RadzenButton>
         <RadzenButton Click="SaveLogToFile" Style="margin-top: 5px; width: 100%;">Save Log To File</RadzenButton>
 
+        <CreateRemoteSession SessionId="@ConsoleService.RemoteSessionId" Style="margin-top: 5px; width:100%;" OnCreateRemoteSession="@OnCreateRemoteSessionHanlder" OnCancelRemoteSession="@OnCancelRemoteSessionHanlder" />
+        <ConnectToRemoteSession SessionId="@ConsoleService.RemoteSessionId" Style="margin-top: 5px; width:100%;" OnConnectToRemoteSession="@OnConnectToRemoteSessionHanlder" OnCancelRemoteSession="@OnCancelRemoteSessionHanlder" />
+        @if (ConsoleService.IsConsoleListening)
+        {
+            <RadzenButton Click="LoadCommandsFromDevice" Style="margin-top: 5px; width: 100%;">Load Commands From Device</RadzenButton>
+        }
+        <RadzenButton Click="OpenAutomatedCommandsWindow" Style="margin-top: 5px; width: 100%;">Automated Commands</RadzenButton>
+
+        <RadzenButton Click="LoadFirmware" Style="margin-top: 5px; width: 100%;">Load Firmware</RadzenButton>
+
         <RadzenRow Style="margin-top: 5px; width: 100%;">
             <RadzenColumn>
                 <RadzenStack Orientation="Orientation.Horizontal">
-                    @if (ConsoleService.IsPPK2Connected())
+                    @if (ConsoleService.IsPPK2Connected)
                     {
                         <RadzenText Text="PPK Connected" />
                     }
@@ -93,9 +95,9 @@
             </RadzenColumn>
         </RadzenRow>
         <hr style="margin-top: 5px; width: 100%;" />
-        
+
     </RadzenSidebar>
-    <RadzenBody>
+    <RadzenBody Style="padding:5px;height: 100%;">
         <RadzenRow Style="height: 100%;">
             <RadzenColumn Style="height: 100%;">
                 <RadzenRow Style="height: 100%;">
@@ -105,16 +107,21 @@
                                 <RadzenSplitter>
                                     <RadzenSplitterPane Size="50%" Min="30px" Max="70%">
                                         <ConsoleComponent @ref=consoleComponentRef 
-                                                          TextSize="@ConsoleFontSize" 
-                                                          Output="@ConsoleService.ConsoleOutputShell" 
-                                                          IsSendButtonDisabled="@isDisabled" 
-                                                          OnSendCommand="HandleSendCommand"
-                                                          IsActionPanelVisible = "true"
-                                                          ActionCommandButtonDataList="@ActionCommandButtonDataList"
-                                                          OnActionSendCommandHandler="onSendCommandHandler" />
+                                        TextSize="@ConsoleFontSize" 
+                                        Output="@ConsoleService.ConsoleOutputShell" 
+                                        Hints ="@Hints"
+                                        IsSendButtonDisabled="@isDisabled" 
+                                        OnSendCommand="HandleSendCommand"
+                                        IsActionPanelVisible = "true"
+                                        ActionCommandButtonDataList="@ActionCommandButtonDataList"
+                                        OnActionSendCommandHandler="onSendCommandHandler" />
                                     </RadzenSplitterPane>
                                     <RadzenSplitterPane>
-                                        <ConsoleComponent @ref=consoleComponentLogRef TextSize="@ConsoleFontSize" Headline="Log" Output="@ConsoleService.ConsoleOutputLog" HideCommandLine="true" />
+                                        <ConsoleComponent @ref=consoleComponentLogRef 
+                                        TextSize="@ConsoleFontSize" 
+                                        Headline="Log" 
+                                        Output="@ConsoleService.ConsoleOutputLog" 
+                                        HideCommandLine="true" />
                                     </RadzenSplitterPane>
                                 </RadzenSplitter>
                             </RadzenSplitterPane>
@@ -132,6 +139,7 @@
     private bool isDisabled = false;
     private bool isLogScrollingAutomatically = true;
     private bool isShellScrollingAutomatically = true;
+    private bool justAppSetting = false;
 
     private List<string> outputConfig = new List<string>();
     private List<string> output = new List<string>();
@@ -139,8 +147,9 @@
     ConsoleComponent? consoleComponentLogRef;
 
     public int ConsoleFontSize { get; set; } = 12;
-
     public int Voltage { get; set; } = 3600;
+
+    private List<string> Hints = new List<string>();
 
     public List<ActionCommandButtonData> ActionCommandButtonDataList { get; set; } = new List<ActionCommandButtonData>()
     {
@@ -210,13 +219,19 @@
     {
         ConsoleService.InitArrays();
         ConsoleService.NewRTTMessageLineReceived += NewLineReceived;
+        ConsoleService.OnHintForConsoleRefreshed += (s, e) =>
+        {
+            Hints.AddRange(e.Select(h => h.Command).ToList());
+            Refresh();
+        };
         ConsoleService.OnIsBusy += (s, e) =>
         {
             isBusy = e;
+            LoadingOverlayService.ShowIfBusy(isBusy);
             Refresh();
         };
 
-        if (ConsoleService.IsConsoleListening)
+        if (ConsoleService.IsConsoleListening || ConsoleService.RemoteSessionId != Guid.Empty)
         {
             isDisabled = false;
         }
@@ -228,7 +243,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (ConsoleService.IsConsoleListening)
+        if (ConsoleService.IsConsoleListening || ConsoleService.RemoteSessionId != Guid.Empty)
         {
             isDisabled = false;
         }
@@ -243,15 +258,16 @@
     {
         if (firstRender)
         {
+            Hints.AddRange(ZephyrRTOSStandardCommands.StandardCommands.Select(c => c.Command).ToList());
             if (consoleComponentRef != null)
             {
-                consoleComponentRef.MaxHeight = 650;
-                consoleComponentRef.MinHeight = 650;
+                consoleComponentRef.MaxHeight = 66;
+                consoleComponentRef.MinHeight = 66;
             }
             if (consoleComponentLogRef != null)
             {
-                consoleComponentLogRef.MaxHeight = 650;
-                consoleComponentLogRef.MinHeight = 650;
+                consoleComponentLogRef.MaxHeight = 76;
+                consoleComponentLogRef.MinHeight = 76;
             }
             await Refresh();
 
@@ -273,6 +289,10 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    public async Task OnInitConsoleJustJLinkHandler()
+    {
+        await ConsoleService.StartListening(false);
+    }
     public async Task OnInitConsoleHandler()
     {
         await ConsoleService.StartListening();
@@ -342,4 +362,119 @@
         }
     }
 
+    private async Task OnCreateRemoteSessionHanlder(Tuple<string, string> login)
+    {
+        if (await ConsoleService.StartRemoteSession(login.Item1, login.Item2))
+        {
+            isDisabled = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task OnCancelRemoteSessionHanlder(Guid sessionId)
+    {
+        if (await ConsoleService.StopRemoteWSSession())
+        {
+            if (!ConsoleService.IsConsoleListening)
+                isDisabled = true;
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnConnectToRemoteSessionHanlder(Guid sessionId)
+    {
+        if (await ConsoleService.ConnectToRemoteSession(sessionId))
+        {
+            isDisabled = false;
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadCommandsFromDevice()
+    {
+        var result = await DialogService.OpenAsync("Load Commands From Device", ds =>
+    @<RadzenStack Gap="1.5rem">
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenText Text="@("Are you sure you want to load commands from device? This might take a while.")" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenLabel Component="jas" Text="Load Just App Setting" />
+                <RadzenCheckBox @bind-Value="justAppSetting" Name="jas" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <RadzenButton Text="Ok" Click="() => ds.Close(true)" Style="width: 80px;" />
+                <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenStack>
+    );
+
+        if (result)
+        {
+            if (justAppSetting)
+            {
+                await ConsoleService.LoadCommandsFromDevice("app");
+            }
+            else 
+            {
+                await ConsoleService.LoadCommandsFromDevice();
+            }
+        }
+    }
+
+    private async Task Execute(string command)
+    {
+        await ConsoleService.SendCommand(command);
+    }
+
+    private async Task OpenAutomatedCommandsWindow()
+    {
+        var result = await DialogService.OpenAsync("Automated Commands", ds =>
+    @<RadzenStack Gap="1.5rem">
+        <RadzenRow>
+            <RadzenColumn>
+                <AutomatedCommands OnCommandExecute="@Execute" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <RadzenButton Text="Close" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenStack>
+    , new DialogOptions() { Resizable = false, Style = "width:40%;" });
+
+    }
+
+
+    private async Task LoadFirmwareExec(string hash, string filename, DialogService ds)
+    {
+        ds.Close(true);
+        await Task.Delay(1);
+        await ConsoleService.LoadFirmware(hash, filename);
+    }
+
+    private async Task LoadFirmware()
+    {
+        var result = await DialogService.OpenAsync("Automated Commands", ds =>
+    @<RadzenStack Gap="1.5rem">
+            <RadzenRow>
+                <RadzenColumn>
+                <hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Firmware.FirmwareLoader OnRemoteFirmwareLoadedRequested="@(async (h) => await LoadFirmwareExec(h,"", ds))" OnLocalFirmwareLoadedRequested="@(async (f) => await LoadFirmwareExec("",f, ds))" />
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+                <RadzenStack Orientation="Orientation.Horizontal">
+                    <RadzenButton Text="Close" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+                </RadzenStack>
+            </RadzenStack>
+        </RadzenStack>
+    , new DialogOptions() { Resizable = false, Style = "width:40%;" });
+
+    }
 }

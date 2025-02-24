@@ -1,4 +1,4 @@
-﻿using hio_dotnet.HWDrivers.MCU.Models;
+﻿using hio_dotnet.Common.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +8,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using static System.Net.WebRequestMethods;
 
-namespace hio_dotnet.HWDrivers.MCU
+namespace hio_dotnet.APIs.HioCloud
 {
     public class HioFirmwareDownloader
     {

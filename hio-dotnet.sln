@@ -45,6 +45,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.Demos.BlazorComp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hio-dotnet.Demos.HardwarioMonitor", "hio-dotnet.Demos.HardwarioMonitor\hio-dotnet.Demos.HardwarioMonitor.csproj", "{576AF76C-8F76-42E4-89B5-6FF16FAD3D70}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Drivers", "Drivers", "{F2AC3087-88D8-4027-A6DC-2BC9CEF8147B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.LibSerialPort", "hio-dotnet.LibSerialPort\hio-dotnet.LibSerialPort.csproj", "{86417B62-A838-48BB-90E2-E875A455765D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.Demos.SimpleDriversServer", "hio-dotnet.Demos.SimpleDriversServer\hio-dotnet.Demos.SimpleDriversServer.csproj", "{E41B428A-39B8-4B8B-A0F2-53B477C38F38}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hio-dotnet.Demos.WSSessionsServer", "hio-dotnet.Demos.WSSessionsServer\hio-dotnet.Demos.WSSessionsServer.csproj", "{3038FD86-98AC-4A66-B8EC-EE27F615688A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -181,6 +189,30 @@ Global
 		{576AF76C-8F76-42E4-89B5-6FF16FAD3D70}.Release|x64.ActiveCfg = Release|Any CPU
 		{576AF76C-8F76-42E4-89B5-6FF16FAD3D70}.Release|x64.Build.0 = Release|Any CPU
 		{576AF76C-8F76-42E4-89B5-6FF16FAD3D70}.Release|x64.Deploy.0 = Release|Any CPU
+		{86417B62-A838-48BB-90E2-E875A455765D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86417B62-A838-48BB-90E2-E875A455765D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86417B62-A838-48BB-90E2-E875A455765D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{86417B62-A838-48BB-90E2-E875A455765D}.Debug|x64.Build.0 = Debug|Any CPU
+		{86417B62-A838-48BB-90E2-E875A455765D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86417B62-A838-48BB-90E2-E875A455765D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86417B62-A838-48BB-90E2-E875A455765D}.Release|x64.ActiveCfg = Release|Any CPU
+		{86417B62-A838-48BB-90E2-E875A455765D}.Release|x64.Build.0 = Release|Any CPU
+		{E41B428A-39B8-4B8B-A0F2-53B477C38F38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E41B428A-39B8-4B8B-A0F2-53B477C38F38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E41B428A-39B8-4B8B-A0F2-53B477C38F38}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E41B428A-39B8-4B8B-A0F2-53B477C38F38}.Debug|x64.Build.0 = Debug|Any CPU
+		{E41B428A-39B8-4B8B-A0F2-53B477C38F38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E41B428A-39B8-4B8B-A0F2-53B477C38F38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E41B428A-39B8-4B8B-A0F2-53B477C38F38}.Release|x64.ActiveCfg = Release|Any CPU
+		{E41B428A-39B8-4B8B-A0F2-53B477C38F38}.Release|x64.Build.0 = Release|Any CPU
+		{3038FD86-98AC-4A66-B8EC-EE27F615688A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3038FD86-98AC-4A66-B8EC-EE27F615688A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3038FD86-98AC-4A66-B8EC-EE27F615688A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3038FD86-98AC-4A66-B8EC-EE27F615688A}.Debug|x64.Build.0 = Debug|Any CPU
+		{3038FD86-98AC-4A66-B8EC-EE27F615688A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3038FD86-98AC-4A66-B8EC-EE27F615688A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3038FD86-98AC-4A66-B8EC-EE27F615688A}.Release|x64.ActiveCfg = Release|Any CPU
+		{3038FD86-98AC-4A66-B8EC-EE27F615688A}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -203,6 +235,10 @@ Global
 		{189AB1EA-045C-4BFC-B691-541B3F3BA7BF} = {2CA42D8C-9B79-4C9B-8589-AC93EE09A5E2}
 		{395ACA60-AD81-4F2E-B4EB-74440EE10ABD} = {C69E4820-C35D-4BAF-94C8-52F738A12EBE}
 		{576AF76C-8F76-42E4-89B5-6FF16FAD3D70} = {C69E4820-C35D-4BAF-94C8-52F738A12EBE}
+		{F2AC3087-88D8-4027-A6DC-2BC9CEF8147B} = {26E31ECF-53E6-4E5A-B114-38A008891F03}
+		{86417B62-A838-48BB-90E2-E875A455765D} = {F2AC3087-88D8-4027-A6DC-2BC9CEF8147B}
+		{E41B428A-39B8-4B8B-A0F2-53B477C38F38} = {C69E4820-C35D-4BAF-94C8-52F738A12EBE}
+		{3038FD86-98AC-4A66-B8EC-EE27F615688A} = {C69E4820-C35D-4BAF-94C8-52F738A12EBE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E1FFF9B6-96C5-48A0-98CB-F203A8890083}

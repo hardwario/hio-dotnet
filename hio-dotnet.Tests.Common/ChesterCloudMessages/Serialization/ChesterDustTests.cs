@@ -151,10 +151,10 @@ namespace hio_dotnet.Tests.Common.ChesterCloudMessages.Serialization
         }";
 
         [Fact]
-        public void ShouldDeserializeChesterDustCloudMessage()
+        public void ShouldDeserializeChesterDustSps30CloudMessage()
         {
             // Act
-            ChesterDustCloudMessage? message = JsonSerializer.Deserialize<ChesterDustCloudMessage>(testJson);
+            ChesterDustSps30CloudMessage? message = JsonSerializer.Deserialize<ChesterDustSps30CloudMessage>(testJson);
 
             // Assert
             Assert.NotNull(message);

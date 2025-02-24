@@ -12,6 +12,7 @@ namespace hio_dotnet.Common.Models.Common
     {
         [SimulationAttribute(false)]
         [JsonPropertyName("value")]
-        public int Value { get; set; } = 0;
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public int? Value { get; set; } = 0;
     }
 }

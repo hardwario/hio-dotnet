@@ -15,10 +15,10 @@
 
 <RadzenRow Style="margin-top:1rem;">
     <RadzenColumn>
-        <RadzenDataGrid @ref="dataGridRef" Data="@PropsToInclude" ColumnWidth="350px" AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="20" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
+        <RadzenDataGrid @ref="dataGridRef" Data="@PropsToInclude()" ColumnWidth="350px" AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="20" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
             <Columns>
                 <RadzenDataGridColumn Property="Key" Title="Property Name" Width="320px" />
-                <RadzenDataGridColumn Title="Include" Frozen="true" Sortable="false" Filterable="false" Width="80px" TextAlign="TextAlign.Center">
+                <RadzenDataGridColumn Title="Include" Frozen="true" Sortable="true" Filterable="false" Width="80px" TextAlign="TextAlign.Center">
                     <Template Context="data">
                         <RadzenCheckBox TValue="bool" value="@(data.Value)" ValueChanged="@(async (e) => await onValueChangedHandler(e, data.Key))"/>
                     </Template>
@@ -34,8 +34,20 @@
     [Parameter] public EventCallback<Type> OnTypeFound { get; set; }
     [Parameter] public string Title { get; set; } = "Message Properties";
     [Parameter] public bool HasTitle { get; set; } = false;
+    [Parameter] public bool UseSimulatedMessage { get; set; } = false;
+    [Parameter] public string? InputMessage { get; set; } = null;
 
-    public Dictionary<string, bool> PropsToInclude => HioCloudService.Spaces.FirstOrDefault(s => s.Id == Device.SpaceId)?.Devices.FirstOrDefault(d => d.Id == Device.Id)?.PropsToInclude ?? new Dictionary<string, bool>();
+    public Dictionary<string, bool> PropsToInclude()
+    {
+        if (UseSimulatedMessage)
+        {
+            return Device.PropsToInclude;
+        }
+        else
+        {
+           return HioCloudService.Spaces.FirstOrDefault(s => s.Id == Device.SpaceId)?.Devices.FirstOrDefault(d => d.Id == Device.Id)?.PropsToInclude ?? new Dictionary<string, bool>();
+        }
+    }
     private RadzenDataGrid<KeyValuePair<string,bool>>? dataGridRef;
     private Type typeOfHioMessage = typeof(ChesterCommonCloudMessage);
 
@@ -50,7 +62,7 @@
 
     private async Task LoadValues(Type? type)
     {
-        var res = await HioCloudService.GetPropertiesNamesForDeviceMessage(Device.SpaceId.ToString(), Device.Id.ToString(), type, true);
+        var res = await HioCloudService.GetPropertiesNamesForDeviceMessage(Device.SpaceId.ToString(), Device.Id.ToString(), type, true, UseSimulatedMessage, InputMessage);
         var list = res.Item2;
 
         if (res.Item1 != null)
@@ -65,11 +77,14 @@
             {
                 Device.PropsToInclude.Add(item, true);
             }
-            var sp = HioCloudService.Spaces.Where(s => s.Id == Device.SpaceId).First();
-            var devs = sp?.Devices?.Where(d => d.Id == Device.Id).First();
-            if (devs != null && !devs.PropsToInclude.ContainsKey(item))
+            if (!UseSimulatedMessage)
             {
-                devs.PropsToInclude.Add(item, true);
+                var sp = HioCloudService.Spaces.Where(s => s.Id == Device.SpaceId).First();
+                var devs = sp?.Devices?.Where(d => d.Id == Device.Id).First();
+                if (devs != null && !devs.PropsToInclude.ContainsKey(item))
+                {
+                    devs.PropsToInclude.Add(item, true);
+                }
             }
             if (dataGridRef != null)
             {
@@ -84,7 +99,8 @@
         if (item.Key != null)
         {
             Device.PropsToInclude[item.Key] = value;
-            HioCloudService.Spaces.Where(s => s.Id == Device.SpaceId).First().Devices.Where(d => d.Id == Device.Id).First().PropsToInclude[item.Key] = value;
+            if (!UseSimulatedMessage)
+                HioCloudService.Spaces.Where(s => s.Id == Device.SpaceId).First().Devices.Where(d => d.Id == Device.Id).First().PropsToInclude[item.Key] = value;
         }
         if (dataGridRef != null)
         {

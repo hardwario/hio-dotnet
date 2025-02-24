@@ -480,6 +480,45 @@ namespace hio_dotnet.APIs.HioCloud
         #region Messages
 
         /// <summary>
+        /// Return All messages between two dates
+        /// It solves paging because API offers max 100 messages at a time
+        /// There is 500ms delay to prevent API rate limiting
+        /// There is max messages count limit default to 5000
+        /// </summary>
+        /// <param name="space_id"></param>
+        /// <param name="device_id"></param>
+        /// <param name="after"></param>
+        /// <param name="before"></param>
+        /// <param name="delay"></param>
+        /// <param name="maxmessages"></param>
+        /// <returns></returns>
+        public async Task <List<HioCloudMessage>> GetAllMessagesBetweenDates(Guid space_id, Guid device_id, DateTime after, DateTime before, int delay = 500, int maxmessages = 5000)
+        {
+            var allmessages = new List<HioCloudMessage>();
+            var isLast = false;
+            var lastmessageid = "";
+
+            while (!isLast)
+            {
+                var messages = await GetAllDeviceMessages(space_id, device_id, 100, lastmessageid, after: after, before: before);
+                if (messages != null && messages.Count > 0)
+                {
+                    allmessages.AddRange(messages);
+                    lastmessageid = messages.Last().Id.ToString();
+                }
+                else
+                {
+                    isLast = true;
+                    break;
+                }
+                if (allmessages.Count > maxmessages)
+                    break;
+                await Task.Delay(delay);
+            }
+            return allmessages;
+        }
+
+        /// <summary>
         /// Get all device messages
         /// If you need just one message use limit of num_of_items = 1
         /// </summary>
@@ -545,16 +584,21 @@ namespace hio_dotnet.APIs.HioCloud
 
                 if (after != null)
                 {
-                    url = $"{url}&after={after.Value.ToString("yyyy-MM-ddTHH%3Amm%3Ass")}";
+                    url = $"{url}&after={after.Value.ToString("yyyy-MM-ddTHHaaa3Ammaaa3Ass").Replace("aaa", "%")}";
+                }
+                else
+                {
+                    url = $"{url}&after=2000-01-01T08:00:00.000Z";
                 }
 
                 if (before != null)
                 {
-                    url = $"{url}&before={before.Value.ToString("yyyy-MM-ddTHH%3Amm%3Ass")}";
+                    url = $"{url}&before={before.Value.ToString("yyyy-MM-ddTHHaaa3Ammaaa3Ass").Replace("aaa", "%")}";
                 }
 
                 try
                 {
+                    httpClient.Timeout = new TimeSpan(0,0,30);
                     var response = await httpClient.GetAsync(url);
                     var cnt = response.Content.ReadAsStringAsync().Result;
 
@@ -565,7 +609,8 @@ namespace hio_dotnet.APIs.HioCloud
                 }
                 catch (HttpRequestException ex)
                 {
-                    throw new Exception("An error occurred while fetching spaces data.", ex);
+                    //throw new Exception("An error occurred while fetching spaces data.", ex);
+                    return null;
                 }
             }
         }

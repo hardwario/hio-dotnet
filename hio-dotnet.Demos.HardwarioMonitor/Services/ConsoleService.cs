@@ -1,8 +1,11 @@
-﻿using hio_dotnet.Common.Config;
+﻿using DocumentFormat.OpenXml.Office2010.CustomUI;
+using hio_dotnet.APIs.HioCloud;
+using hio_dotnet.Common.Config;
 using hio_dotnet.HWDrivers.Enums;
 using hio_dotnet.HWDrivers.JLink;
 using hio_dotnet.HWDrivers.MCU;
 using hio_dotnet.HWDrivers.PPK2;
+using hio_dotnet.HWDrivers.Server;
 using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.DataCollection;
 using Radzen;
 using System;
@@ -25,10 +28,13 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         public ConsoleService(NotificationService notificationService)
         {
             _notificationService = notificationService;
+            remoteWebSocketClient = new RemoteWebSocketClient();
         }
 
         public MCUMultiRTTConsole? MCUConsole { get; set; }
         public PPK2_Driver? ppk2 { get; set; }
+
+        private RemoteWebSocketClient? remoteWebSocketClient;
 
         private CancellationTokenSource cts = new CancellationTokenSource();
 
@@ -46,6 +52,8 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         public event EventHandler<bool> OnIsJLinkConnected;
         public event EventHandler<bool> OnIsJLinkDisconnected;
 
+        public event EventHandler<List<ZephyrRTOSCommand>> OnHintForConsoleRefreshed;
+
         public List<string> ConsoleOutputShell = new List<string>();
         public List<string> ConsoleOutputLog = new List<string>();
 
@@ -57,21 +65,153 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         public int DataPointsTimeSinceStartCounter { get; set; } = 0;
 
         public bool IsConsoleListening { get; set; } = false;
-        public bool IsPPK2Connected()
-        {
-            return ppk2 != null;
-        }
+        public bool IsPPK2Connected { get => ppk2 != null; }
 
         public bool IsDeviceOn { get; set; } = false;
         public int DeviceVoltage { get; set; } = 0;
 
+        public bool UseRemoteConnection { get; set; } = false;
+        public bool IsHostOfRemoteConnection { get; set; } = false;
+
         public LoRaWANConfig LoRaWANConfig { get; set; } = new LoRaWANConfig();
         public LTEConfig LTEConfig { get; set; } = new LTEConfig();
 
+        public Guid RemoteSessionId { get => remoteWebSocketClient?.SessionId ?? Guid.Empty; }
+
+        public async Task LoadCommandsFromFile(string url)
+        {
+            await ZephyrRTOSStandardCommands.LoadCommandsFromFileViaHttp(url);
+        }
+        public void LoadCommandsFromStatic()
+        {
+            ZephyrRTOSStandardCommands.LoadCommandsFromFile(ZephyrRTOSStandardCommands.DefaultCommandsLines);
+        }
         private void ShowNotification(NotificationMessage message)
         {
             message.Style = MainDataContext.NotificationPosition;
             _notificationService.Notify(message);
+        }
+
+        public async Task<bool> ConnectToRemoteSession(Guid sessionId)
+        {
+            if (remoteWebSocketClient != null)
+            {
+                try
+                {
+                    remoteWebSocketClient.SessionId = sessionId;
+
+                    remoteWebSocketClient.OnMessageReceived -= RemoteWebSocketClient_OnMessageReceived;
+                    remoteWebSocketClient.OnMessageReceived += RemoteWebSocketClient_OnMessageReceived;
+                    remoteWebSocketClient.OnCommandReceived -= RemoteWebSocketClient_OnCommandReceived;
+                    remoteWebSocketClient.OnCommandReceived += RemoteWebSocketClient_OnCommandReceived;
+
+                    StartRemoteWSListening();
+                    await Task.Delay(100);
+
+                    await remoteWebSocketClient.SendWSSessionMessage("Registering as user in the session.");
+
+                    UseRemoteConnection = true;
+                    IsHostOfRemoteConnection = true;
+                    return true;
+                }
+                catch
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                }
+            }
+            return false;
+        }
+
+        public async Task StartRemoteWSListening()
+        {
+            if (remoteWebSocketClient != null)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await remoteWebSocketClient.ConnectAsync("wss://thingsboard.hardwario.com/ws");
+                    }
+                    catch
+                    {
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                    }
+                });
+            }
+        }
+
+        public async Task<bool> StartRemoteSession(string login, string password)
+        {
+            if (remoteWebSocketClient != null)
+            {
+                try
+                {
+                    await remoteWebSocketClient.LoginToWSForwarderServer(login, password);
+                    await remoteWebSocketClient.OpenSessionOnWSForwarderServer();
+
+                    remoteWebSocketClient.OnMessageReceived -= RemoteWebSocketClient_OnMessageReceived;
+                    remoteWebSocketClient.OnMessageReceived += RemoteWebSocketClient_OnMessageReceived;
+
+                    StartRemoteWSListening();
+                    await Task.Delay(100);
+
+                    await remoteWebSocketClient.SendWSSessionMessage("Registering as host in the session.");
+
+                    UseRemoteConnection = true;
+                    IsHostOfRemoteConnection = false;
+                    return true;
+                }
+                catch
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                }
+            }
+            return false;
+        }
+
+        public async Task<bool> StopRemoteWSSession()
+        {
+            if (remoteWebSocketClient != null)
+            {
+                try
+                {
+                    await remoteWebSocketClient.DisconnectAsync();
+                    remoteWebSocketClient.SessionId = Guid.Empty;
+                    UseRemoteConnection = false;
+                    IsHostOfRemoteConnection = false;
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Remote Connection Closed", Detail = "Remote connection was closed.", Duration = 3000 });
+                    return true;
+                }
+                catch
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                }
+            }
+            return false;
+        }
+
+        private void RemoteWebSocketClient_OnCommandReceived(string obj)
+        {
+            if (!string.IsNullOrEmpty(obj) && UseRemoteConnection && IsHostOfRemoteConnection)
+            {
+                SendCommand(obj);
+            }
+        }
+
+        private void RemoteWebSocketClient_OnMessageReceived(string obj)
+        {
+            try
+            {
+                var parsed = System.Text.Json.JsonSerializer.Deserialize<WebSocketModuleTransferObject>(obj);
+                if (parsed != null)
+                {
+                    ProcessNewRTTLine(null, new Tuple<string, MultiRTTClientBase>(parsed.Message, parsed.ClientBase));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to parse message as Tuple<string, MultiRTTClientBase>: {ex.Message}");
+            }
         }
 
         public void InitArrays()
@@ -93,7 +233,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             {
                 StopListening();
             }
-            if (IsPPK2Connected())
+            if (IsPPK2Connected)
             {
                 ppk2?.Dispose();
             }
@@ -265,7 +405,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             }
         }
 
-        public async Task StartListening()
+        public async Task StartListening(bool withPPK2 = true)
         {
             OnIsBusy?.Invoke(this, true);
             await Task.Delay(10);
@@ -299,7 +439,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             // Take first available JLink
             var devsn = connected_jlinks[0].SerialNumber.ToString();
 
-            if (ppk2 == null)
+            if (withPPK2 && ppk2 == null)
             {
                 await FindAndConnectPPK(true);
                 await SetPPK2Voltage(3600);
@@ -328,6 +468,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
             MCUConsole.NewRTTMessageLineReceived -= ProcessNewRTTLine;
             MCUConsole.NewRTTMessageLineReceived += ProcessNewRTTLine;
+            MCUConsole.NewInternalCommandSent += MCUConsole_NewInternalCommandSent;
 
             cts = new CancellationTokenSource();
             Task listeningTask = MCUConsole.StartListening(cts.Token);
@@ -345,8 +486,19 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         }
 
+        private void MCUConsole_NewInternalCommandSent(object? sender, string e)
+        {
+            ConsoleOutputShell.Add(e);
+        }
+
         private void ProcessNewRTTLine(object sender, Tuple<string, MultiRTTClientBase>? data)
         {
+            if (UseRemoteConnection && IsHostOfRemoteConnection && data != null && data.Item1 != null && data.Item2 != null)
+            {
+                var json = System.Text.Json.JsonSerializer.Serialize(new WebSocketModuleTransferObject() { Message = data.Item1, ClientBase = data.Item2 });
+                remoteWebSocketClient.SendWSSessionMessage($"{json}");
+            }
+
             if (data?.Item2.Channel == 0)
             {
                 var line = $"{data.Item1}";
@@ -374,7 +526,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
         public async Task SendCommand(string command)
         {
-            if (IsConsoleListening)
+            if (IsConsoleListening || (UseRemoteConnection && !IsHostOfRemoteConnection))
             {
                 ConsoleOutputShell.Add("> " + command.Replace("\n", string.Empty));
 
@@ -390,7 +542,28 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
                     }
                 }
 
-                await MCUConsole?.SendCommand(0, command);
+                if ((!UseRemoteConnection || (UseRemoteConnection && IsHostOfRemoteConnection)) && MCUConsole != null)
+                {
+                    try
+                    {
+                        await MCUConsole.SendCommand(0, command);
+                    }
+                    catch
+                    {
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Drivers Server Error", Detail = "Driver Server is not running.", Duration = 3000 });
+                    }
+                }
+                else if (UseRemoteConnection && !IsHostOfRemoteConnection && remoteWebSocketClient != null)
+                {
+                    try
+                    {
+                        await remoteWebSocketClient.SendCommand(command);
+                    }
+                    catch
+                    {
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Remote Server Error", Detail = "Remote Server is not running.", Duration = 3000 });
+                    }
+                }
             }
             else
             {
@@ -405,7 +578,11 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
 
             IsConsoleListening = false;
 
-            MCUConsole?.Dispose();
+            try
+            {
+                MCUConsole?.Dispose();
+            }
+            catch { }
 
             OnIsJLinkDisconnected?.Invoke(this, true);
 
@@ -481,6 +658,103 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             await SendAllConfigLines(cfg);
             await SendCommand("config save");
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Settings Applied", Detail = "LTE settings has been loaded to the device.", Duration = 3000 });
+        }
+
+        public async Task LoadCommandsFromDevice(string parent = "")
+        {
+            if (MCUConsole != null && IsConsoleListening)
+            {
+                OnIsBusy?.Invoke(this, true);
+                var commands = await MCUConsole.LoadCommandsFromDeviceHelp(parent, 0);
+                if (!string.IsNullOrEmpty(parent))
+                {
+                    foreach (var cmd in commands)
+                    {
+                        cmd.Command = parent + " " + cmd.Command;
+                    }
+                }
+                ZephyrRTOSStandardCommands.StandardCommands.AddRange(commands);
+                OnHintForConsoleRefreshed?.Invoke(this, commands);
+                OnIsBusy?.Invoke(this, false);
+            }
+        }
+
+        public async Task LoadFirmware(string hash = "", string filename = "")
+        {
+            if (string.IsNullOrEmpty(hash) && string.IsNullOrEmpty(filename))
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Firmware hash and filename are empty. Fill at least one.", Duration = 3000 });
+                return;
+            }
+            OnIsBusy?.Invoke(this, true);
+
+            if (!string.IsNullOrEmpty(hash) && string.IsNullOrEmpty(filename))
+            {
+                try
+                {
+                    //var url = $"https://firmware.hardwario.com/chester/{hash}/hex";
+                    filename = $"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\\{hash}.hex";
+                    await HioFirmwareDownloader.DownloadFirmwareByHashAsync(hash, filename);
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Firmware Downloaded", Detail = "Firmware has been downloaded.", Duration = 3000 });
+                }
+                catch (Exception ex)
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = $"Error while downloading firmware: {ex.Message}", Duration = 3000 });
+                    OnIsBusy?.Invoke(this, false);
+                    return;
+                }
+            }
+            if (MCUConsole != null && IsConsoleListening)
+            {
+                cts.Cancel();
+                await Task.Delay(100);
+                MCUConsole.ReconnectJLink();
+                //MCUConsole.CloseAll();
+                //IsConsoleListening = false;
+                //OnIsJLinkConnected?.Invoke(this, false);
+                await Task.Delay(150);
+
+                try
+                {
+                    var res = MCUConsole.LoadFirmware("ConfigConsole", filename);
+                    if (res)
+                    {
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Firmware Loaded", Detail = "Waiting for reboot of MCU", Duration = 13000 });
+
+                        Console.WriteLine("Waiting 10 seconds after reboot of MCU");
+                        await Task.Delay(10000);
+
+                        MCUConsole.ReconnectJLink();
+                        cts = new CancellationTokenSource();
+                        Task listeningTask = MCUConsole.StartListening(cts.Token);
+
+                        IsConsoleListening = true;
+
+                        await Task.Delay(2000);
+
+                        OnIsBusy?.Invoke(this, false);
+                        await Task.Delay(10);
+                        OnIsJLinkConnected?.Invoke(this, true);
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "JLink Connected", Detail = "JLink is connected now.", Duration = 3000 });
+
+                        await Task.WhenAny(new Task[] { listeningTask });
+                    }
+                    else
+                    {
+                        OnIsBusy?.Invoke(this, false);
+                        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error during FW upload", Detail = "Error while loading firmware.", Duration = 3000 });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error during FW upload", Detail = $"Error while loading firmware: {ex.Message}", Duration = 3000 });
+                }
+            }
+            else
+            {
+                OnIsBusy?.Invoke(this, false);
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Console is not listening. Cannot load firmware.", Duration = 3000 });
+            }
         }
 
         public async Task Dispose()

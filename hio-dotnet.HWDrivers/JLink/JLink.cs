@@ -198,10 +198,20 @@ namespace hio_dotnet.HWDrivers.JLink
         //
         // Determine J-Link DLL name depending on the architecture this exe was built for
         //
+        /*
 #if IS_ARCH_x86
     private const string sDLL = "./JLink/Driver/JLinkARM.dll";
 #else
         private const string sDLL = "./JLink/Driver/JLink_x64.dll";
+#endif
+        */
+
+#if WINDOWS && IS_ARCH_x86
+    private const string sDLL = "./JLink/Driver/JLinkARM.dll";
+#elif WINDOWS
+    private const string sDLL = "./JLink/Driver/JLink_x64.dll";
+#elif LINUX
+    private const string sDLL = "libjlinkarm";
 #endif
         //
         // NEVER call J-Link API functions directly

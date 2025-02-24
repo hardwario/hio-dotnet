@@ -1,0 +1,156 @@
+﻿@using hio_dotnet.APIs.HioCloud
+@using hio_dotnet.Common.Models
+@using Microsoft.JSInterop
+
+@inject DialogService DialogService
+
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenLabel Text="Local vs Remote Firmware" Component="switch" />
+                <RadzenSwitch @bind-Value=@isLocalFirmware Name="switch" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Local FW vs Remote" }})" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow Style="margin-top:2rem;">
+            <RadzenColumn>
+                @if (!isLocalFirmware)
+                {
+                    <RadzenRow>
+                        <RadzenColumn>
+                            <RadzenRow>
+                                <RadzenColumn>
+                                    <RadzenTextBox Value=@firmwareFileHash Placeholder="Firmware Hash" ValueChanged="onHashValueChangedHandler" Style="width:100%;" />
+                                </RadzenColumn>
+                                <RadzenColumn>
+                                    <RadzenButton Click="LoadRemoteFirmwareInfo" Text="Load Remote Firmware Info" Style="margin-left:1rem;width:100%;" />
+                                </RadzenColumn>
+                            </RadzenRow>
+
+                            <RadzenRow Style="margin-top:1rem;">
+                                <RadzenColumn>
+                                    <RadzenStack Orientation="Orientation.Vertical">
+                                        <RadzenText Text="@("Firmware Name: " + firmwareInfo.Name)" />
+                                        <RadzenText Text="@("Firmware Version: " + firmwareInfo.Version)" />
+                                        <RadzenText Text="@("Created At: " + firmwareInfo.CreatedAt.ToString())" />
+                                    </RadzenStack>
+                                </RadzenColumn>
+                            </RadzenRow>
+
+                            <RadzenRow Style="margin-top:1rem;">
+                                <RadzenColumn>
+                                    <RadzenButton Click="LoadRemoteFWtoChipDialog" Text="Load Remote Firmware To Chip" Style="margin-left:1rem;width:95%;" />
+                                </RadzenColumn>
+                            </RadzenRow>
+
+                        </RadzenColumn>
+                    </RadzenRow>
+                }
+                else 
+                {
+                    <RadzenRow>
+                        <RadzenColumn>
+                            <!--
+                            <RadzenButton Text="Select HEX File" Click="OpenFileDialog" />
+                            <input type="file" accept=".hex" ref="fileInputRef" style="display:none" onchange="HandleFileSelected" />
+                            -->
+                            <RadzenTextBox @bind-Value=@firmwareFileName Placeholder="Firmware File Full Path" Style="width:100%;" />
+
+                            <RadzenRow Style="margin-top:2rem;">
+                                <RadzenColumn>
+                                    <RadzenButton Click="LoadRemoteFWtoChipDialog" Text="Load Local Firmware To Chip" Style="margin-left:1rem;width:95%;" />
+                                </RadzenColumn>
+                            </RadzenRow>
+
+                        </RadzenColumn>
+                    </RadzenRow>
+                }
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    [Parameter] public EventCallback<string> OnRemoteFirmwareLoadedRequested { get; set; }
+    [Parameter] public EventCallback<string> OnLocalFirmwareLoadedRequested { get; set; }
+
+    [Inject] IJSRuntime JSRuntime { get; set; }
+
+    private string firmwareFileName = string.Empty;
+    private string firmwareFileHash = string.Empty;
+
+    private ElementReference fileInputRef;
+
+    private bool isLocalFirmware = false;
+
+    private FirmwareInfo firmwareInfo = new FirmwareInfo();
+
+    private async Task onHashValueChangedHandler(string hash)
+    {
+        if (hash != null && hash != firmwareFileHash)
+        {
+            firmwareFileHash = hash;
+            await LoadRemoteFirmwareInfo();
+        }
+    }
+    private async Task LoadRemoteFirmwareInfo()
+    {
+        firmwareInfo = await HioFirmwareDownloader.GetFirmwareInfoAsync(firmwareFileHash) ?? new FirmwareInfo();
+
+    }
+
+    private async Task LoadRemoteFWtoChipDialog()
+    {
+        var result = await DialogService.OpenAsync("Load Firmware To Device", ds =>
+    @<RadzenStack Gap="1.5rem">
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenText Text="@("Are you sure you want to load firmware to the device? This might take a while and it will replace previous firmware in the device.")" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <RadzenButton Text="Ok" Click="() => ds.Close(true)" Style="width: 80px;" />
+                <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenStack>
+    );
+
+        await Task.Delay(100);
+
+        if (result)
+        {
+            if (!isLocalFirmware)
+            {
+                await OnRemoteFirmwareLoadedRequested.InvokeAsync(firmwareFileHash.TrimStart('\"').TrimEnd('\"'));
+            }
+            else 
+            {
+                await OnLocalFirmwareLoadedRequested.InvokeAsync(firmwareFileName.TrimStart('\"').TrimEnd('\"'));
+            }
+        }
+    }
+
+    private async Task HandleFileSelected(ChangeEventArgs e)
+    {
+        var file = (e.Value as Microsoft.AspNetCore.Components.Forms.IBrowserFile);
+        if (file != null)
+        {
+            var selectedFile = file;
+            firmwareFileName = selectedFile.Name;
+            await InvokeAsync(StateHasChanged);
+            Console.WriteLine($"Selected file: {selectedFile.Name}");
+
+            using var stream = file.OpenReadStream();
+            using var reader = new StreamReader(stream);
+            string fileContent = await reader.ReadToEndAsync();//todo
+        }
+    }
+
+    private async Task OpenFileDialog()
+    {
+        await JSRuntime.InvokeVoidAsync("clickOnElement", fileInputRef);
+    }
+
+}

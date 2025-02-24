@@ -1,4 +1,6 @@
-﻿using System;
+﻿using hio_dotnet.Common.Enums.LTE;
+using hio_dotnet.Common.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -164,6 +166,125 @@ namespace hio_dotnet.Common.Config
         }
 
         #region GenerateFunctions
+
+        public (Type type, string value) GetPropertyTypeAndValue(string propertyName)
+        {
+            var propertyInfo = this.GetType().GetProperty(propertyName);
+            if (propertyInfo == null)
+                throw new ArgumentException($"Property '{propertyName}' not found in LTEConfig.");
+            var value = propertyInfo.GetValue(this);
+            return (propertyInfo.PropertyType, value.ToString());
+        }
+
+        /// <summary>
+        /// Get type and value of property based on the ConfigSerializationAttribute. 
+        /// It is usually the name of the property for serialization such as JSON or shell commands.
+        /// </summary>
+        /// <param name="atAttrName"></param>
+        /// <returns></returns>
+        public (Type type, string value) GetPropertyTypeAndValueByATAttrName(string atAttrName)
+        {
+            var properties = this.GetType().GetProperties();
+            foreach (var property in properties)
+            {
+                var attr = property.GetCustomAttribute<ConfigSerializationAttribute>();
+                if (attr != null && attr.ConfigParamName == atAttrName)
+                {
+                    var value = property.GetValue(this);
+                    if (value != null)
+                    {
+                        // if enum convert to int and then to string
+                        if (value is AntennaType enumValue)
+                        {
+                            int intValue = (int)enumValue;
+                            return (property.PropertyType, $"{intValue}");
+                        }
+                        else if (value is LTEAuthType authenum)
+                        {
+                            int intValue = (int)authenum;
+                            return (property.PropertyType, $"{intValue}");
+                        }
+                        else
+                        {
+                            return (property.PropertyType, value.ToString().ToLower());
+                        }
+                    }
+                }
+            }
+            return (null, null);
+        }
+
+        public List<Tuple<string, string>> GetHelpForTheProps(bool parameters = true, bool statuses = true)
+        {
+            var helpList = new List<Tuple<string, string>>();
+
+            var properties = this.GetType().GetProperties();
+            foreach (var property in properties)
+            {
+                var attr = property.GetCustomAttribute<ConfigSerializationAttribute>();
+                if (attr != null && attr.IsConfigParam)
+                {
+                    var title = "Parameter: ";
+                    if (attr.IsConfigParam)
+                        title = $"Parameter '{attr.ConfigParamName}': ";
+
+                    if (attr.IsStatusParam)
+                        title = $"Status '{attr.ConfigParamName}': ";
+
+                    if ((attr.IsConfigParam & parameters) && attr.IsConfigParam && !attr.IsStatusParam)
+                    {
+                        var line = $"\t- {title}{attr.ConfigParamHelp}{attr.ConfigParamHelp}";
+                        if (!string.IsNullOrWhiteSpace(line))
+                            helpList.Add(new Tuple<string, string>(line, attr.ConfigParamName));
+                    }
+
+                    if ((attr.IsStatusParam & statuses) && attr.IsStatusParam)
+                    {
+                        var line = $"\t- {title}{attr.ConfigParamHelp}{attr.ConfigParamHelp}";
+                        if (!string.IsNullOrWhiteSpace(line))
+                            helpList.Add(new Tuple<string, string>(line, attr.ConfigParamName));
+                    }
+                }
+            }
+
+            return helpList;
+        }
+
+        public string GetHelpForThePropsCLI(bool parameters = true, bool statuses = true)
+        {
+            var stringBuilder = new StringBuilder();
+            var properties = this.GetType().GetProperties();
+            stringBuilder.AppendLine("Available LTE Config Parameters and Statuses:");
+            foreach (var property in properties)
+            {
+                var attr = property.GetCustomAttribute<ConfigSerializationAttribute>();
+                if (attr != null && attr.IsConfigParam)
+                {
+                    var title = "Parameter: ";
+                    if (attr.IsConfigParam)
+                        title = $"Parameter {attr.ConfigParamName}: ";
+
+                    if (attr.IsStatusParam)
+                        title = $"Status {attr.ConfigParamName}: ";
+
+                    if ((attr.IsConfigParam & parameters) && attr.IsConfigParam && !attr.IsStatusParam)
+                    {
+                        var line = $"\t- {title}{attr.ConfigParamHelp}{attr.ConfigParamHelp}";
+                        if (!string.IsNullOrWhiteSpace(line))
+                            stringBuilder.AppendLine(line);
+                    }
+
+                    if ((attr.IsStatusParam & statuses) && attr.IsStatusParam)
+                    {
+                        var line = $"\t- {title}{attr.ConfigParamHelp}{attr.ConfigParamHelp}";
+                        if (!string.IsNullOrWhiteSpace(line))
+                            stringBuilder.AppendLine(line);
+                    }
+                }
+            }
+            return stringBuilder.ToString();
+        }
+
         public string GetWholeConfig()
         {
             var stringBuilder = new StringBuilder();

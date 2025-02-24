@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace hio_dotnet.HWDrivers.MCU.Models
+namespace hio_dotnet.Common.Models
 {
     public class FirmwareInfo
     {

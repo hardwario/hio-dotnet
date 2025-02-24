@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO.Ports;
 using System.Linq;
 using System.Management;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+#if LIBSERIALPORT
+using hio_dotnet.LibSerialPort;
+#else
+using System.IO.Ports;
+#endif
 
 namespace hio_dotnet.HWDrivers.PPK2
 {
@@ -24,8 +28,16 @@ namespace hio_dotnet.HWDrivers.PPK2
 
             try
             {
+#if LIBSERIALPORT
                 // Get a list of all connected COM ports
+                string[] portNames = LibSerialPortDriver.GetPortNames();
+#else
                 string[] portNames = SerialPort.GetPortNames();
+#endif
+                foreach (var name in portNames)
+                {
+                    Console.WriteLine($"Port Name: {name}");
+                }
 
 #if WINDOWS
                 // Windows-specific implementation using System.Management
@@ -65,12 +77,14 @@ namespace hio_dotnet.HWDrivers.PPK2
                     {
                         // Use udevadm to get device details
                         string output = ExecuteBashCommand($"udevadm info -q property -n {portName} | grep -E 'ID_MODEL=PPK2|ID_SERIAL_SHORT='");
+                        Console.WriteLine($"Port {portName} result {output}");
 
                         if (!string.IsNullOrEmpty(output) && output.Contains("ID_MODEL=PPK2"))
                         {
                             // Extract the serial number
                             string serialNumber = ExtractLinuxSerialNumber(output);
                             devices.Add((portName, serialNumber));
+                            Console.WriteLine("Added to the list");
                             Logger.TraceInformation($"Detected PPK2 device on {portName} with serial number {serialNumber}");
                         }
                     }

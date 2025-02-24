@@ -24,6 +24,7 @@ else
     [Parameter] public EventCallback<bool> OnLoggedIn { get; set; }
     [Parameter] public EventCallback<bool> OnLoggingIn { get; set; }
 
+
     private string login = string.Empty;
 
     private string password = string.Empty;
@@ -36,6 +37,12 @@ else
             {
                 InvokeAsync(StateHasChanged);
             };
+        }
+
+        if (HioCloudService.UseDefaultLogin)
+        {
+            login = HioCloudService.DefaultLogin;
+            password = HioCloudService.DefaultPassword;
         }
     }
 

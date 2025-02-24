@@ -11,7 +11,7 @@ namespace hio_dotnet.Common.Models.Common
     public class TimestampState
 
     {
-        [SimulationAttribute(true)]
+        [SimulationAttribute(false)]
         [JsonPropertyName("timestamp")]
         public long Timestamp { get; set; } = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     }

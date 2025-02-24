@@ -9,6 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Resource Include="Config\zephyr_rtos_commands.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Enums\BLE\" />
   </ItemGroup>
 

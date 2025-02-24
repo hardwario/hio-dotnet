@@ -1,18 +1,115 @@
-﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+﻿@using Services
+@inherits LayoutComponentBase
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+@inject AppService AppService
+@inject TooltipService TooltipService
+@inject ThemeService ThemeService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+<RadzenLayout>
+    <RadzenHeader>
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0" JustifyContent="JustifyContent.Start">
+                    <RadzenSidebarToggle Click="@sidebarToggle" Style="margin-left:4px;" />
+                    <img src="resources/hw_logo_pos.svg" alt="HARDWARIO" style="width:100px;height:100%;" />
+                </RadzenStack>
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End">
+                    <RadzenButton 
+                    Icon="@(isDark ? "dark_mode" : "light_mode")" 
+                    Style="background: none; border: none; cursor: pointer;" 
+                    Click="@ToggleTheme" 
+                    Size="ButtonSize.Small"
+                    />
+
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenHeader>
+    <RadzenSidebar Responsive="false" Style="width: max-content;height:100%;">
+        <RadzenStack Orientation="Orientation.Vertical" Style="height:100%;">
+            <RadzenRow>
+                <RadzenColumn Style="height:100%;">
+                    <RadzenPanelMenu DisplayStyle="@(sidebarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="false">
+                        <RadzenPanelMenuItem Text="Home" Icon="home" Path="/" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "Home", Position = TooltipPosition.Right }) )" />
+                        <RadzenPanelMenuItem Text="Configs" Icon="manufacturing" Path="/configs" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "Configs", Position = TooltipPosition.Right }) )" />
+                        <RadzenPanelMenuItem Text="Cloud" Icon="cloud" Path="/hiocloud" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "Cloud", Position = TooltipPosition.Right }) )" />
+                        <RadzenPanelMenuItem Text="ThingsBoard" Icon="table" Path="/thingsboard" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "ThingsBoard", Position = TooltipPosition.Right }) )" />
+                        @if (MainDataContext.Config.Debug)
+                        {
+                            <RadzenPanelMenuItem Text="HeatMap" Icon="table" Path="/heatmap" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "HeatMap", Position = TooltipPosition.Right }) )" />
+                            <RadzenPanelMenuItem Text="Sandbox" Icon="table" Path="/sandbox" MouseEnter="@(args => ShowTooltip(args, new TooltipOptions() { Text = "Sandbox", Position = TooltipPosition.Right }) )" />
+                        }
+                    </RadzenPanelMenu>
+                </RadzenColumn>
+            </RadzenRow>
+            @if (sidebarExpanded)
+            {
+                <RadzenRow Style="height:100%;">
+                    <RadzenColumn Style="height:100%;">
+                        <RadzenStack Style="height: 100%;" Orientation="Orientation.Horizontal" AlignItems="AlignItems.End" JustifyContent="JustifyContent.Center">
+                            <RadzenText Text="@GetVersion()" />
+                        </RadzenStack>
+                    </RadzenColumn>
+                </RadzenRow>
+            }
+        </RadzenStack>
+    </RadzenSidebar>
+    <RadzenBody Style="padding:0px;">
+        @Body
+    </RadzenBody>
+    <RadzenFooter>
+        <Footer @ref=footerRef />
+    </RadzenFooter>
+</RadzenLayout>
 
 <RadzenComponents />
+
+@code {
+    bool sidebarExpanded = true;
+    Footer? footerRef;
+
+    bool isDark = true;
+
+    protected override void OnInitialized()
+    {
+        ThemeService.SetTheme("material-dark");
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await JSRuntime.InvokeVoidAsync("toggleThemeStyleSheet", isDark);
+        AppService.RegisterHioCloudDefaultLogin();
+        await AppService.LoadCommandsFromFile($"{Navigation.Uri.TrimEnd('/')}/zephyr_rtos_commands.txt");
+    }
+
+    private async Task ToggleTheme()
+    {
+        isDark = !isDark;
+        var newTheme = isDark ? "material-dark" : "material";
+        ThemeService.SetTheme(newTheme);
+        await JSRuntime.InvokeVoidAsync("toggleThemeStyleSheet", isDark);
+        StateHasChanged();
+    }
+
+    public string GetVersion()
+    {
+        return $"Version: {MainDataContext.Config.AppVersion}";
+    }
+
+    private async Task sidebarToggle()
+    {
+        sidebarExpanded = !sidebarExpanded;
+    }
+
+    void ShowTooltip(ElementReference elementReference, TooltipOptions options = null)
+    {
+        if (!sidebarExpanded)
+        {
+            TooltipService.Open(elementReference, options.Text, options);
+        }
+    }
+}

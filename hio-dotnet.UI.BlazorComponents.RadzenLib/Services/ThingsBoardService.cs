@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,6 +26,10 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
         public bool IsInitializedWithUsername { get; set; } = false;
         public bool IsInitializedWithApiToken { get; set; } = false;
 
+        public bool UseDefaultLoginForThingsBoard { get; set; } = false;
+        public string DefaultLoginForThingsBoard { get; set; } = "";
+        public string DefaultPasswordForThingsBoard { get; set; } = "";
+
         public bool IsLoggedIn { get; private set; } = false;
 
         public User User { get; private set; }
@@ -38,7 +42,8 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
         public Dictionary<Guid, List<string>> DevicesDataKeys = new Dictionary<Guid, List<string>>();
 
         public List<DeviceProfile> DeviceProfiles = new List<DeviceProfile>();
-        public ThingsBoardService(string baseUrl = "https://thingsboard.hardwario.com", int port = 0)
+
+        public ThingsBoardService(string baseUrl = "http://localhost", int port = 8080, bool useDefaultLogin = false, string defaultLogin = "", string defaultPass = "")
         {
             if (port != 0 && port > 0)
             {
@@ -50,6 +55,10 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
             }
             _port = port;
             IsLoggedIn = false;
+
+            UseDefaultLoginForThingsBoard = useDefaultLogin;
+            DefaultLoginForThingsBoard = defaultLogin;
+            DefaultPasswordForThingsBoard = defaultPass;
         }
 
         public async Task<bool> LoginAsync(string username, string password)
@@ -318,6 +327,20 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
                 return dashboard;
             }
             return null;
+        }
+
+        public async Task<bool> SendTelemetryData(string data, string token)
+        {
+            if (!IsLoggedIn)
+            {
+                return false;
+            }
+            var res = await _driver.SendTelemetryData(data, token, serializeData:false);
+            if (res != null)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

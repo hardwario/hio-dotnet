@@ -77,6 +77,49 @@
         link.click();
         document.body.removeChild(link);
     }
+
+    parseTimestampData(script) {
+        try {
+            // Create a new function with "data" as argument.
+            const fn = new Function(script);
+            // Execute the function with the provided data.
+            const result = fn();
+            return result;
+        } catch (e) {
+            console.error("Error during dynamic script execution:", e);
+            return { error: e.toString() };
+        }
+    }
+
+    initCopyButtons() {
+        document.querySelectorAll(".copy-btn").forEach(button => {
+            button.onclick = function () {
+                let targetId = this.getAttribute("data-target");
+                let textElement = document.getElementById(targetId);
+                if (textElement) {
+                    navigator.clipboard.writeText(textElement.innerText).then(() => {
+                        this.innerHTML = "✅";
+                        setTimeout(() => {
+                            this.innerHTML = "📋";
+                        }, 1000);
+                    });
+                }
+            };
+        });
+    }
+
+    initCopyAllButton(id, text) {
+        document.querySelectorAll('.' + id).forEach(button => {
+            if (text) {
+                navigator.clipboard.writeText(text);
+                button.innerHTML = "✅";
+                setTimeout(() => {
+                    button.innerHTML = "📋";
+                }, 1000);
+            }
+        });
+    }
+    
 }
 
 class HioHeatmapInterop {
@@ -129,7 +172,7 @@ class HioJsonViewerInterop {
         const selector = `#${CSS.escape(elementId)}`;
         const jsonViewer = document.querySelector(selector);
 
-        if (jsonViewer) {
+        if (jsonViewer && jsonData !== "") {
             jsonViewer.data = JSON.parse(jsonData);
             this.waitForShadowRoot(jsonViewer);
         } else {
@@ -229,3 +272,9 @@ class HioJsonViewerInterop {
 window.hiodotnet = new HioDotnetInterop()
 window.hioheatmap = new HioHeatmapInterop()
 window.hiojsonviewer = new HioJsonViewerInterop()
+
+window.clickOnElement = (element) => {
+    if (element) {
+        element.click();
+    }
+};

@@ -1,384 +1,481 @@
-@using hio_dotnet.Common.Config;
-@using hio_dotnet.Common.Enums;
-@using hio_dotnet.Common.Enums.LoRaWAN;
-@using hio_dotnet.Common.Enums.LTE;
-@using hio_dotnet.UI.BlazorComponents.RadzenLib.Common.Console
-@using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER
-@using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Configs.Common
-@using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Configs.LoRa
-@using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Configs.LTE
-@using hio_dotnet.UI.BlazorComponents.RadzenLib.Common.Buttons
-
-@inject NotificationService NotificationService
-
+﻿@using Services
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.Common.Models
+@using hio_dotnet.Common.Config
+@using hio_dotnet.HWDrivers.MCU
 @page "/"
 
-<PageTitle>Home</PageTitle>
+@inject RemoteConsoleService ConsoleService
+@inject LoadingOverlayService LoadingOverlayService
+@inject DialogService DialogService
+@inject AutomatedCommandsService AutomatedCommandsService
 
-<h1>Hello, world!</h1>
+<LoadingOverlay />
 
-Welcome to your new app.
+<RadzenLayout Style="height: 100%; grid-template-rows: 1fr; grid-template-columns: 1fr auto; grid-template-areas: 'rz-body rz-sidebar'">
+    <RadzenSidebar Style="padding: 5px;">
+        @if (!ConsoleService.IsPPK2Connected)
+        {
+            <RadzenButton Click="OnInitPPK2Handler" Style="margin-top: 5px; width: 100%;">Init PPK2</RadzenButton>
+        }
+        else
+        {
+            <RadzenButton Click="OnInitPPK2Handler" Disabled="true" Style="margin-top: 5px; width: 100%;">Init PPK2</RadzenButton>
+        }
+        <RadzenNumeric @bind-Value=Voltage Min="3300" Max="4000" Style="margin-top: 5px; width: 100%;"></RadzenNumeric>
+        <RadzenButton Click="SetPPK2Voltage" Style="margin-top: 5px; width: 100%;">Set Voltage</RadzenButton>
+        @if (!ConsoleService.IsDeviceOn)
+        {
+            <RadzenButton Click="StartPPK2" Style="margin-top: 5px; width: 100%;">Turn On</RadzenButton>
+        }
+        else
+        {
+            <RadzenButton Click="StopPPK2" Style="margin-top: 5px; width: 100%;">Turn Off</RadzenButton>
+        }
 
-<SearchForChesters @ref=sfcRef/>
+        @if (!ConsoleService.IsConsoleListening)
+        {
+            <RadzenButton Click="OnInitConsoleHandler" Style="margin-top: 5px; width: 100%;">Init Console</RadzenButton>
+            <RadzenButton Click="OnInitConsoleJustJLinkHandler" Style="margin-top: 5px; width: 100%;">Init JLink Only</RadzenButton>
+        }
+        else
+        {
+            <RadzenButton Click="StopListening"  Style="margin-top: 5px; width: 100%;">Stop Listening</RadzenButton>
+        }
 
-    <hr />
+        <RadzenButton Click="SaveShellToFile" Style="margin-top: 5px; width: 100%;">Save Console To File</RadzenButton>
+        <RadzenButton Click="SaveLogToFile" Style="margin-top: 5px; width: 100%;">Save Log To File</RadzenButton>
 
-<ConsoleComponent Output="@consoleOutput" OnSendCommand="@HandleSendCommand" />
+        <CreateRemoteSession SessionId="@ConsoleService.RemoteSessionId" Style="margin-top: 5px; width:100%;" OnCreateRemoteSession="@OnCreateRemoteSessionHanlder" OnCancelRemoteSession="@OnCancelRemoteSessionHanlder" />
+        <ConnectToRemoteSession SessionId="@ConsoleService.RemoteSessionId" Style="margin-top: 5px; width:100%;" OnConnectToRemoteSession="@OnConnectToRemoteSessionHanlder" OnCancelRemoteSession="@OnCancelRemoteSessionHanlder" />
+        @if (ConsoleService.IsConsoleListening)
+        {
+            <RadzenButton Click="LoadCommandsFromDevice" Style="margin-top: 5px; width: 100%;">Load Commands From Device</RadzenButton>
+        }
+        <RadzenButton Click="OpenAutomatedCommandsWindow" Style="margin-top: 5px; width: 100%;">Automated Commands</RadzenButton>
 
-<hr />
+        <RadzenButton Click="LoadFirmware" Style="margin-top: 5px; width: 100%;">Load Firmware</RadzenButton>
 
-<RadzenCard>
-        
-    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Antenna Type</RadzenText>
-    <AntennaTypeSelector Value="@Antenna" ValueChanged="OnAntennaChangedHandler" Align="left" />
+        <RadzenRow Style="margin-top: 5px; width: 100%;">
+            <RadzenColumn>
+                <RadzenStack Orientation="Orientation.Horizontal">
+                    @if (ConsoleService.IsPPK2Connected)
+                    {
+                        <RadzenText Text="PPK Connected" />
+                    }
+                    else 
+                    {
+                        <RadzenText Text="PPK Disconnected" />
+                    }
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow Style="margin-top: 5px; width: 100%;">
+            <RadzenColumn>
+                <RadzenStack Orientation="Orientation.Horizontal">
+                    <RadzenText Text="PPK Voltage: " />
+                    <RadzenText Text="@($"{ConsoleService.DeviceVoltage.ToString()} mV")" />
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+        <hr style="margin-top: 5px; width: 100%;" />
+        <RadzenRow Style="margin-top: 5px; width: 100%;">
+            <RadzenColumn>
+                <RadzenLabel Text="Console Auto Scroll" Component="shellScrollOption" />
+                <RadzenSwitch @bind-Value="isShellScrollingAutomatically" Name="shellScrollOption"/>
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow Style="margin-top: 5px; width: 100%;">
+            <RadzenColumn>
+                <RadzenLabel Text="Log Auto Scroll" Component="logScrollOption" />
+                <RadzenSwitch @bind-Value="isLogScrollingAutomatically" Name="logScrollOption" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow Style="margin-top: 5px; width: 100%;">
+            <RadzenColumn>
+                <RadzenLabel Text="Console Font Size" Component="consoleFontSize" />
+                <RadzenNumeric @bind-Value="ConsoleFontSize" Min="6" Max="24" Step="1" Name="consoleFontSize" />
+            </RadzenColumn>
+        </RadzenRow>
+        <hr style="margin-top: 5px; width: 100%;" />
 
-    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">LoRaWAN Band</RadzenText>
-    <LoRaWANBandSelector Value="@LRWBand" ValueChanged="OnLoRaWANBandChangedHandler" Align="left" />
+    </RadzenSidebar>
+    <RadzenBody>
+        <RadzenRow Style="height: 100%;">
+            <RadzenColumn Style="height: 100%;">
+                <RadzenRow Style="height: 100%;">
+                    <RadzenColumn Style="height: 100%;">
+                        <RadzenSplitter Orientation="Orientation.Vertical" style="height: 100%; border: 1px solid rgba(0,0,0,.08);">
+                            <RadzenSplitterPane Size="100px">
+                                <RadzenSplitter>
+                                    <RadzenSplitterPane Size="50%" Min="30px" Max="70%">
+                                        <ConsoleComponent @ref=consoleComponentRef 
+                                                          TextSize="@ConsoleFontSize" 
+                                                          Output="@ConsoleService.ConsoleOutputShell" 
+                                                          Hints="@Hints"
+                                                          IsSendButtonDisabled="@isDisabled" 
+                                                          OnSendCommand="HandleSendCommand"
+                                                          IsActionPanelVisible = "true"
+                                                          ActionCommandButtonDataList="@ActionCommandButtonDataList"
+                                                          OnActionSendCommandHandler="onSendCommandHandler" />
+                                    </RadzenSplitterPane>
+                                    <RadzenSplitterPane>
+                                        <ConsoleComponent @ref=consoleComponentLogRef TextSize="@ConsoleFontSize" Headline="Log" Output="@ConsoleService.ConsoleOutputLog" HideCommandLine="true" />
+                                    </RadzenSplitterPane>
+                                </RadzenSplitter>
+                            </RadzenSplitterPane>
+                        </RadzenSplitter>
+                    </RadzenColumn>
+                </RadzenRow>
 
-    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">LoRaWAN Mode</RadzenText>
-    <LoRaWANModeSelector Value="@LRWMode" ValueChanged="OnLoRaWANModeChangedHandler" Align="left" />
-
-    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">LoRaWAN Network</RadzenText>
-    <LoRaWANNetworkSelector Value="@LRWNetwork" ValueChanged="OnLoRaWANNetworkChangedHandler" Align="left" />
-
-    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">LoRaWAN Class</RadzenText>
-    <LoRaWANClassSelector Value="@LRWClass" ValueChanged="OnLoRaWANClassChangedHandler" Align="left" />
-    
-    <LoRaWANDevEUI Value="@DevEUI" ValueChanged="OnDevEUIChangedHandler" Align="left" />
-    <LoRaWANAppKey Value="@AppKey" ValueChanged="OnAppKeyChangedHandler" Align="left" />
-    <LoRaWANJoinEUI Value="@JoinEUI" ValueChanged="OnJoinEUIChangedHandler" Align="left" />
-    <LoRaWANDevAddr Value="@DevAddr" ValueChanged="OnDevAddrChangedHandler" Align="left" />
-    <LoRaWANAppSKey Value="@AppSKey" ValueChanged="OnAppSKeyChangedHandler" Align="left" />
-    <LoRaWANNwkSKey Value="@NwkSKey" ValueChanged="OnNwkSKeyChangedHandler" Align="left" />
-
-</RadzenCard>
-
-<RadzenCard>
-    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">LTE Authorization Type</RadzenText>
-    <LTEAuthorizationSelector Value="@LTEAuthorization" ValueChanged="OnLTEAuthChangedHandler" Align="left" />
-
-    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">LTE APN</RadzenText>
-    <RadzenTextBox Placeholder="APN..." @bind-Value="LTEAPN" Style="width: 100%" aria-label="LTE APN" />
-
-    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">LTE Username</RadzenText>
-    <RadzenTextBox Placeholder="Username..." @bind-Value="LTEUsername" Style="width: 100%" aria-label="LTE Username" />
-
-    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">LTE APN</RadzenText>
-    <RadzenPassword @bind-Value="LTEPassword" Style="width: 100%" aria-label="LTE Password" />
-</RadzenCard>
-
-<RadzenCard>
-    <LoRaWANConfigCompleteForm @ref=LRWConfigRef />
-</RadzenCard>
-
-<RadzenCard>
-    <LTEConfigCompleteForm @ref=LTEConfigRef />
-</RadzenCard>
-
-<hr />
-<CopyButton TextToCopy="Hello World :)" ButtonText="Copy Hello World :)" />
-<CopyButton TextToCopy="Hello World Just Icon :)" IsJustIcon="true" />
-
-<EventConsole @ref=@console />
-
-<RadzenRow>
-    <RadzenColumn Width="12">
-        <RadzenButton Text="Show Modal" Click="@ShowModal" />
-    </RadzenColumn>
-</RadzenRow>
-
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenBody>
+</RadzenLayout>
 
 @code {
-    private bool IsModalVisible = false;
-    public string text { get; set; } = string.Empty;
-    public string text1 { get; set; } = "Third Column";
-    public AntennaType Antenna { get; set; } = AntennaType.Internal;
-    public LoRaWANBand LRWBand { get; set; } = LoRaWANBand.EU868;
-    public LoRaWANMode LRWMode { get; set; } = LoRaWANMode.ABP;
-    public LoRaWANNetwork LRWNetwork { get; set; } = LoRaWANNetwork.Public;
-    public LoRaWANClass LRWClass { get; set; } = LoRaWANClass.A;
-    public string DevEUI { get; set; } = "1234567890ABCDEF";
-    public string AppKey { get; set; } = "1234567890ABCDEF1234567890ABCDEF";
-    public string JoinEUI { get; set; } = "1234567890ABCDEF";
-    public string DevAddr { get; set; } = "12345678";
-    public string AppSKey { get; set; } = "1234567890ABCDEF1234567890ABCDEF";
-    public string NwkSKey { get; set; } = "1234567890ABCDEF1234567890ABCDEF";
+    private bool isBusy = false;
+    private bool isDisabled = false;
+    private bool isLogScrollingAutomatically = true;
+    private bool isShellScrollingAutomatically = true;
+    private bool justAppSetting = true;
 
-    public LTEAuthType LTEAuthorization { get; set; } = LTEAuthType.None;
-    public string LTEAPN { get; set; } = "hardwario";
-    public string LTEUsername { get; set; } = "username";
-    public string LTEPassword { get; set; } = "password";
+    private List<string> outputConfig = new List<string>();
+    private List<string> output = new List<string>();
+    ConsoleComponent? consoleComponentRef;
+    ConsoleComponent? consoleComponentLogRef;
 
-    public LoRaWANConfigCompleteForm? LRWConfigRef;
-    public LoRaWANConfig LRWConfig { get; set; } = new LoRaWANConfig();
+    public int ConsoleFontSize { get; set; } = 12;
 
-    public LTEConfigCompleteForm? LTEConfigRef;
-    public LTEConfig LTEConfigData { get; set; } = new LTEConfig();
+    public int Voltage { get; set; } = 3600;
 
-    private List<string> consoleOutput = new List<string>();
+    private List<string> Hints { get; set; } = new List<string>();
 
-    public hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.SearchForChesters? sfcRef;
+    public List<ActionCommandButtonData> ActionCommandButtonDataList { get; set; } = new List<ActionCommandButtonData>()
+    {
+        new ActionCommandButtonData
+        {
+            ButtonText = "Config Show",
+            Commands = new List<string>{ "config show" },
+            IsWithDialog = false,
+            PositionX = 0,
+            PositionY = 0,
+        },
+        new ActionCommandButtonData
+        {
+            ButtonText = "Info Show",
+            Commands = new List<string>{ "info show" },
+            IsWithDialog = false,
+            PositionX = 1,
+            PositionY = 0,
+        },
+        new ActionCommandButtonData
+        {
+            ButtonText = "LTE Params",
+            Commands = new List<string>{
+                "lte imsi",
+                "lte iccid",
+                "lte imei",
+                "lte fw-version"
+            },
+            IsWithDialog = false,
+            PositionX = 2,
+            PositionY = 0,
+        },
+        new ActionCommandButtonData
+        {
+            ButtonText = "Config Save",
+            Commands = new List<string>{ "config save" },
+            IsWithDialog = true,
+            DialogTitle = "Config save and reboot",
+            DialogDescription = "Are you sure you want to send save config command to the MCU? It will perform reboot",
+            PositionX = 0,
+            PositionY = 1,
+        },
+        new ActionCommandButtonData
+        {
+            ButtonText = "Reboot Cold",
+            Commands = new List<string>{ "kernel reboot cold" },
+            IsWithDialog = true,
+            DialogTitle = "Cold Reboot of MCU",
+            DialogDescription = "Are you sure you want to send reboot command to the MCU?",
+            PositionX = 1,
+            PositionY = 1,
+        },
+        new ActionCommandButtonData
+        {
+            ButtonText = "Reboot Warm",
+            Commands = new List<string>{ "kernel reboot warm" },
+            IsWithDialog = true,
+            DialogTitle = "Warm Reboot of MCU",
+            DialogDescription = "Are you sure you want to send reboot command to the MCU?",
+            PositionX = 2,
+            PositionY = 1,
+        }
+    };
+
+
+    protected override void OnInitialized()
+    {
+        ConsoleService.NewRTTMessageLineReceived += NewLineReceived;
+        ConsoleService.OnHintForConsoleRefreshed += (s, e) =>
+        {
+            Hints.AddRange(e.Select(h => h.Command).ToList());
+            Refresh();
+        };
+        ConsoleService.OnIsBusy += (s, e) =>
+        {
+            isBusy = e;
+            LoadingOverlayService.ShowIfBusy(isBusy);
+            Refresh();
+        };
+
+        if (ConsoleService.IsConsoleListening || ConsoleService.RemoteSessionId != Guid.Empty)
+        {
+            isDisabled = false;
+        }
+        else
+        {
+            isDisabled = true;
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await ConsoleService.GetStatuses();
+        if (ConsoleService.IsConsoleListening || ConsoleService.RemoteSessionId != Guid.Empty)
+        {
+            isDisabled = false;
+        }
+        else
+        {
+            isDisabled = true;
+        }
+        await base.OnParametersSetAsync();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await sfcRef?.LoadChesters(new List<string> { "Chester1", "Chester2", "Chester3" });
+            Hints.AddRange(ZephyrRTOSStandardCommands.StandardCommands.Select(c => c.Command).ToList());
+
+            if (consoleComponentRef != null)
+            {
+                consoleComponentRef.MaxHeight = 59;
+                consoleComponentRef.MinHeight = 59;
+            }
+            if (consoleComponentLogRef != null)
+            {
+                consoleComponentLogRef.MaxHeight = 71;
+                consoleComponentLogRef.MinHeight = 71;
+            }
+            await Refresh();
+
+            ConsoleService.OnIsJLinkConnected += (s, e) =>
+            {
+                isDisabled = false;
+                InvokeAsync(StateHasChanged);
+            };
+            ConsoleService.OnIsJLinkDisconnected += (s, e) =>
+            {
+                isDisabled = true;
+                InvokeAsync(StateHasChanged);
+            };
         }
-
-        await base.OnAfterRenderAsync(firstRender);
     }
 
-    EventConsole console;
-    void ShowNotification(NotificationMessage message)
+    public async Task Refresh()
     {
-        NotificationService.Notify(message);
-
-        //console.Log($"{message.Severity} notification");
+        await InvokeAsync(StateHasChanged);
     }
 
-    private void OnAntennaChangedHandler(AntennaType antenna)
+    public async Task OnInitConsoleJustJLinkHandler()
     {
-        Antenna = antenna;
-        ShowNotification(new NotificationMessage 
-            { 
-                Severity = NotificationSeverity.Success, 
-                Summary = "Antenna Type Changed", 
-                Detail = $"New set type of antenna is: {antenna}", 
-                Duration = 4000 
-            });
-
-        console.Log($"Antenna changed to {antenna}");
+        await ConsoleService.StartListening(false);
     }
 
-    private void OnLoRaWANBandChangedHandler(LoRaWANBand band)
+    public async Task OnInitConsoleHandler()
     {
-        LRWBand = band;
-        ShowNotification(new NotificationMessage
+        await ConsoleService.StartListening();
+    }
+
+    public async Task StopListening()
+    {
+        await ConsoleService.StopListening();
+    }
+
+    public async Task OnInitPPK2Handler()
+    {
+        await ConsoleService.FindAndConnectPPK();
+    }
+
+    public async Task SetPPK2Voltage()
+    {
+        await ConsoleService.SetPPK2Voltage(Voltage);
+    }
+
+    public async Task StartPPK2()
+    {
+        await ConsoleService.TurnOnPower();
+    }
+
+    public async Task StopPPK2()
+    {
+        await ConsoleService.TurnOffPower();
+    }
+
+    public void NewLineReceived(object sender, Tuple<string, MultiRTTClientBase> data)
+    {
+        InvokeAsync(async () =>
+        {
+            await InvokeAsync(StateHasChanged);
+            if (isShellScrollingAutomatically && consoleComponentRef != null)
             {
-                Severity = NotificationSeverity.Success,
-                Summary = "LoRaWAN Band Type Changed",
-                Detail = $"New set type of Band is: {band}",
-                Duration = 4000
-            });
-
-        console.Log($"LoRaWAN BAnd changed to {band}");
-    }
-
-    private void OnLoRaWANModeChangedHandler(LoRaWANMode mode)
-    {
-        LRWMode = mode;
-        ShowNotification(new NotificationMessage
+                await consoleComponentRef.Refresh();
+            }
+            if (isLogScrollingAutomatically && consoleComponentLogRef != null)
             {
-                Severity = NotificationSeverity.Success,
-                Summary = "LoRaWAN Mode Type Changed",
-                Detail = $"New set type of Mode is: {mode}",
-                Duration = 4000
-            });
-
-        console.Log($"LoRaWAN Mode changed to {mode}");
-    }
-
-    private void OnLoRaWANNetworkChangedHandler(LoRaWANNetwork network)
-    {
-        LRWNetwork = network;
-        ShowNotification(new NotificationMessage
-            {
-                Severity = NotificationSeverity.Success,
-                Summary = "LoRaWAN Network Type Changed",
-                Detail = $"New set type of Network is: {network}",
-                Duration = 4000
-            });
-
-        console.Log($"LoRaWAN Network changed to {network}");
-    }
-
-    private void OnLoRaWANClassChangedHandler(LoRaWANClass loraClass)
-    {
-        LRWClass = loraClass;
-        ShowNotification(new NotificationMessage
-            {
-                Severity = NotificationSeverity.Success,
-                Summary = "LoRaWAN Class Type Changed",
-                Detail = $"New set type of Class is: {loraClass}",
-                Duration = 4000
-            });
-
-        console.Log($"LoRaWAN Class changed to {loraClass}");
-    } 
-    
-    private void OnDevEUIChangedHandler(string devEUI)
-    {
-        DevEUI = devEUI;
-        ShowNotification(new NotificationMessage
-            {
-                Severity = NotificationSeverity.Success,
-                Summary = "DevEUI Changed",
-                Detail = $"New set DevEUI is: {devEUI}",
-                Duration = 4000
-            });
-
-        console.Log($"DevEUI changed to {devEUI}");
-    }
-
-    private void OnAppKeyChangedHandler(string appKey)
-    {
-        AppKey = appKey;
-        ShowNotification(new NotificationMessage
-            {
-                Severity = NotificationSeverity.Success,
-                Summary = "AppKey Changed",
-                Detail = $"New set AppKey is: {appKey}",
-                Duration = 4000
-            });
-
-        console.Log($"AppKey changed to {appKey}");
-    }
-
-    private void OnJoinEUIChangedHandler(string joinEUI)
-    {
-        JoinEUI = joinEUI;
-        ShowNotification(new NotificationMessage
-            {
-                Severity = NotificationSeverity.Success,
-                Summary = "JoinEUI Changed",
-                Detail = $"New set JoinEUI is: {joinEUI}",
-                Duration = 4000
-            });
-
-        console.Log($"JoinEUI changed to {joinEUI}");
-    }
-
-    private void OnDevAddrChangedHandler(string devAddr)
-    {
-        DevAddr = devAddr;
-        ShowNotification(new NotificationMessage
-            {
-                Severity = NotificationSeverity.Success,
-                Summary = "DevAddr Changed",
-                Detail = $"New set DevAddr is: {devAddr}",
-                Duration = 4000
-            });
-
-        console.Log($"DevAddr changed to {devAddr}");
-    }
-
-    private void OnAppSKeyChangedHandler(string appSKey)
-    {
-        AppSKey = appSKey;
-        ShowNotification(new NotificationMessage
-            {
-                Severity = NotificationSeverity.Success,
-                Summary = "AppSKey Changed",
-                Detail = $"New set AppSKey is: {appSKey}",
-                Duration = 4000
-            });
-
-        console.Log($"AppSKey changed to {appSKey}");
-    }
-
-    private void OnNwkSKeyChangedHandler(string nwkSKey)
-    {
-        NwkSKey = nwkSKey;
-        ShowNotification(new NotificationMessage
-            {
-                Severity = NotificationSeverity.Success,
-                Summary = "NwkSKey Changed",
-                Detail = $"New set NwkSKey is: {nwkSKey}",
-                Duration = 4000
-            });
-
-        console.Log($"NwkSKey changed to {nwkSKey}");
-    }
-
-    private void OnLTEAuthChangedHandler(LTEAuthType lteauth)
-    {
-        LTEAuthorization = lteauth;
-        ShowNotification(new NotificationMessage
-            {
-                Severity = NotificationSeverity.Success,
-                Summary = "LTE Authorization type  Changed",
-                Detail = $"New set type of LTE Authorization is: {lteauth}",
-                Duration = 4000
-            });
-
-        console.Log($"LTE Authorization type changed to {lteauth}");
-    }
-
-    public void ShowModal()
-    {
-        IsModalVisible = true;
-    }
-
-    public void CloseModal()
-    {
-        IsModalVisible = false;
-    }
-
-    public void OKModal()
-    {
-        IsModalVisible = false;
-        text1 = text;
+                await consoleComponentLogRef.Refresh();
+            }
+        });
     }
 
     private async Task HandleSendCommand(string command)
     {
-        if (LRWConfigRef != null)
+        await ConsoleService.SendCommand(command.ToLower().Trim() + "\n");
+    }
+
+    private async Task SaveLogToFile()
+    {
+        await ConsoleService.SaveConsoleLogToFile();
+    }
+
+    private async Task SaveShellToFile()
+    {
+        await ConsoleService.SaveConsoleShellToFile();
+    }
+
+    private async Task onSendCommandHandler(List<string> commands)
+    {
+        foreach(var command in commands)
         {
-            LRWConfig = LRWConfigRef.GetConfig();
-            Console.WriteLine($"LoRaWAN Complete>>>>{LRWConfig.DevAddr}");
+            await ConsoleService.SendCommand(command);
         }
+    }
 
-        if (LTEConfigRef != null)
+    private async Task OnCreateRemoteSessionHanlder(Tuple<string, string> login)
+    {
+        if (await ConsoleService.StartRemoteSession(login.Item1, login.Item2))
         {
-            LTEConfigData = LTEConfigRef.GetConfig();
-            Console.WriteLine($"LoRaWAN Complete>>>>{LTEConfigData.Apn}");
+            isDisabled = false;
+            await InvokeAsync(StateHasChanged);
         }
+        await InvokeAsync(StateHasChanged);
+    }
 
-
-        consoleOutput.Add("> " + command);
-        if (command.Trim().ToLower() == "config show")
+    private async Task OnCancelRemoteSessionHanlder(Guid sessionId)
+    {
+        if (await ConsoleService.StopRemoteWSSession())
         {
-            await Task.Delay(100);
+            if (!ConsoleService.IsConsoleListening)
+                isDisabled = true;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
 
-            var config = new LoRaWANConfig()
-                .WithDevAddr(DevAddr)
-                .WithDevEui(DevEUI)
-                .WithJoinEui(JoinEUI)
-                .WithAppKey(AppKey)
-                .WithAppSKey(AppSKey)
-                .WithNwkSKey(NwkSKey)
-                .WithAntenna(Antenna)
-                .WithBand(LRWBand)
-                .WithMode(LRWMode)
-                .WithNetwork(LRWNetwork)
-                .WithClass(LRWClass)
-                .WithDutyCycle(true)
-                .WithTest(true)
-                .WithAdr(true)
-                .WithDataRate(3);
+    private async Task OnConnectToRemoteSessionHanlder(Guid sessionId)
+    {
+        if (await ConsoleService.ConnectToRemoteSession(sessionId))
+        {
+            isDisabled = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
 
-            var cfg = config.GetWholeConfig();
+    private async Task LoadCommandsFromDevice()
+    {
+        var result = await DialogService.OpenAsync("Load Commands From Device", ds =>
+    @<RadzenStack Gap="1.5rem">
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenText Text="@("Are you sure you want to load commands from device? This might take a while.")" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenLabel Component="jas" Text="Load Just App Setting" />
+                <RadzenCheckBox @bind-Value="justAppSetting" Name="jas" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <RadzenButton Text="Ok" Click="() => ds.Close(true)" Style="width: 80px;" />
+                <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenStack>
+    );
 
-            var lteconfig = new LTEConfig()
-                        .WithApn(LTEAPN)
-                        .WithUsername(LTEUsername)
-                        .WithPassword(LTEPassword)
-                        .WithAuth(LTEAuthorization)
-                        .WithTest(true);   
-
-            var ltecfg = lteconfig.GetWholeConfig();
-
-            // add each line of built cfg to consoleOutput
-            foreach (var line in cfg.Split("\n"))
+        if (result)
+        {
+            if (justAppSetting)
             {
-                consoleOutput.Add(line);
+                await ConsoleService.LoadCommandsFromDevice("app");
             }
-
-            foreach (var line in ltecfg.Split("\n"))
+            else
             {
-                consoleOutput.Add(line);
+                await ConsoleService.LoadCommandsFromDevice();
             }
         }
+    }
+
+    private async Task Execute(string command)
+    {
+        await ConsoleService.SendCommand(command);
+    }
+
+    private async Task OpenAutomatedCommandsWindow()
+    {
+        var result = await DialogService.OpenAsync("Automated Commands", ds =>
+    @<RadzenStack Gap="1.5rem">
+        <RadzenRow>
+            <RadzenColumn>
+                <AutomatedCommands OnCommandExecute="@Execute" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <RadzenButton Text="Close" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenStack>
+    , new DialogOptions() { Resizable = false, Style = "width:40%;" });
+
+    }
+
+    private async Task LoadFirmwareExec(string hash, string filename, DialogService ds)
+    {
+        ds.Close(true);
+        await Task.Delay(1);
+        await ConsoleService.LoadFirmware(hash, filename);
+    }
+
+    private async Task LoadFirmware()
+    {
+        var result = await DialogService.OpenAsync("Automated Commands", ds =>
+    @<RadzenStack Gap="1.5rem">
+        <RadzenRow>
+            <RadzenColumn>
+                <hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Firmware.FirmwareLoader OnRemoteFirmwareLoadedRequested="@(async (h) => await LoadFirmwareExec(h,"", ds))" OnLocalFirmwareLoadedRequested="@(async (f) => await LoadFirmwareExec("",f, ds))" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <RadzenButton Text="Close" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenStack>
+    , new DialogOptions() { Resizable = false, Style = "width:40%;" });
+
     }
 }

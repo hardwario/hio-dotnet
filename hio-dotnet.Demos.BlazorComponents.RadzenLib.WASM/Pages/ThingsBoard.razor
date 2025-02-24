@@ -4,22 +4,11 @@
 @using hio_dotnet.UI.BlazorComponents.RadzenLib.ThingsBoard.Models
 
 @inject ThingsBoardService ThingsBoardService
+@inject LoadingOverlayService LoadingOverlayService
 
 @page "/thingsboard"
 
-<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-    <!-- Loading overlay -->
-    @if (isBusy)
-    {
-        <RadzenCard Style="z-index: 3; text-align: center; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, .5)">
-            <div style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%;">
-                <RadzenProgressBarCircular ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
-                    <Template>Wait</Template>
-                </RadzenProgressBarCircular>
-            </div>
-        </RadzenCard>
-    }
-</RadzenStack>
+<LoadingOverlay />
 
 <RadzenLayout Style="grid-template-rows: 1fr; grid-template-columns: 1fr auto; grid-template-areas: 'rz-body rz-sidebar'">
     <RadzenSidebar Style="padding: 5px;">
@@ -93,12 +82,13 @@
     public async Task OnLoggingInHandler(bool busy)
     {
         isBusy = busy;
+        LoadingOverlayService.ShowIfBusy(isBusy);
     }
 
     public async Task OnLoggedInHandler(bool isLoggedIn)
     {
         isBusy = false;
-
+        LoadingOverlayService.ShowIfBusy(isBusy);
         await ThingsBoardService.GetDevices();
 
         await InvokeAsync(StateHasChanged);

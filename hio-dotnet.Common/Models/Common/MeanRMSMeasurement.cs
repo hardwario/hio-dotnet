@@ -12,34 +12,42 @@ namespace hio_dotnet.Common.Models.Common
     {
         [SimulationAttribute(false)]
         [JsonPropertyName("mean_min")]
-        public double MeanMin { get; set; } = 0.0;
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public double? MeanMin { get; set; } = 0.0;
 
         [SimulationAttribute(false)]
         [JsonPropertyName("mean_max")]
-        public double MeanMax { get; set; } = 0.0;
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public double? MeanMax { get; set; } = 0.0;
 
         [SimulationAttribute(false)]
         [JsonPropertyName("mean_avg")]
-        public double MeanAvg { get; set; } = 0.0;
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public double? MeanAvg { get; set; } = 0.0;
 
         [SimulationAttribute(false)]
         [JsonPropertyName("mean_mdn")]
-        public double MeanMdn { get; set; } = 0.0;
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public double? MeanMdn { get; set; } = 0.0;
 
         [SimulationAttribute(false)]
         [JsonPropertyName("rms_min")]
-        public double RmsMin { get; set; } = 0.0;
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public double? RmsMin { get; set; } = 0.0;
 
         [SimulationAttribute(false)]
         [JsonPropertyName("rms_max")]
-        public double RmsMax { get; set; } = 0.0;
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public double? RmsMax { get; set; } = 0.0;
 
         [SimulationAttribute(false)]
         [JsonPropertyName("rms_avg")]
-        public double RmsAvg { get; set; } = 0.0;
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public double? RmsAvg { get; set; } = 0.0;
 
         [SimulationAttribute(false)]
         [JsonPropertyName("rms_mdn")]
-        public double RmsMdn { get; set; } = 0.0;
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public double? RmsMdn { get; set; } = 0.0;
     }
 }

@@ -8,47 +8,68 @@
 <hr />
 
 <div class="console-container">
+    <button class="@("copy-all-btn_" + id)" @onclick="CopyAllLines">
+        📋
+    </button>
     <RadzenRow>
         <RadzenColumn Width="12">
             <RadzenCard Class="console-card" Style="flex-grow: 1; display: flex; flex-direction: column; background-color: #333;">
-                <div class="console-output" id="@id">
+                <div class="@("console-output_" + id)" id="@id">
                     @for (var i = 0; i < Output.Count; i++)
                     {
                         var line = Output[i];
-                        <p><small style=@GetConsoleTextStyle(line)>@line</small></p>
+                        var lineid = "output_line_" + i.ToString();
+                        <div class="console-line">
+                            <p><small id="@lineid" style=@GetConsoleTextStyle(line)>@line</small></p>
+                            <button class="copy-btn" data-target="@lineid">
+                                📋
+                            </button>
+                        </div>
                     }
                 </div>
             </RadzenCard>
 
+        </RadzenColumn>
+    </RadzenRow>
+
+    <RadzenRow class="chester-actions-panel-container">
+        <RadzenColumn Style="height:auto;">
             @if (!HideCommandLine)
             {
                 <!-- Input area -->
                 <RadzenRow>
-                    <RadzenColumn Width="10">
-                        <RadzenTextBox @ref="commandTextBoxRef" @bind-Value="@command" Placeholder="Type command" Style="width: 100%;" @onkeydown="HandleKeyDown" @onfocus="() => OnCommandLineGotFocus.InvokeAsync()" @onfocusout="() => OnCommandLineLostFocus.InvokeAsync()" />
+                    <RadzenColumn Width="10" style="overflow: visible;">
+                        <RadzenAutoComplete @ref="commandTextBoxRef" @bind-Value=@command Placeholder="Type Command..."
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        Data=@Hints
+                        Style="width: 100%;" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Command" }})"
+                        @onkeydown="HandleKeyDown"
+                        @onfocus="() => OnCommandLineGotFocus.InvokeAsync()"
+                        @onfocusout="() => OnCommandLineLostFocus.InvokeAsync()" />
                     </RadzenColumn>
                     <RadzenColumn Width="2">
                         <RadzenButton Text="Send" Disabled="@IsSendButtonDisabled" Click="SendCommand" Style="width: 100%;" />
                     </RadzenColumn>
                 </RadzenRow>
             }
+            @if (IsActionPanelVisible)
+            {
+                <RadzenRow>
+                    <RadzenColumn>
+                        <hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.CHESTERActionsPanel IsTitleHidden="true" ActionCommandButtonDataList="@ActionCommandButtonDataList" SendCommands="@(async (e) => await OnActionSendCommandHandler.InvokeAsync(e))" />
+                    </RadzenColumn>
+                </RadzenRow>
+            }
         </RadzenColumn>
     </RadzenRow>
-    @if (IsActionPanelVisible)
-    {
-        <RadzenRow>
-            <RadzenColumn>
-                <hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.CHESTERActionsPanel IsTitleHidden="true" ActionCommandButtonDataList="@ActionCommandButtonDataList" SendCommands="@(async (e) => await OnActionSendCommandHandler.InvokeAsync(e))" />
-            </RadzenColumn>
-        </RadzenRow>
-    }
+
 </div>
 
 <style>
     .console-container {
     display: flex;
     flex-direction: column;
-    height: 100vh; /* Adjust as needed */
+    height: 100%; /* Adjust as needed */
     }
 
     .console-card {
@@ -59,12 +80,51 @@
     flex-direction: column;
     }
 
-    .console-output {
+    .console-output_@(id) {
     flex-grow: 1;
     overflow-y: auto;
     min-height: @(GetMinHeight());
     max-height: @(GetMaxHeight());
     }
+
+    .chester-actions-panel-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px; /* Volitelně přidat padding */
+    }
+
+    .console-line {
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    }
+
+    .copy-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 8px;
+    }
+
+    @(".copy-all-btn_" + id) {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.7); /* Poloprůhledná bílá */
+    transition: color 0.3s;
+    }
+
+    @(".copy-all-btn_" + id):hover {
+    color: white;
+    }
+
 </style>
 
 @code {
@@ -74,29 +134,41 @@
     [Parameter] public EventCallback<string> OnCommandLineLostFocus { get; set; }
     [Parameter] public EventCallback<string> OnNewLineReceived { get; set; }
     [Parameter] public List<string> Output { get; set; } = new List<string>();
+    [Parameter] public List<string> Hints { get; set; } = new List<string>();
     [Parameter] public bool HideCommandLine { get; set; } = false;
     [Parameter] public bool IsSendButtonDisabled { get; set; } = false;
     [Parameter] public int TextSize { get; set; } = 8;
     [Parameter] public EventCallback<List<string>> OnActionSendCommandHandler { get; set; }
     [Parameter] public bool IsActionPanelVisible { get; set; } = false;
     [Parameter] public List<ActionCommandButtonData> ActionCommandButtonDataList { get; set; } = new List<ActionCommandButtonData>();
+    [Parameter] public int MinHeight { get; set; } = 59;
+    [Parameter] public int MaxHeight { get; set; } = 59;
 
     private string id = $"{Guid.NewGuid().ToString().Split('-')[0]}_Console";
 
-    public int MinHeight { get; set; } = 500;
-    public int MaxHeight { get; set; } = 500;
+    public int MinHeightDefault { get; } = 59;
+    public int MaxHeightDefault { get; } = 59;
 
-    public int MinHeightDefault { get; } = 500;
-    public int MaxHeightDefault { get; } = 500;
-
-    private string GetMinHeight() => $"{MinHeight}px";
-    private string GetMaxHeight() => $"{MaxHeight}px";
+    private string GetMinHeight() => $"{MinHeight}vh";
+    private string GetMaxHeight() => $"{MaxHeight}vh";
 
     private string command = string.Empty;
     private int historyIndex = -1;
     private List<string> commandHistory = new List<string>();
 
-    private RadzenTextBox? commandTextBoxRef;
+    private RadzenAutoComplete? commandTextBoxRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("hiodotnet.initCopyButtons");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
 
     private string GetConsoleTextStyle(string line)
     {
@@ -173,5 +245,12 @@
         historyIndex = Math.Clamp(historyIndex + direction, -1, commandHistory.Count - 1);
 
         command = historyIndex >= 0 ? commandHistory[historyIndex] : string.Empty;
+    }
+
+    private async Task CopyAllLines()
+    {
+        var textToCopy = string.Join("\n", Output);
+        var idb = ("copy-all-btn_" + id);
+        await JSRuntime.InvokeVoidAsync("hiodotnet.initCopyAllButton", new object[] { idb, textToCopy } );
     }
 }

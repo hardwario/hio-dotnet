@@ -4,7 +4,12 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <_ExtraTrimmerArgs>--keep-metadata parametername</_ExtraTrimmerArgs>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot\zephyr_rtos_commands.txt" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.11" />
@@ -13,11 +18,21 @@
 
   <ItemGroup>
     <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />
+    <ProjectReference Include="..\hio-dotnet.HWDrivers\hio-dotnet.HWDrivers.csproj" />
     <ProjectReference Include="..\hio-dotnet.UI.BlazorComponents.RadzenLib\hio-dotnet.UI.BlazorComponents.RadzenLib.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="wwwroot\zephyr_rtos_commands.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Update="wwwroot\map.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\resources\hw_logo_pos.svg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

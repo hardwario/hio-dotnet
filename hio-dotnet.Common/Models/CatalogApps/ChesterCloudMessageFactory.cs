@@ -83,9 +83,9 @@ namespace hio_dotnet.Common.Models.CatalogApps
                 case DeviceType.FAKE_CHESTER_MOTION:
                     return new ChesterMotionCloudMessage();
                 case DeviceType.CHESTER_DUST:
-                    return new ChesterDustCloudMessage();
+                    return new ChesterDustSps30CloudMessage();
                 case DeviceType.FAKE_CHESTER_DUST:
-                    return new ChesterDustCloudMessage();
+                    return new ChesterDustSps30CloudMessage();
                 default:
                     return null;
             }

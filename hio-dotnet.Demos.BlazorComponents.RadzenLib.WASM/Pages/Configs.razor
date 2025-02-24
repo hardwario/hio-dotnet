@@ -1,0 +1,157 @@
+﻿@using Services
+@using hio_dotnet.HWDrivers.MCU
+
+@page "/configs"
+
+@inject RemoteConsoleService ConsoleService
+@inject LoadingOverlayService LoadingOverlayService
+
+<LoadingOverlay />
+
+<RadzenLayout Style="height: 100%; grid-template-rows: 1fr; grid-template-columns: 1fr auto; grid-template-areas: 'rz-body rz-sidebar'">
+    <RadzenSidebar Style="padding: 5px;">
+
+        @if (!ConsoleService.IsConsoleListening)
+        {
+            <RadzenButton Click="OnInitConsoleHandler" Style="margin-top: 5px; width: 100%;">Init Console</RadzenButton>
+        }
+        else
+        {
+            <RadzenButton Click="OnInitConsoleHandler" Disabled="true" Style="margin-top: 5px; width: 100%;">Init Console</RadzenButton>
+        }
+
+        <RadzenButton Click="LoadConfigFromDevice" Disabled="@isDisabled" Style="margin-top: 5px; width: 100%;">Load Config From Device</RadzenButton>
+
+    </RadzenSidebar>
+    <RadzenBody>
+        <RadzenRow Style="height: 100%;">
+            <RadzenColumn Style="height: 100%;">
+
+                <RadzenRow>
+                    <RadzenColumn>
+                        <hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Configs.LoRa.LoRaWANConfigCompleteForm @ref=LoRaConfigFormRef Config="@ConsoleService.LoRaWANConfig" />
+                    </RadzenColumn>
+                </RadzenRow>
+                <RadzenRow>
+                    <RadzenColumn>
+                        <RadzenButton Disabled="@isDisabled" Click="ApplyLoRaSettings">Apply LoRa Settings</RadzenButton>
+                    </RadzenColumn>
+                </RadzenRow>
+
+            </RadzenColumn>
+            <RadzenColumn Style="height: 100%;">
+
+                <RadzenRow>
+                    <RadzenColumn>
+                        <hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Configs.LTE.LTEConfigCompleteForm @ref=LTEConfigFormRef Config="@ConsoleService.LTEConfig" />
+                    </RadzenColumn>
+                </RadzenRow>
+                <RadzenRow>
+                    <RadzenColumn>
+                        <RadzenButton Disabled="@isDisabled" Click="ApplyLTESettings">Apply LTE Settings</RadzenButton>
+                    </RadzenColumn>
+                </RadzenRow>
+
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenBody>
+</RadzenLayout>
+
+
+@code {
+    private bool isBusy = false;
+    private bool isDisabled = false;
+
+    hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Configs.LoRa.LoRaWANConfigCompleteForm? LoRaConfigFormRef;
+    hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Configs.LTE.LTEConfigCompleteForm? LTEConfigFormRef;
+
+
+    public int Voltage { get; set; } = 3300;
+
+    protected override void OnInitialized()
+    {
+        ConsoleService.NewRTTMessageLineReceived += NewLineReceived;
+        ConsoleService.OnIsBusy += (s, e) =>
+        {
+            isBusy = e;
+            LoadingOverlayService.ShowIfBusy(isBusy);
+            Refresh();
+        };
+
+        ConsoleService.OnIsJLinkConnected += (s, e) =>
+        {
+            isDisabled = false;
+            InvokeAsync(StateHasChanged);
+        };
+        ConsoleService.OnIsJLinkDisconnected += (s, e) =>
+        {
+            isDisabled = true;
+            InvokeAsync(StateHasChanged);
+        };
+
+        if (ConsoleService.IsConsoleListening)
+        {
+            isDisabled = false;
+        }
+        else
+        {
+            isDisabled = true;
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ConsoleService.IsConsoleListening)
+        {
+            isDisabled = false;
+        }
+        else
+        {
+            isDisabled = true;
+        }
+        await base.OnParametersSetAsync();
+    }
+
+    public async Task Refresh()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task OnInitConsoleHandler()
+    {
+        await ConsoleService.StartListening();
+    }
+
+
+    public void NewLineReceived(object sender, Tuple<string, MultiRTTClientBase> data)
+    {
+        if (data?.Item2.Channel == 0)
+        {
+            InvokeAsync(async () =>
+            {
+                await InvokeAsync(StateHasChanged);
+            });
+        }
+    }
+
+    private async Task ApplyLoRaSettings()
+    {
+        await ConsoleService.ApplyLoRaSettings();
+    }
+
+    private async Task ApplyLTESettings()
+    {
+        await ConsoleService.ApplyLTESettings();
+    }
+
+    private async Task HandleSendCommand(string command)
+    {
+        await ConsoleService.SendCommand(command.ToLower().Trim() + "\n");
+    }
+
+    private async Task LoadConfigFromDevice()
+    {
+        await ConsoleService.SendCommand("config show\n");
+    }
+
+}

@@ -2,20 +2,28 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Timers;
+#if LIBSERIALPORT
+using hio_dotnet.LibSerialPort;
+#else
+using System.IO.Ports;
+#endif
 
 namespace hio_dotnet.HWDrivers.PPK2
 {
     public class PPK2_Driver : IDisposable
     {
+#if LIBSERIALPORT
+        private LibSerialPortDriver _serialPort;
+#else
         private SerialPort _serialPort;
+#endif
         private ConcurrentQueue<byte> _dataQueue; // Use ConcurrentQueue for thread-safe access
         private Dictionary<string, Dictionary<string, double>> modifiers;
-        private bool isMeasuring;
+        private bool isMeasuring = false;
         private int vddLow = 800;
         private int vddHigh = 5000;
         private int? currentVdd;
@@ -43,8 +51,35 @@ namespace hio_dotnet.HWDrivers.PPK2
         // Buffer for remainder from previous read, if data is not multiple of 4
         private byte[] remainderBuffer = new byte[0];
 
+#if LIBSERIALPORT
+        public PPK2_Driver(string portName, int baudRate = 9600, SpParity parity = SpParity.SP_PARITY_NONE, int dataBits = 8, SpStopBits stopBits = SpStopBits.SP_STOP_BITS_ONE)
+        {
+            _dataQueue = new ConcurrentQueue<byte>(); // Initialize ConcurrentQueue
+
+            isMeasuring = false;
+            
+            _serialPort = new LibSerialPortDriver();
+            _serialPort.DataReceived += SerialPort_DataReceived; // Attach event handler
+            _serialPort.OpenPort(portName, baudRate, dataBits, parity, stopBits);
+            _serialPort.SetRTS(true);
+            _serialPort.SetDTR(true);
+
+            modifiers = new Dictionary<string, Dictionary<string, double>>()
+            {
+                { "R", new Dictionary<string, double> { { "0", 1031.64 }, { "1", 101.65 }, { "2", 10.15 }, { "3", 0.94 }, { "4", 0.043 } } },
+                { "GS", new Dictionary<string, double> { { "0", 1 }, { "1", 1 }, { "2", 1 }, { "3", 1 }, { "4", 1 } } },
+                { "GI", new Dictionary<string, double> { { "0", 1 }, { "1", 1 }, { "2", 1 }, { "3", 1 }, { "4", 1 } } },
+                { "O", new Dictionary<string, double> { { "0", 0 }, { "1", 0 }, { "2", 0 }, { "3", 0 }, { "4", 0 } } },
+                { "S", new Dictionary<string, double> { { "0", 0 }, { "1", 0 }, { "2", 0 }, { "3", 0 }, { "4", 0 } } },
+                { "I", new Dictionary<string, double> { { "0", 0 }, { "1", 0 }, { "2", 0 }, { "3", 0 }, { "4", 0 } } },
+                { "UG", new Dictionary<string, double> { { "0", 1 }, { "1", 1 }, { "2", 1 }, { "3", 1 }, { "4", 1 } } }
+            };
+        }
+#else
         public PPK2_Driver(string portName, int baudRate = 9600, Parity parity = Parity.None, int dataBits = 8, StopBits stopBits = StopBits.One)
         {
+            _dataQueue = new ConcurrentQueue<byte>(); // Initialize ConcurrentQueue
+
             _serialPort = new SerialPort(portName)
             {
                 BaudRate = 9600, // Dummy value, won't affect USB CDC ACM communication
@@ -59,8 +94,8 @@ namespace hio_dotnet.HWDrivers.PPK2
                 RtsEnable = true
             };
 
-            _serialPort.DataReceived += SerialPort_DataReceived; // Attach event handler
-            _dataQueue = new ConcurrentQueue<byte>(); // Initialize ConcurrentQueue
+            _serialPort.DataReceived += SerialPort_DataReceived;
+
             isMeasuring = false;
             _serialPort.Open();
 
@@ -75,6 +110,7 @@ namespace hio_dotnet.HWDrivers.PPK2
                 { "UG", new Dictionary<string, double> { { "0", 1 }, { "1", 1 }, { "2", 1 }, { "3", 1 }, { "4", 1 } } }
             };
         }
+#endif
 
         private void ResetDevice()
         {
@@ -85,7 +121,11 @@ namespace hio_dotnet.HWDrivers.PPK2
         {
             try
             {
+#if LIBSERIALPORT
+                _serialPort.Write(cmd);
+#else
                 _serialPort.Write(cmd, 0, cmd.Length);
+#endif
                 Console.WriteLine($"Sent command: {BitConverter.ToString(cmd)}");
             }
             catch (Exception ex)
@@ -156,6 +196,28 @@ namespace hio_dotnet.HWDrivers.PPK2
             WriteSerial(new byte[] { PPK2_Command.SET_POWER_MODE, PPK2_Command.AVG_NUM_SET });
         }
 
+#if LIBSERIALPORT
+        private void SerialPort_DataReceived(object sender, byte[] e)
+        {
+            try
+            {
+                if (e.Length > 0)
+                {
+                    foreach (var b in e)
+                    {
+                        _dataQueue.Enqueue(b);
+                    }
+
+                    // Display received data
+                    //Console.WriteLine($"Received Data: {BitConverter.ToString(buffer)}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"An error occurred while receiving data: {ex.Message}");
+            }
+        }
+#else
         private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             try
@@ -166,17 +228,16 @@ namespace hio_dotnet.HWDrivers.PPK2
                 {
                     byte[] buffer = new byte[bytesToRead];
                     int bytesRead = _serialPort.Read(buffer, 0, bytesToRead);
-
                     if (bytesRead > 0)
                     {
                         foreach (var b in buffer)
                         {
                             _dataQueue.Enqueue(b);
                         }
-
-                        // Display received data
-                        //Console.WriteLine($"Received Data: {BitConverter.ToString(buffer)}");
                     }
+
+                    // Display received data
+                    //Console.WriteLine($"Received Data: {BitConverter.ToString(buffer)}");
                 }
             }
             catch (Exception ex)
@@ -184,6 +245,7 @@ namespace hio_dotnet.HWDrivers.PPK2
                 Console.Error.WriteLine($"An error occurred while receiving data: {ex.Message}");
             }
         }
+#endif
 
         /// <summary>
         /// Dequeue data from the SerialPort buffer and return it as a byte array.
