@@ -9,7 +9,7 @@ namespace hio_dotnet.HWDrivers.JLink
 {
     public class JLinkDriver : IRTTDriver, IFWLoader, IDisposable
     {
-        public JLinkDriver(string mcu = "nRF52840_xxAA", int speed = 4000, string serialNumber = "0")
+        public JLinkDriver(string mcu = "nRF52840_xxAA", int speed = 4000, string serialNumber = "0", uint rtt_address = 0)
         {
             if (string.IsNullOrEmpty(mcu))
                 throw new ArgumentException("JLink RTT Driver>> MCU type must be provided.");
@@ -25,6 +25,7 @@ namespace hio_dotnet.HWDrivers.JLink
 
             _mcu = mcu;
             _speed = speed;
+            _rtt_address = rtt_address;
 
             CheckErrorCode(JLink.Open());
 
@@ -45,6 +46,7 @@ namespace hio_dotnet.HWDrivers.JLink
         private string _mcu = "nRF52840_xxAA";
         private int _speed = 4000;
         private uint flashStartAddress = 0x100000;
+        private uint _rtt_address = 0;
 
         private void CheckErrorCode(int errorCode)
         {
@@ -153,7 +155,7 @@ namespace hio_dotnet.HWDrivers.JLink
 
         private void StartRtt()
         {
-            uint data = 0;
+            uint data = _rtt_address;
             LogMessage("Starting RTT...");
             int result = JLink.RTTerminal_Control(JLink.JLINKARM_RTTERMINAL_CMD_START, ref data);
 

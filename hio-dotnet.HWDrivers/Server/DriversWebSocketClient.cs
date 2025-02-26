@@ -261,11 +261,11 @@ namespace hio_dotnet.HWDrivers.Server
             return 0;
         }
 
-        public async Task<string> JLink_Init(bool withPPK2 = true)
+        public async Task<string> JLink_Init(bool withPPK2 = true, string mcu = "nRF52840_xxAA", int speed = 4000, uint rttaddr = 0)
         {
             var request = new DriversWebSocketRequest()
             {
-                Message = $"/api/jlink/init/{withPPK2}",
+                Message = $"/api/jlink/init/{withPPK2}/{mcu}/{speed}/{rttaddr}",
                 Id = Guid.NewGuid()
             };
             var response = await SendApiRequest(request);

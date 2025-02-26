@@ -32,7 +32,7 @@ namespace hio_dotnet.HWDrivers.MCU
 
     public class MCUMultiRTTConsole
     {
-        public MCUMultiRTTConsole(List<MultiRTTClientBase> clients, string mcutype, int speed, string consoleName, string jlinkSN = "0")
+        public MCUMultiRTTConsole(List<MultiRTTClientBase> clients, string mcutype, int speed, string consoleName, string jlinkSN = "0", uint rtt_address = 0)
         {
 
             if (!string.IsNullOrEmpty(consoleName))
@@ -55,7 +55,7 @@ namespace hio_dotnet.HWDrivers.MCU
                 }
                 else if (client.DriverType == RTTDriverType.JLinkRTT)
                 {
-                    var cd = new JLinkDriver(mcutype, speed, jlinkSN);
+                    var cd = new JLinkDriver(mcutype, speed, jlinkSN, rtt_address);
 
                     Clients.TryAdd(client.Name, new MultiRTTClient() 
                     { 

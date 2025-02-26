@@ -237,13 +237,13 @@ namespace hio_dotnet.HWDrivers.Server
             }
         }
 
-        public async Task<string> JLink_Init()
+        public async Task<string> JLink_Init(bool withPPK2 = true, string mcu = "nRF52840_xxAA", int speed = 4000, uint rttaddr = 0)
         {
             using (var httpClient = new HttpClient())
             {
                 httpClient.BaseAddress = new System.Uri(_baseUrl);
 
-                var url = $"/api/jlink/init";
+                var url = $"/api/jlink/init/{withPPK2}/{mcu}/{speed}/{rttaddr}";
 
                 try
                 {

@@ -1,5 +1,6 @@
 ﻿@using Services
 @using hio_dotnet.UI.BlazorComponents.RadzenLib.Common.Models
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Models
 @page "/"
 
 @inject ConsoleService ConsoleService
@@ -11,6 +12,8 @@
 
 <RadzenLayout Style="height: 100%; grid-template-rows: 1fr; grid-template-columns: 1fr auto; grid-template-areas: 'rz-body rz-sidebar'">
     <RadzenSidebar Style="padding: 5px;">
+        
+        <DeviceSelector OnDeviceSelected="OnDeviceSelectedHandler" />
         @if (!ConsoleService.IsPPK2Connected)
         {
             <RadzenButton Click="OnInitPPK2Handler" Style="margin-top: 5px; width: 100%;">Init PPK2</RadzenButton>
@@ -339,6 +342,11 @@
         });
     }
 
+    private async Task OnDeviceSelectedHandler(AvailableDevice device)
+    {
+        await ConsoleService.SetDevice(device);
+    }
+
     private async Task HandleSendCommand(string command)
     {
         await ConsoleService.SendCommand(command.ToLower().Trim() + "\n");
@@ -477,4 +485,6 @@
     , new DialogOptions() { Resizable = false, Style = "width:40%;" });
 
     }
+
+
 }

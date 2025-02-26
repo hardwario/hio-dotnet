@@ -72,10 +72,10 @@ namespace hio_dotnet.HWDrivers.Server
         }
 
         // GET: /api/jlink/init
-        [Route(HttpVerbs.Get, "/jlink/init/{withppk2}")]
-        public async Task<string> JLink_Init(bool withppk2 = true)
+        [Route(HttpVerbs.Get, "/jlink/init/{withppk2}/{mcu}/{speed}/{rttaddr}")]
+        public async Task<string> JLink_Init(bool withppk2 = true, string mcu = "nRF52840_xxAA", int speed = 4000, uint rttaddr = 0)
         {
-            return await DriversServerMainDataContext.DriversCommonController.JLink_Init(withppk2);
+            return await DriversServerMainDataContext.DriversCommonController.JLink_Init(withppk2, mcu, speed, rttaddr);
         }
 
         // GET: /api/jlink/stop

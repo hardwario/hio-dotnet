@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.JSInterop;
 using hio_dotnet.HWDrivers.Server;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
+using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Models;
 
 namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
 {
@@ -61,6 +62,8 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
         public bool IsPPK2Connected { get; set; } = false;
         public bool UseRemoteConnection { get; set; } = false;
         public bool IsHostOfRemoteConnection { get; set; } = false;
+
+        public AvailableDevice SelectedDevice { get; set; } = new AvailableDevice();
 
         public Guid RemoteSessionId { get => remoteWebSocketClient?.SessionId ?? Guid.Empty; }
 
@@ -418,6 +421,15 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             return;
         }
 
+
+        public async Task SetDevice(AvailableDevice device)
+        {
+            if (device != null)
+            {
+                SelectedDevice = device;
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "MCU Selected", Detail = $"{device.MCU} has been selected.", Duration = 3000 });
+            }
+        }
         public async Task StartListening(bool withPPK2 = true)
         {
             OnIsBusy?.Invoke(this, true);
@@ -427,7 +439,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
             {
                 try
                 {
-                    var res = await driversWebSocketClient.JLink_Init(withPPK2);
+                    var res = await driversWebSocketClient.JLink_Init(withPPK2, SelectedDevice.MCU, SelectedDevice.Speed, SelectedDevice.RTTAddress);
                     if (res == "Cannot find any JLinks.")
                     {
                         await ReportError("JLink not found", "Cannot find any JLinks.");
