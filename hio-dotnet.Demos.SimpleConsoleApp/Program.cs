@@ -17,10 +17,13 @@ using hio_dotnet.HWDrivers.Enums;
 using hio_dotnet.HWDrivers.JLink;
 using hio_dotnet.HWDrivers.MCU;
 using hio_dotnet.HWDrivers.PPK2;
+using hio_dotnet.HWDrivers.Server;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -213,7 +216,8 @@ if (JLINK_COMBINED_CONSOLE_TEST)
         {
             new MultiRTTClientBase(){ Channel = 0, DriverType= RTTDriverType.JLinkRTT, Name = "ConfigConsole" },
             new MultiRTTClientBase(){ Channel = 1, DriverType= RTTDriverType.JLinkRTT, Name = "LogConsole" }
-        }, "nRF52840_xxAA", 4000, "mcumulticonsole", devsn);
+        //}, "STM32WLE5CC", 4000, "mcumulticonsole", devsn, 0x20000800); // STICKER
+        }, "nRF52840_xxAA", 4000, "mcumulticonsole", devsn); // CHESTER
 
         // Subscribe to NewRTTMessageLineReceived event to get RTT messages and set output to console
         multiconsole.NewRTTMessageLineReceived += (sender, data) =>
@@ -1469,6 +1473,9 @@ if (GENERATE_TIMESTAMP_DATA)
 
 
 #endregion
+
+Console.WriteLine("Starting...");
+
 
 Console.WriteLine("Program ends. Goodbye");
 Console.WriteLine("\nPress key to quit...");

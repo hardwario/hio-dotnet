@@ -126,16 +126,17 @@ namespace hio_dotnet.HWDrivers.MCU
                                 var lines = message.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
                                 foreach (var line in lines)
                                 {
+                                    var ln = line.Replace("\u001b[0m", "").Replace("\u001b[1m", "").Replace(" \u001b[m","").Replace("\u001b[1;32m","");
                                     var l = new Tuple<string, MultiRTTClientBase>(
-                                        line,
+                                        ln,
                                         new MultiRTTClientBase()
                                         {
                                             Name = client.Name,
                                             Channel = client.Channel,
                                             DriverType = client.DriverType
                                         });
-                                        ReceivedLines.Add(l);
-                                        NewRTTMessageLineReceived?.Invoke(this, l);
+                                    ReceivedLines.Add(l);
+                                    NewRTTMessageLineReceived?.Invoke(this, l);
                                 }
                             }
                         }

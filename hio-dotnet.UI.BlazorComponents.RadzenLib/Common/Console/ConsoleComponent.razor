@@ -202,7 +202,7 @@
             await JSRuntime.InvokeVoidAsync("document.activeElement.blur");
             await SendCommand();
             if (commandTextBoxRef != null)
-                await commandTextBoxRef.Element.FocusAsync();
+                await commandTextBoxRef.FocusAsync();
         }
         else if (e.Key == "ArrowUp")
         {

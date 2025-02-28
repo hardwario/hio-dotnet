@@ -92,7 +92,7 @@ namespace hio_dotnet.HWDrivers.JLink
             }
             catch(Exception ex)
             {
-                Console.WriteLine("JLinkDriver>> Cannot get available JLinks.");
+                Console.WriteLine("JLinkDriver>> Cannot get available JLinks. Error: " + ex.Message);
                 return null;
             }
         }
