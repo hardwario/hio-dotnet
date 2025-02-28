@@ -21,9 +21,12 @@
                         var lineid = "output_line_" + i.ToString();
                         <div class="console-line">
                             <p><small id="@lineid" style=@GetConsoleTextStyle(line)>@line</small></p>
-                            <button class="copy-btn" data-target="@lineid">
-                                📋
-                            </button>
+                            @if (isCopyLinesButtonVisible)
+                            {
+                                <button class="copy-btn" data-target="@lineid">
+                                    📋
+                                </button>
+                            }
                         </div>
                     }
                 </div>
@@ -143,7 +146,15 @@
     [Parameter] public List<ActionCommandButtonData> ActionCommandButtonDataList { get; set; } = new List<ActionCommandButtonData>();
     [Parameter] public int MinHeight { get; set; } = 59;
     [Parameter] public int MaxHeight { get; set; } = 59;
-
+    [Parameter] public bool IsCopyLinesButtonVisible
+    {
+        get => isCopyLinesButtonVisible;
+        set {
+            isCopyLinesButtonVisible = value;
+            StateHasChanged();
+        }
+    }
+    private bool isCopyLinesButtonVisible = true;
     private string id = $"{Guid.NewGuid().ToString().Split('-')[0]}_Console";
 
     public int MinHeightDefault { get; } = 59;
@@ -162,7 +173,8 @@
     {
         try
         {
-            await JSRuntime.InvokeVoidAsync("hiodotnet.initCopyButtons");
+            if (IsCopyLinesButtonVisible)
+                await JSRuntime.InvokeVoidAsync("hiodotnet.initCopyButtons");
         }
         catch (Exception ex)
         {
