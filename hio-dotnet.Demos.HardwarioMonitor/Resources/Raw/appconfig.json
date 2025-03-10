@@ -1,4 +1,15 @@
 {
   "AppName": "Hardwario Monitor",
-  "AppVersion": "0.1.1"
+  "AppVersion": "0.1.26",
+  "ThingsBoardBaseURL": "https://thingsboard.hardwario.com",
+  "ThingsBoardBasePort": 0,
+  "HioCloudBaseURL": "https://hardwario.cloud",
+  "RemoteServerBaseURL": "http://localhost",
+  "RemoteServerBasePort": 8042,
+  "UseDefaultLoginForThingsBoard": false,
+  "DefaultLoginForThingsBoard": "tenant@thingsboard.org",
+  "DefaultPasswordForThingsBoard": "tenant",
+  "UseDefaultLoginForHioCloud": false,
+  "DefaultLoginForHioCloud": "user@email.com",
+  "DefaultPasswordForHioCloud": "pass"
 }

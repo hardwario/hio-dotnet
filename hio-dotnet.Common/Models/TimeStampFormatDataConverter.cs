@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Text.Json.Serialization;
 using System.Collections;
 using System.Text.RegularExpressions;
+using System.Diagnostics.Metrics;
 
 namespace hio_dotnet.Common.Models
 {
@@ -456,9 +457,9 @@ namespace hio_dotnet.Common.Models
                                     if (!string.IsNullOrEmpty(parentName))
                                     {
                                         if (!string.IsNullOrEmpty(prefix))
-                                            prpn = $"{parentName}.{prop.Name}.{prefix}.{subpropname}";
+                                            prpn = $"{parentName}.{propValueName}.{prefix}.{subpropname}";
                                         else
-                                            prpn = $"{parentName}.{prop.Name}.{subpropname}";
+                                            prpn = $"{parentName}.{propValueName}.{subpropname}";
                                     }
                                     else
                                     {
@@ -518,6 +519,77 @@ namespace hio_dotnet.Common.Models
                             }
                         }
 
+                    }
+                    else if (!hasTimestamp && prop.Name == "ButtonStates")
+                    {
+                        var sp = new StringBuilder();
+                        sp.AppendLine($"job.message.body.{propValueName}.map((btn, index) => ({{");
+
+                        // get list items properties
+                        var meas_subprops = prop.PropertyType.GetGenericArguments()[0].GetProperties();
+
+                        var subpropsnames = new Dictionary<string, string>();
+
+                        foreach (var sub in meas_subprops)
+                        {
+                            if (sub.Name != "Timestamp")
+                            {
+                                var subpropjsonPropertyName = sub.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name;
+
+                                var subpropname = $"button_${{index}}.{subpropjsonPropertyName}";
+                                var subpropvalue = $"btn?.{subpropjsonPropertyName}";
+
+                                var prpn = "";
+
+                                if (!string.IsNullOrEmpty(parentName))
+                                {
+                                    prpn = $"{parentName}.{propValueName}.{subpropname}";
+                                }
+                                else
+                                {
+                                    prpn = $"{propValueName}.{subpropname}";
+                                }
+
+                                if (returnJustNames)
+                                {
+                                    yield return prpn;
+                                }
+
+                                if (!subpropsnames.ContainsKey(subpropname))
+                                {
+                                    if (isInTheInclude(prpn))
+                                    {
+                                        subpropsnames.Add(subpropname, subpropvalue);
+                                    }
+                                }
+                            }
+                        }
+
+                        sp.AppendLine($"\tts: sharedtimestamp, ");
+                        sp.AppendLine("\tvalues: {");
+                        var ind = 0;
+                        foreach (var subpropname in subpropsnames)
+                        {
+
+                            if (ind == subpropsnames.Count - 1)
+                                sp.AppendLine($"\t\t[`{subpropname.Key}`]: {subpropname.Value} ");
+                            else
+                                sp.AppendLine($"\t\t[`{subpropname.Key}`]: {subpropname.Value}, ");
+
+                            ind++;
+                        }
+                        sp.AppendLine("\t\t}");
+                        sp.AppendLine("\t})");
+                        sp.AppendLine(").forEach(d => { data.push(d);});");
+
+                        if (subpropsnames.Count > 0)
+                        {
+                            var res = sp.ToString();
+                            if (!returnJustNames)
+                            {
+                                yield return res;
+                            }
+                        }
                     }
                 }
                 // Processing objects

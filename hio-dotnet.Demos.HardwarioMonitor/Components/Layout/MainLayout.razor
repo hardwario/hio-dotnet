@@ -6,6 +6,7 @@
 @inject ThemeService ThemeService
 @inject ConsoleService ConsoleService
 @inject NavigationManager Navigation
+@inject AppService AppService
 @inject IJSRuntime JSRuntime
 
 <RadzenLayout>
@@ -81,6 +82,7 @@
     {
         await JSRuntime.InvokeVoidAsync("toggleThemeStyleSheet", isDark);
         ConsoleService.LoadCommandsFromStatic();
+        AppService.RegisterHioCloudDefaultLogin();
     }
 
     private async Task ToggleTheme()

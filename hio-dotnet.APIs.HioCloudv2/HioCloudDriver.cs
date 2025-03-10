@@ -542,7 +542,8 @@ namespace hio_dotnet.APIs.HioCloud
                                                                          string tag_id = "",
                                                                          DateTime? after = null,
                                                                          DateTime? before = null,
-                                                                         string[]? type = null)
+                                                                         string[]? type = null,
+                                                                         int timeout = 30)
         {
 
             if (!string.IsNullOrEmpty(direction) && !HioCloudMessageDirection.IsMessageDirection(direction))
@@ -588,7 +589,7 @@ namespace hio_dotnet.APIs.HioCloud
                 }
                 else
                 {
-                    url = $"{url}&after=2000-01-01T08:00:00.000Z";
+                    url = $"{url}&after=2016-01-01T08:00:00.000Z";
                 }
 
                 if (before != null)
@@ -598,7 +599,7 @@ namespace hio_dotnet.APIs.HioCloud
 
                 try
                 {
-                    httpClient.Timeout = new TimeSpan(0,0,30);
+                    httpClient.Timeout = new TimeSpan(0,0,timeout);
                     var response = await httpClient.GetAsync(url);
                     var cnt = response.Content.ReadAsStringAsync().Result;
 
