@@ -104,6 +104,13 @@ namespace hio_dotnet.APIs.HioCloud.Models
             SpaceId = spaceid;
             return this;
         }
+        public HioCloudDevice WithLabel(string name, string value)
+        {
+            if (Label == null)
+                Label = new Dictionary<string, string>();
+            Label[name] = value;
+            return this;
+        }
 
         public static string GenerateClaimToken()
         {
@@ -114,6 +121,39 @@ namespace hio_dotnet.APIs.HioCloud.Models
             }
 
             return BitConverter.ToString(randomNumber).Replace("-", string.Empty).ToLower();
+        }
+
+        public string GetLabelByName(string name)
+        {
+            if (Label == null)
+                return string.Empty;
+            if (Label.ContainsKey(name))
+                return Label[name];
+            return string.Empty;
+        }
+
+        public bool HasLabel(string name)
+        {
+            if (Label == null)
+                return false;
+            if (Label.ContainsKey(name))
+                return true;
+            return false;
+        }
+
+        public void AddLabel(string name, string value)
+        {
+            if (Label == null)
+                Label = new Dictionary<string, string>();
+            Label[name] = value;
+        }
+
+        public void RemoveLabel(string name)
+        {
+            if (Label == null)
+                return;
+            if (Label.ContainsKey(name))
+                Label.Remove(name);
         }
 
     }

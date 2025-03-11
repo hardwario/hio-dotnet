@@ -423,7 +423,7 @@ namespace hio_dotnet.Common.Models
                     else if (!hasTimestamp && subprops.Any(x => x.Name == "Measurements"))
                     {
                         var sp = new StringBuilder();
-                        sp.AppendLine($"job.message.body.{propValueName}.flatMap(probe =>");
+                        sp.AppendLine($"job.message.body.{propValueName}?.flatMap(probe =>");
                         sp.AppendLine($"probe.measurements.map(measurement => ({{");
 
                         var prefix = "";
@@ -449,7 +449,7 @@ namespace hio_dotnet.Common.Models
                                 {
                                     var subpropjsonPropertyName = sub.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name;
 
-                                    var subpropname = $"measurement.{subpropjsonPropertyName}";
+                                    var subpropname = $"{propValueName}_measurement.{subpropjsonPropertyName}";
                                     var subpropvalue = $"measurement?.{subpropjsonPropertyName}";
 
                                     var prpn = "";
@@ -523,7 +523,7 @@ namespace hio_dotnet.Common.Models
                     else if (!hasTimestamp && prop.Name == "ButtonStates")
                     {
                         var sp = new StringBuilder();
-                        sp.AppendLine($"job.message.body.{propValueName}.map((btn, index) => ({{");
+                        sp.AppendLine($"job.message.body.{propValueName}?.map((btn, index) => ({{");
 
                         // get list items properties
                         var meas_subprops = prop.PropertyType.GetGenericArguments()[0].GetProperties();

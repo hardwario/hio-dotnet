@@ -475,23 +475,41 @@ namespace hio_dotnet.APIs.HioCloud
             }
         }
 
+        public async Task<HioCloudDevice?> AddDeviceLabel(Guid space_id, Guid device_id, HioCloudDevice device, string labelname, string labelvalue)
+        {
+            var devupdate = new HioCloudDeviceUpdateRequest()
+            {
+                Comment = device.Comment,
+                Name = device.Name,
+                Label = device.Label,
+                Tags = device.Tags
+            };
+
+            if (devupdate.Label == null)
+                devupdate.Label = new Dictionary<string, string>();
+
+            devupdate.Label.Add(labelname, labelvalue);
+
+            return await UpdateDevice(space_id, device_id, devupdate);
+        }
+
         #endregion
 
-        #region Messages
+            #region Messages
 
-        /// <summary>
-        /// Return All messages between two dates
-        /// It solves paging because API offers max 100 messages at a time
-        /// There is 500ms delay to prevent API rate limiting
-        /// There is max messages count limit default to 5000
-        /// </summary>
-        /// <param name="space_id"></param>
-        /// <param name="device_id"></param>
-        /// <param name="after"></param>
-        /// <param name="before"></param>
-        /// <param name="delay"></param>
-        /// <param name="maxmessages"></param>
-        /// <returns></returns>
+            /// <summary>
+            /// Return All messages between two dates
+            /// It solves paging because API offers max 100 messages at a time
+            /// There is 500ms delay to prevent API rate limiting
+            /// There is max messages count limit default to 5000
+            /// </summary>
+            /// <param name="space_id"></param>
+            /// <param name="device_id"></param>
+            /// <param name="after"></param>
+            /// <param name="before"></param>
+            /// <param name="delay"></param>
+            /// <param name="maxmessages"></param>
+            /// <returns></returns>
         public async Task <List<HioCloudMessage>> GetAllMessagesBetweenDates(Guid space_id, Guid device_id, DateTime after, DateTime before, int delay = 500, int maxmessages = 5000)
         {
             var allmessages = new List<HioCloudMessage>();
