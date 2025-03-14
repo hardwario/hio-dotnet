@@ -1,4 +1,5 @@
-[![Test Status](https://github.com/hardwario/hio-dotnet/actions/workflows/dotnet.yml/badge.svg)](https://github.com/username/hio-dotnet/actions)
+[![Test Status](https://github.com/hardwario/hio-dotnet/actions/workflows/dotnet.yml/badge.svg)](https://github.com/hardwario/hio-dotnet/actions)
+[![License](https://img.shields.io/github/license/hardwario/hio-dotnet.svg)](https://github.com/hardwario/hio-dotnet/blob/main/LICENSE)
 
 # HARDWARIO .NET SDK
 
@@ -6,9 +7,11 @@ HARDWARIO .NET SDK project is here to help you with creating your custom applica
 
 This SDK focuses to .NET C# developers mainly, but thanks to the simplicity and readibility of the C# it can help to programmers who uses different languages as well. 
 
-SDK consists of several libraries and example projects which will be described below. 
+SDK consists of several libraries and example projects which will be described below. Here is screenshot of one of the example application you can find in this SDK:
 
-Please note that HARDWARIO .NET SDK is still under the development. We are happy to receive tips and bugreports if you would like to help us.
+![HIO-Monitor-new-netsdk](https://github.com/user-attachments/assets/bd5cae44-438c-4fa2-9a4f-ea31187dcb5e)
+
+*Please note that HARDWARIO .NET SDK is still under the development. We are happy to receive tips and bugreports if you would like to help us.*
 
 ## Requirements
 
@@ -67,6 +70,8 @@ There are multiple projects in the solution:
 - [hio-dotnet.Demos.HardwarioManager](./hio-dotnet.Demos.HardwarioManager/) - Example MAUI Blazor Hybrid App for phones which can search for and connect to [CHESTER]() device and communicate with it
 - [hio-dotnet.Demos.HardwarioMonitor](./hio-dotnet.Demos.HardwarioMonitor/) - Example MAUI Blazor Hybrid App for desktop which can search and connect [SEGGER JLink programmer](https://www.segger.com/downloads/jlink/), [Nordic Semiconductor Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2) and connect the CHESTER device.
 - [hio-dotnet.Demos.SimpleConsoleApp](./hio-dotnet.Demos.SimpleConsoleApp/) - Simple console application with examples of using parts of the HARDWARIO .NET SDK.
+- [hio-dotnet.Demos.SimpleDriversServer](./hio-dotnet.Demos.SimpleDriversServer/) - Simple backend server with HW related drivers
+- [hio-dotnet.Demos.WSSessionServer](./hio-dotnet.Demos.WSSessionServer) - Server that creates sessions and transfer data for remote acess of shell for HARDWARIO Monitor
 
 ### APIs
 
@@ -87,6 +92,7 @@ There are two basic UI Components library project in the HARDWARIO .NET SKD. One
 - [hio-dotnet.Common](./hio-dotnet.Common/) - basic models, helpers and classes usefull across all other projects, this project includes models of all [CHESTER Catalog Applications](https://www.hardwario.com/chester/catalog-applications) output data models and other usefull classes.
 - [hio-dotnet.HWDrivers](./hio-dotnet.HWDrivers/) - hardware dependent drivers such as [SEGGER JLink](https://www.segger.com/downloads/jlink/) and [Nordic Semiconductors Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2)
 - [hio-dotnet.PhoneDrivers](./hio-dotnet.PhoneDrivers/) - library with phone dependend drivers such as Bluetooth Low Energy driver.
+- [hio-dotnet.LibSerialPort](./hio-dotnet.LibSerialPort) - wrapper for LibSerialPort.
 
 ### Test project
 
@@ -94,7 +100,7 @@ There are two basic UI Components library project in the HARDWARIO .NET SKD. One
 
 ## License
 
-This project is under standard MIT license.
+This project is under standard [MIT license](./LICENSE).
 
 ## Contribution
 
@@ -104,6 +110,6 @@ We welcome any contribution to the project. There are multiple ways how to contr
 - Improving the library with pull requests
 - Bringing ideas for new features
 
-## Do you need help?
+## Do you need help or training?
 
 If you need help please feel free to contact us via [form on our website](https://www.hardwario.com/contact).
