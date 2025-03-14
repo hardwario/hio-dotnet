@@ -81,6 +81,10 @@ namespace hio_dotnet.HWDrivers.JLink
             Console.WriteLine($"[LOG] {message}");
         }
 
+        /// <summary>
+        /// Get all connected JLinks
+        /// </summary>
+        /// <returns></returns>
         public static JLINKARM_EMU_CONNECT_INFO[]? GetConnectedJLinks()
         {
             try
@@ -97,6 +101,10 @@ namespace hio_dotnet.HWDrivers.JLink
             }
         }
 
+        /// <summary>
+        /// Reconnect to JLink
+        /// It is helpful after the firmware update
+        /// </summary>
         public void ReconnectJLink()
         {
             //JLink.Close();
@@ -283,6 +291,9 @@ namespace hio_dotnet.HWDrivers.JLink
 
         #region ClosingConnection
 
+        /// <summary>
+        /// Close JLink connection
+        /// </summary>
         public void Close()
         {
             if (IsConnected)
@@ -292,6 +303,9 @@ namespace hio_dotnet.HWDrivers.JLink
             }
         }
 
+        /// <summary>
+        /// Dispose JLink connection
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);

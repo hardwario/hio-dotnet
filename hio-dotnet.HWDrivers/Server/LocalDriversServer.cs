@@ -62,7 +62,7 @@ namespace hio_dotnet.HWDrivers.Server
             return RunServer();
         }
 
-        public Task CheckJLinkTask()
+        private Task CheckJLinkTask()
         {
             return Task.Run(async () =>
             {

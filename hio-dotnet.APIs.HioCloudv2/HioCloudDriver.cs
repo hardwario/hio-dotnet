@@ -80,6 +80,13 @@ namespace hio_dotnet.APIs.HioCloud
         private string _apitoken = string.Empty;
         private bool _useapitoken = false;
 
+        /// <summary>
+        /// This method is used to obtain JWT token from Hardwario Cloud.
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public async Task<string?> Login(string username, string password)
         {
             if (string.IsNullOrEmpty(username))
@@ -94,7 +101,7 @@ namespace hio_dotnet.APIs.HioCloud
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Cannot obtain JWT token from ThingsBoard. Error: " + ex.Message);
+                Console.WriteLine("Cannot obtain JWT token from Hardwario Cloud. Error: " + ex.Message);
                 return null;
             }
         }
@@ -440,6 +447,14 @@ namespace hio_dotnet.APIs.HioCloud
             }
         }
 
+        /// <summary>
+        /// Update device in cloud
+        /// </summary>
+        /// <param name="space_id"></param>
+        /// <param name="device_id"></param>
+        /// <param name="devupdate"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task<HioCloudDevice?> UpdateDevice(Guid space_id, Guid device_id, HioCloudDeviceUpdateRequest devupdate)
         {
             using (var httpClient = GetHioClient())
@@ -475,6 +490,15 @@ namespace hio_dotnet.APIs.HioCloud
             }
         }
 
+        /// <summary>
+        /// Add Label to the device
+        /// </summary>
+        /// <param name="space_id"></param>
+        /// <param name="device_id"></param>
+        /// <param name="device"></param>
+        /// <param name="labelname"></param>
+        /// <param name="labelvalue"></param>
+        /// <returns></returns>
         public async Task<HioCloudDevice?> AddDeviceLabel(Guid space_id, Guid device_id, HioCloudDevice device, string labelname, string labelvalue)
         {
             var devupdate = new HioCloudDeviceUpdateRequest()

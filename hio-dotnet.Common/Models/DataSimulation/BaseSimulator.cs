@@ -16,6 +16,13 @@ namespace hio_dotnet.Common.Models.DataSimulation
 {
     public class BaseSimulator
     {
+        /// <summary>
+        /// This function will fill the object with the simulated data and common 'static' random data such as FW version, device name etc.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="previousObj"></param>
+        /// <param name="forceTimestamp"></param>
+        /// <param name="timestamp"></param>
         public static void GetSimulatedData(object obj, object? previousObj = null, bool forceTimestamp = false, long timestamp = 0)
         {
             if (!forceTimestamp)
@@ -30,6 +37,13 @@ namespace hio_dotnet.Common.Models.DataSimulation
             FillCommonStatics(obj, previousObj);
         }
 
+        /// <summary>
+        /// This function will fill the object with the simulated data.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="previousObj"></param>
+        /// <param name="forceTimestamp"></param>
+        /// <param name="timestamp"></param>
         public static void Simulate(object obj, object? previousObj = null, bool forceTimestamp = false, long timestamp = 0)
         {
             var properties = obj.GetType().GetProperties();

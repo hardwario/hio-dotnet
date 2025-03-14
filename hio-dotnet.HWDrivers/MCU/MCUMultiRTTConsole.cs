@@ -230,6 +230,12 @@ namespace hio_dotnet.HWDrivers.MCU
             //});
         }
 
+        /// <summary>
+        /// Function will automatically iterate via device shell help and capture all commands and subcommands
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="channel"></param>
+        /// <returns></returns>
         public async Task<List<ZephyrRTOSCommand>> LoadCommandsFromDeviceHelp(string parent, int channel)
         {
             var client = Clients.Values.FirstOrDefault(x => x.Channel == channel);
@@ -409,6 +415,9 @@ namespace hio_dotnet.HWDrivers.MCU
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Close all connections
+        /// </summary>
         public void CloseAll()
         {
             foreach (var client in Clients.Values)
