@@ -22,7 +22,8 @@ namespace hio_dotnet.APIs.Wmbusmeters.Models
         public string Media { get; set; } = string.Empty;
 
         [JsonPropertyName("timestamp")]
-        public DateTime Timestamp { get; set; } = DateTime.MinValue;
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public DateTime? Timestamp { get; set; }
 
     }
 }
