@@ -1,13 +1,13 @@
 ﻿@using Models
 
 <RadzenDropDown TValue="string"
-Data="@AvailableDevices.Devices"
-Placeholder="Select Device"
-TextProperty="Name"
-ValueProperty="Name"
-Value="SelectedDeviceName"
-ValueChanged="@OnDeviceSelectedHandler"
-Style="width: 300px;">
+    Data="@AvailableDevices.Devices"
+    Placeholder="Select Device"
+    TextProperty="Name"
+    ValueProperty="Name"
+    Value="SelectedDeviceName"
+    ValueChanged="@OnDeviceSelectedHandler"
+    class="sidebar-dropdown">
 </RadzenDropDown>
 
 @code {

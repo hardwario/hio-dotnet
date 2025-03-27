@@ -11,78 +11,79 @@
 <LoadingOverlay />
 
 <RadzenLayout Style="height: 100%; grid-template-rows: 1fr; grid-template-columns: 1fr auto; grid-template-areas: 'rz-body rz-sidebar'">
-    <RadzenSidebar Style="padding: 5px;">
-        
-        <DeviceSelector OnDeviceSelected="OnDeviceSelectedHandler" />
-        @if (!ConsoleService.IsPPK2Connected)
-        {
-            <RadzenButton Click="OnInitPPK2Handler" Style="margin-top: 5px; width: 100%;">Init PPK2</RadzenButton>
-        }
-        else
-        {
-            <RadzenButton Click="OnInitPPK2Handler" Disabled="true" Style="margin-top: 5px; width: 100%;">Init PPK2</RadzenButton>
-        }
-        <RadzenNumeric @bind-Value=Voltage Min="3300" Max="4000" Style="margin-top: 5px; width: 100%;"></RadzenNumeric>
-        <RadzenButton Click="SetPPK2Voltage" Style="margin-top: 5px; width: 100%;">Set Voltage</RadzenButton>
-        @if (!ConsoleService.IsDeviceOn)
-        {
-            <RadzenButton Click="StartPPK2" Style="margin-top: 5px; width: 100%;">Turn On</RadzenButton>
-        }
-        else
-        {
-            <RadzenButton Click="StopPPK2" Style="margin-top: 5px; width: 100%;">Turn Off</RadzenButton>
-        }
+    <RadzenSidebar Style="padding: 15px;">
 
-        @if (!ConsoleService.IsConsoleListening)
-        {
-            <RadzenButton Click="OnInitConsoleHandler" Style="margin-top: 5px; width: 100%;">Init Console</RadzenButton>
-            <RadzenButton Click="OnInitConsoleJustJLinkHandler" Style="margin-top: 5px; width: 100%;">Init JLink Only</RadzenButton>
-        }
-        else
-        {
-            <RadzenButton Click="StopListening"  Style="margin-top: 5px; width: 100%;">Stop Listening</RadzenButton>
-        }
+        <DeviceSelector OnDeviceSelected="OnDeviceSelectedHandler" />
+
+        <div style="margin-top: 16px; margin-bottom: 32px;">
+            <div style="display: flex;
+                    align-items:center;
+                    column-gap: 8px">
+
+                <RadzenNumeric ShowUpDown="false" class="voltage-input" @bind-Value=Voltage Min="3300" Max="4000"></RadzenNumeric>
+                <RadzenButton Click="SetPPK2Voltage" class="set-voltage-button">SET</RadzenButton>
+            </div>
+            <div style="display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-top: 16px">
+                <label>
+                    TURN VOLTAGE ON/OFF
+                </label>
+                <RadzenSwitch @bind-Value="@ConsoleService.IsDeviceOn" Change="@SwitchPPK2" />
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <h5 class="sidebar-heading">
+                Initialization
+            </h5>
+            @if (!ConsoleService.IsPPK2Connected)
+            {
+                <RadzenButton Click="OnInitPPK2Handler" Style="margin-top: 5px; width: 100%;">Init PPK2</RadzenButton>
+            }
+            else
+            {
+                <RadzenButton Click="OnInitPPK2Handler" Disabled="true" Style="margin-top: 5px; width: 100%; background-color: antiquewhite;">Init PPK2</RadzenButton>
+            }
+            @if (!ConsoleService.IsConsoleListening)
+            {
+                <RadzenButton Click="OnInitConsoleHandler" Style="margin-top: 5px; width: 100%;">Init Console</RadzenButton>
+                <RadzenButton Click="OnInitConsoleJustJLinkHandler" Style="margin-top: 5px; width: 100%;">Init JLink Only</RadzenButton>
+            }
+            else
+            {
+                <RadzenButton Click="StopListening" Style="margin-top: 5px; width: 100%;">Stop Listening</RadzenButton>
+            }
+        </div>
 
         <RadzenButton Click="SaveShellToFile" Style="margin-top: 5px; width: 100%;">Save Console To File</RadzenButton>
         <RadzenButton Click="SaveLogToFile" Style="margin-top: 5px; width: 100%;">Save Log To File</RadzenButton>
 
-        <CreateRemoteSession SessionId="@ConsoleService.RemoteSessionId" Style="margin-top: 5px; width:100%;" OnCreateRemoteSession="@OnCreateRemoteSessionHanlder" OnCancelRemoteSession="@OnCancelRemoteSessionHanlder" />
-        <ConnectToRemoteSession SessionId="@ConsoleService.RemoteSessionId" Style="margin-top: 5px; width:100%;" OnConnectToRemoteSession="@OnConnectToRemoteSessionHanlder" OnCancelRemoteSession="@OnCancelRemoteSessionHanlder" />
-        @if (ConsoleService.IsConsoleListening)
-        {
-            <RadzenButton Click="LoadCommandsFromDevice" Style="margin-top: 5px; width: 100%;">Load Commands From Device</RadzenButton>
-        }
-        <RadzenButton Click="OpenAutomatedCommandsWindow" Style="margin-top: 5px; width: 100%;">Automated Commands</RadzenButton>
+        <div class="sidebar-section">
+            <h5 class="sidebar-heading">
+                Session
+            </h5>
+            <CreateRemoteSession SessionId="@ConsoleService.RemoteSessionId" Style="margin-top: 5px; width:100%;" OnCreateRemoteSession="@OnCreateRemoteSessionHanlder" OnCancelRemoteSession="@OnCancelRemoteSessionHanlder" />
+            <ConnectToRemoteSession SessionId="@ConsoleService.RemoteSessionId" Style="margin-top: 5px; width:100%;" OnConnectToRemoteSession="@OnConnectToRemoteSessionHanlder" OnCancelRemoteSession="@OnCancelRemoteSessionHanlder" />
+        </div>
 
-        <RadzenButton Click="LoadFirmware" Style="margin-top: 5px; width: 100%;">Load Firmware</RadzenButton>
+        <div class="sidebar-section">
+            <h5 class="sidebar-heading">
+                Other
+            </h5>
+            @if (ConsoleService.IsConsoleListening)
+            {
+                <RadzenButton Click="LoadCommandsFromDevice" Style="margin-top: 5px; width: 100%;">Load Commands From Device</RadzenButton>
+            }
+            <RadzenButton Click="OpenAutomatedCommandsWindow" Style="margin-top: 5px; width: 100%;">Automated Commands</RadzenButton>
 
-        <RadzenRow Style="margin-top: 5px; width: 100%;">
-            <RadzenColumn>
-                <RadzenStack Orientation="Orientation.Horizontal">
-                    @if (ConsoleService.IsPPK2Connected)
-                    {
-                        <RadzenText Text="PPK Connected" />
-                    }
-                    else 
-                    {
-                        <RadzenText Text="PPK Disconnected" />
-                    }
-                </RadzenStack>
-            </RadzenColumn>
-        </RadzenRow>
-        <RadzenRow Style="margin-top: 5px; width: 100%;">
-            <RadzenColumn>
-                <RadzenStack Orientation="Orientation.Horizontal">
-                    <RadzenText Text="PPK Voltage: " />
-                    <RadzenText Text="@($"{ConsoleService.DeviceVoltage.ToString()} mV")" />
-                </RadzenStack>
-            </RadzenColumn>
-        </RadzenRow>
-        <hr style="margin-top: 5px; width: 100%;" />
+            <RadzenButton Click="LoadFirmware" Style="margin-top: 5px; width: 100%;">Load Firmware</RadzenButton>
+        </div>
         <RadzenRow Style="margin-top: 5px; width: 100%;">
             <RadzenColumn>
                 <RadzenLabel Text="Console Auto Scroll" Component="shellScrollOption" />
-                <RadzenSwitch @bind-Value="isShellScrollingAutomatically" Name="shellScrollOption"/>
+                <RadzenSwitch @bind-Value="isShellScrollingAutomatically" Name="shellScrollOption" />
             </RadzenColumn>
         </RadzenRow>
         <RadzenRow Style="margin-top: 5px; width: 100%;">
@@ -103,9 +104,6 @@
                 <RadzenCheckBox @bind-Value="isCopyLinesButtonVisible" TValue="bool" />
             </RadzenColumn>
         </RadzenRow>
-
-        <hr style="margin-top: 5px; width: 100%;" />
-
     </RadzenSidebar>
     <RadzenBody Style="padding:5px;height: 100%;">
         <RadzenRow Style="height: 100%;">
@@ -117,23 +115,23 @@
                                 <RadzenSplitter>
                                     <RadzenSplitterPane Size="50%" Min="30px" Max="70%">
                                         <ConsoleComponent @ref=consoleComponentRef
-                                                          IsCopyLinesButtonVisible="@isCopyLinesButtonVisible"
-                                                          TextSize="@ConsoleFontSize" 
-                                                          Output="@ConsoleService.ConsoleOutputShell" 
-                                                          Hints ="@Hints"
-                                                          IsSendButtonDisabled="@isDisabled" 
-                                                          OnSendCommand="HandleSendCommand"
-                                                          IsActionPanelVisible = "true"
-                                                          ActionCommandButtonDataList="@ActionCommandButtonDataList"
-                                                          OnActionSendCommandHandler="onSendCommandHandler" />
+                                        IsCopyLinesButtonVisible="@isCopyLinesButtonVisible"
+                                        TextSize="@ConsoleFontSize"
+                                        Output="@ConsoleService.ConsoleOutputShell"
+                                        Hints="@Hints"
+                                        IsSendButtonDisabled="@isDisabled"
+                                        OnSendCommand="HandleSendCommand"
+                                        IsActionPanelVisible="true"
+                                        ActionCommandButtonDataList="@ActionCommandButtonDataList"
+                                        OnActionSendCommandHandler="onSendCommandHandler" />
                                     </RadzenSplitterPane>
                                     <RadzenSplitterPane>
-                                        <ConsoleComponent @ref=consoleComponentLogRef 
-                                                          IsCopyLinesButtonVisible="@isCopyLinesButtonVisible"
-                                                          TextSize="@ConsoleFontSize" 
-                                                          Headline="Log" 
-                                                          Output="@ConsoleService.ConsoleOutputLog" 
-                                                          HideCommandLine="true" />
+                                        <ConsoleComponent @ref=consoleComponentLogRef
+                                        IsCopyLinesButtonVisible="@isCopyLinesButtonVisible"
+                                        TextSize="@ConsoleFontSize"
+                                        Headline="Log"
+                                        Output="@ConsoleService.ConsoleOutputLog"
+                                        HideCommandLine="true" />
                                     </RadzenSplitterPane>
                                 </RadzenSplitter>
                             </RadzenSplitterPane>
@@ -165,7 +163,7 @@
     private List<string> Hints = new List<string>();
 
     public List<ActionCommandButtonData> ActionCommandButtonDataList { get; set; } = new List<ActionCommandButtonData>()
-    {
+        {
         new ActionCommandButtonData
         {
             ButtonText = "Config Show",
@@ -225,7 +223,7 @@
             PositionX = 2,
             PositionY = 1,
         }
-    };
+        };
 
 
     protected override void OnInitialized()
@@ -233,16 +231,16 @@
         ConsoleService.InitArrays();
         ConsoleService.NewRTTMessageLineReceived += NewLineReceived;
         ConsoleService.OnHintForConsoleRefreshed += (s, e) =>
-        {
-            Hints.AddRange(e.Select(h => h.Command).ToList());
-            Refresh();
-        };
+    {
+        Hints.AddRange(e.Select(h => h.Command).ToList());
+        Refresh();
+    };
         ConsoleService.OnIsBusy += (s, e) =>
-        {
-            isBusy = e;
-            LoadingOverlayService.ShowIfBusy(isBusy);
-            Refresh();
-        };
+    {
+        isBusy = e;
+        LoadingOverlayService.ShowIfBusy(isBusy);
+        Refresh();
+    };
 
         if (ConsoleService.IsConsoleListening || ConsoleService.RemoteSessionId != Guid.Empty)
         {
@@ -285,15 +283,15 @@
             await Refresh();
 
             ConsoleService.OnIsJLinkConnected += (s, e) =>
-            {
-                isDisabled = false;
-                InvokeAsync(StateHasChanged);
-            };
+        {
+            isDisabled = false;
+            InvokeAsync(StateHasChanged);
+        };
             ConsoleService.OnIsJLinkDisconnected += (s, e) =>
-            {
-                isDisabled = true;
-                InvokeAsync(StateHasChanged);
-            };
+        {
+            isDisabled = true;
+            InvokeAsync(StateHasChanged);
+        };
         }
     }
 
@@ -326,30 +324,32 @@
         await ConsoleService.SetPPK2Voltage(Voltage);
     }
 
-    public async Task StartPPK2()
+    public async Task SwitchPPK2(bool turnPPKOn)
     {
-        await ConsoleService.TurnOnPower();
-    }
-
-    public async Task StopPPK2()
-    {
-        await ConsoleService.TurnOffPower();
+        if(turnPPKOn) 
+        {
+            await ConsoleService.TurnOnPower();
+        }
+        else 
+        {
+            await ConsoleService.TurnOffPower();
+        }
     }
 
     public void NewLineReceived(object sender, Tuple<string, MultiRTTClientBase> data)
     {
         InvokeAsync(async () =>
+    {
+        await InvokeAsync(StateHasChanged);
+        if (isShellScrollingAutomatically && consoleComponentRef != null)
         {
-            await InvokeAsync(StateHasChanged);
-            if (isShellScrollingAutomatically && consoleComponentRef != null)
-            {
-                await consoleComponentRef.Refresh();
-            }
-            if (isLogScrollingAutomatically && consoleComponentLogRef != null)
-            {
-                await consoleComponentLogRef.Refresh();
-            }
-        });
+            await consoleComponentRef.Refresh();
+        }
+        if (isLogScrollingAutomatically && consoleComponentLogRef != null)
+        {
+            await consoleComponentLogRef.Refresh();
+        }
+    });
     }
 
     private async Task OnDeviceSelectedHandler(AvailableDevice device)
@@ -374,7 +374,7 @@
 
     private async Task onSendCommandHandler(List<string> commands)
     {
-        foreach(var command in commands)
+        foreach (var command in commands)
         {
             await ConsoleService.SendCommand(command);
         }
@@ -430,7 +430,7 @@
             </RadzenStack>
         </RadzenStack>
     </RadzenStack>
-    );
+        );
 
         if (result)
         {
@@ -438,7 +438,7 @@
             {
                 await ConsoleService.LoadCommandsFromDevice("app");
             }
-            else 
+            else
             {
                 await ConsoleService.LoadCommandsFromDevice();
             }
@@ -465,7 +465,7 @@
             </RadzenStack>
         </RadzenStack>
     </RadzenStack>
-    , new DialogOptions() { Resizable = false, Style = "width:40%;" });
+        , new DialogOptions() { Resizable = false, Style = "width:40%;" });
 
     }
 
@@ -481,17 +481,17 @@
     {
         var result = await DialogService.OpenAsync("Automated Commands", ds =>
     @<RadzenStack Gap="1.5rem">
-            <RadzenRow>
-                <RadzenColumn>
+        <RadzenRow>
+            <RadzenColumn>
                 <hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Firmware.FirmwareLoader OnRemoteFirmwareLoadedRequested="@(async (h) => await LoadFirmwareExec(h,"", ds))" OnLocalFirmwareLoadedRequested="@(async (f) => await LoadFirmwareExec("",f, ds))" />
-                </RadzenColumn>
-            </RadzenRow>
-            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
-                <RadzenStack Orientation="Orientation.Horizontal">
-                    <RadzenButton Text="Close" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
-                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <RadzenButton Text="Close" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
             </RadzenStack>
         </RadzenStack>
+    </RadzenStack>
     , new DialogOptions() { Resizable = false, Style = "width:40%;" });
 
     }

@@ -69,6 +69,7 @@
 </RadzenRow>
 
 @code {
+
     [Parameter] public int LeftMargin { get; set; } = 5;
 
     string getLeftMargin => $"margin-left:{LeftMargin}px;";
@@ -88,6 +89,7 @@
         ConsoleService.OnIsPPKDisconnected += Refresh;
         ConsoleService.OnIsPPKVoltageOutputConnected += Refresh;
         ConsoleService.OnIsPPKVoltageOutputDisconnected += Refresh;
+        ConsoleService.OnIsPPKVoltageChanged += Refresh;
 
         await ConsoleService.GetStatuses();
     }

@@ -4,79 +4,62 @@
 
 <RadzenRow Style=@getLeftMargin>
     <RadzenColumn>
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.Left">
-            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start">
+        <div class="footer-items">
+            <div class="footer-item-wrapper">
                 @if (ConsoleService.IsConsoleListening)
                 {
-                    <div style="margin-top:-2px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-                            <circle cx="8" cy="8" r="7" fill="green" />
-                        </svg>
+                    <div class="dot green">
                     </div>
                 }
                 else
                 {
-                    <div style="margin-top:-2px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-                            <circle cx="8" cy="8" r="7" fill="red" />
-                        </svg>
+                    <div class="dot red">
                     </div>
                 }
-                <RadzenText Text="@connectionStatus" style="margin-left:5px;" />
-            </RadzenStack>
+                <RadzenText Text="@connectionStatus" class="footer-item-text" />
+            </div>
 
-            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start">
+            <div class="footer-item-wrapper">
                 @if (ConsoleService.IsPPK2Connected)
                 {
-                    <div style="margin-top:-2px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-                            <circle cx="8" cy="8" r="7" fill="green" />
-                        </svg>
+                    <div class="dot green">
                     </div>
                 }
                 else
                 {
-                    <div style="margin-top:-2px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-                            <circle cx="8" cy="8" r="7" fill="red" />
-                        </svg>
+                    <div class="dot red">
                     </div>
                 }
-                <RadzenText Text="@ppkconnectionStatus" style="margin-left:5px;" />
-            </RadzenStack>
+                <RadzenText Text="@ppkconnectionStatus" class="footer-item-text" />
+            </div>
 
-            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start">
+            <div class="footer-item-wrapper no-border">
                 @if (ConsoleService.IsDeviceOn)
                 {
-                    <div style="margin-top:-2px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-                            <circle cx="8" cy="8" r="7" fill="green" />
-                        </svg>
+                    <div class="dot green">
                     </div>
                 }
                 else
                 {
-                    <div style="margin-top:-2px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-                            <circle cx="8" cy="8" r="7" fill="red" />
-                        </svg>
+                    <div class="dot red">
                     </div>
                 }
-                <RadzenText Text="@ppkVoltageStatus" style="margin-left:5px;" />
-            </RadzenStack>
-        </RadzenStack>
+                <RadzenText Text="@ppkVoltageStatus" class="footer-item-text" />
+            </div>
+        </div>
     </RadzenColumn>
 </RadzenRow>
 
 @code {
+
     [Parameter] public int LeftMargin { get; set; } = 5;
 
     string getLeftMargin => $"margin-left:{LeftMargin}px;";
     bool sidebarExpanded = true;
 
-    public string connectionStatus => ConsoleService.IsConsoleListening ? $"JLink Connection Status: Connected" : "JLink Connection Status: Not Connected";
-    public string ppkconnectionStatus => ConsoleService.IsPPK2Connected ? $"PPK2 Connection Status: Connected" : "PPK2 Connection Status: Not Connected";
-    public string ppkVoltageStatus => ConsoleService.IsDeviceOn ? $"PPK2 Voltage On: {ConsoleService.DeviceVoltage} mV " : "PPK2 Voltage Off";
+    public string connectionStatus => ConsoleService.IsConsoleListening ? $"JLink: Connected" : "JLink: Not Connected";
+    public string ppkconnectionStatus => ConsoleService.IsPPK2Connected ? $"PPK2: Connected" : "PPK2: Not Connected";
+    public string ppkVoltageStatus => ConsoleService.IsDeviceOn ? $"PPK2 Voltage On: {ConsoleService.DeviceVoltage} mV " : $"PPK2 Voltage Off: {ConsoleService.DeviceVoltage} mV";
 
     protected override async Task OnInitializedAsync()
     {
@@ -88,6 +71,7 @@
         ConsoleService.OnIsPPKDisconnected += Refresh;
         ConsoleService.OnIsPPKVoltageOutputConnected += Refresh;
         ConsoleService.OnIsPPKVoltageOutputDisconnected += Refresh;
+        ConsoleService.OnIsPPKVoltageChanged += Refresh;
     }
 
     private void Refresh(object sender, bool e)

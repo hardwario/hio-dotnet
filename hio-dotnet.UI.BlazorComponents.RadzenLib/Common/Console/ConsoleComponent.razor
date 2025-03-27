@@ -4,16 +4,41 @@
 
 @inject IJSRuntime JSRuntime
 
-<h4>@Headline</h4>
-<hr />
-
 <div class="console-container">
-    <button class="@("copy-all-btn_" + id)" @onclick="CopyAllLines">
-        📋
-    </button>
+    <div class="console-heading">
+        <div style="display: flex;
+                    column-gap: 16px;">
+            <h4>@Headline</h4>
+            <button class="@("save-all-btn_" + id)">
+                <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10.5 2.625C6.15771 2.625 2.625 6.15771 2.625 10.5C2.625 14.8423 6.15771 18.375 10.5 18.375C14.8423 18.375 18.375 14.8423 18.375 10.5C18.375 6.15771 14.8423 2.625 10.5 2.625ZM14.0311 11.6105L10.848 14.7934C10.7557 14.8857 10.6305 14.9375 10.5 14.9375C10.3695 14.9375 10.2443 14.8857 10.152 14.7934L6.96892 11.6105C6.87755 11.518 6.82648 11.3931 6.82687 11.2631C6.82727 11.1331 6.87909 11.0085 6.97103 10.9166C7.06297 10.8246 7.18755 10.7728 7.31757 10.7724C7.44758 10.772 7.57248 10.8231 7.66497 10.9145L10.5 13.7493L13.335 10.9144C13.4273 10.8221 13.5525 10.7702 13.6831 10.7702C13.8136 10.7702 13.9388 10.8221 14.0311 10.9144C14.1234 11.0067 14.1753 11.1319 14.1753 11.2625C14.1753 11.393 14.1234 11.5182 14.0311 11.6105ZM14.0311 7.51799L10.848 10.7009C10.7557 10.7932 10.6305 10.845 10.5 10.845C10.3695 10.845 10.2443 10.7932 10.152 10.7009L6.96892 7.5179C6.87755 7.4254 6.82648 7.30051 6.82687 7.17049C6.82727 7.04048 6.87909 6.9159 6.97103 6.82396C7.06297 6.73202 7.18755 6.6802 7.31757 6.6798C7.44758 6.67941 7.57248 6.73047 7.66497 6.82185L10.5 9.65685L13.335 6.82185C13.3806 6.77569 13.4349 6.73901 13.4947 6.7139C13.5546 6.6888 13.6188 6.67577 13.6837 6.67558C13.7486 6.67538 13.8128 6.68801 13.8728 6.71275C13.9328 6.73749 13.9873 6.77385 14.0332 6.81973C14.0791 6.86561 14.1154 6.92012 14.1402 6.9801C14.1649 7.04008 14.1775 7.10437 14.1774 7.16926C14.1772 7.23414 14.1641 7.29835 14.139 7.35818C14.1139 7.41802 14.0772 7.4723 14.0311 7.5179V7.51799Z" fill="currentColor" />
+                </svg>
+            </button>
+        </div>
+        <div>
+            <button class="@("save-all-btn_" + id)">
+                <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6.18353 4.49163H12.4835C12.6002 4.49163 12.7169 4.37496 12.7169 4.25829V1.16663H5.9502V4.25829C5.9502 4.37496 6.06686 4.49163 6.18353 4.49163Z" fill="currentColor" />
+                    <path d="M17.7333 3.73329L15.925 1.92496C15.4583 1.45829 14.8166 1.16663 14.175 1.16663H13.65V1.63329V2.09996V4.31663C13.65 4.95829 13.125 5.42496 12.5416 5.42496H6.1833C5.54163 5.42496 5.07497 4.89996 5.07497 4.31663V2.04163V1.63329V1.16663H4.49163C3.3833 1.16663 2.5083 2.09996 2.5083 3.20829V17.7916C2.5083 18.9 3.44163 19.8333 4.54997 19.8333H16.5083C17.6166 19.8333 18.55 18.9 18.55 17.7916V5.48329C18.4916 4.84163 18.2583 4.19996 17.7333 3.73329ZM15.1666 16.625H5.8333C5.59997 16.625 5.36663 16.45 5.36663 16.1583C5.36663 15.925 5.54163 15.6916 5.8333 15.6916H15.1666C15.4 15.6916 15.6333 15.8666 15.6333 16.1583C15.6333 16.45 15.4 16.625 15.1666 16.625ZM15.1666 14.4083H5.8333C5.59997 14.4083 5.36663 14.2333 5.36663 13.9416C5.36663 13.7083 5.54163 13.475 5.8333 13.475H15.1666C15.4 13.475 15.6333 13.65 15.6333 13.9416C15.6333 14.2333 15.4 14.4083 15.1666 14.4083ZM15.1666 12.25H5.8333C5.59997 12.25 5.36663 12.075 5.36663 11.7833C5.36663 11.55 5.54163 11.3166 5.8333 11.3166H15.1666C15.4 11.3166 15.6333 11.4916 15.6333 11.7833C15.6333 12.0166 15.4 12.25 15.1666 12.25Z" fill="currentColor" />
+                </svg>
+            </button>
+            <button class="@("copy-all-btn_" + id)" @onclick="CopyAllLines">
+                <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g clip-path="url(#clip0_1208_3001)">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M6.125 2.62488C6.125 1.65837 6.90851 0.874871 7.87501 0.874878L18.375 0.874956C19.3415 0.874959 20.125 1.65846 20.125 2.62496V13.1249C20.125 14.0914 19.3415 14.8749 18.375 14.8749H17.5C17.0167 14.8749 16.625 14.4831 16.625 13.9999V7.43742C16.625 5.74605 15.2539 4.37492 13.5625 4.37492H7C6.51675 4.37492 6.125 3.98317 6.125 3.49992V2.62488ZM0.875 7.87503C0.875 6.90853 1.6585 6.12503 2.625 6.12503L13.125 6.12505C14.0915 6.12505 14.875 6.90855 14.875 7.87505V18.375C14.875 19.3415 14.0915 20.125 13.125 20.125H2.625C1.6585 20.125 0.875 19.3415 0.875 18.375V7.87503Z" fill="currentColor" />
+                    </g>
+                    <defs>
+                        <clipPath id="clip0_1208_3001">
+                            <rect width="21" height="21" fill="white" />
+                        </clipPath>
+                    </defs>
+                </svg>
+            </button>
+        </div>
+    </div>
     <RadzenRow>
         <RadzenColumn Width="12">
-            <RadzenCard Class="console-card" Style="flex-grow: 1; display: flex; flex-direction: column; background-color: #333;">
+            <RadzenCard Class="console-card" Style="flex-grow: 1; display: flex; flex-direction: column;">
                 <div class="@("console-output_" + id)" id="@id">
                     @for (var i = 0; i < Output.Count; i++)
                     {
@@ -43,12 +68,12 @@
                 <RadzenRow>
                     <RadzenColumn Width="10" style="overflow: visible;">
                         <RadzenAutoComplete @ref="commandTextBoxRef" @bind-Value=@command Placeholder="Type Command..."
-                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                        Data=@Hints
-                        Style="width: 100%;" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Command" }})"
-                        @onkeydown="HandleKeyDown"
-                        @onfocus="() => OnCommandLineGotFocus.InvokeAsync()"
-                        @onfocusout="() => OnCommandLineLostFocus.InvokeAsync()" />
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                            Data=@Hints
+                                            Style="width: 100%;" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Command" }})"
+                                            @onkeydown="HandleKeyDown"
+                                            @onfocus="() => OnCommandLineGotFocus.InvokeAsync()"
+                                            @onfocusout="() => OnCommandLineLostFocus.InvokeAsync()" />
                     </RadzenColumn>
                     <RadzenColumn Width="2">
                         <RadzenButton Text="Send" Disabled="@IsSendButtonDisabled" Click="SendCommand" Style="width: 100%;" />
@@ -70,64 +95,84 @@
 
 <style>
     .console-container {
-    display: flex;
-    flex-direction: column;
-    height: 100%; /* Adjust as needed */
+        display: flex;
+        flex-direction: column;
+        height: 100%; /* Adjust as needed */
+        background-color: #252532;
+        padding: 25px 30px;
+        border-radius: 10px;
     }
 
     .console-card {
-    color: #d4d4d4;
-    font-family: monospace;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
+        color: #d4d4d4;
+        font-family: monospace;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
     }
 
-    .console-output_@(id) {
-    flex-grow: 1;
-    overflow-y: auto;
-    min-height: @(GetMinHeight());
-    max-height: @(GetMaxHeight());
+    .console-output_ @(id) {
+        flex-grow: 1;
+        overflow-y: auto;
+        min-height: @(GetMinHeight());
+        max-height: @(GetMaxHeight());
     }
 
     .chester-actions-panel-container {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 10px; /* Volitelně přidat padding */
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 10px; /* Volitelně přidat padding */
     }
 
     .console-line {
-    display: flex;
-    align-items: center;
-    justify-content: left;
+        display: flex;
+        align-items: center;
+        justify-content: left;
     }
 
     .copy-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-    margin-left: 8px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        margin-left: 8px;
     }
 
     @(".copy-all-btn_" + id) {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 24px;
-    color: rgba(255, 255, 255, 0.7); /* Poloprůhledná bílá */
-    transition: color 0.3s;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: white;
+        transition: color 0.3s;
     }
 
-    @(".copy-all-btn_" + id):hover {
-    color: white;
+    @(".copy-all-btn_" + id) :hover {
+        color: gray
     }
 
+    @(".save-all-btn_" + id) {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: white;
+        transition: color 0.3s;
+    }
+
+    @(".save-all-btn_" + id) :hover {
+            color: gray
+        }
+
+    .console-heading {
+        border-bottom: solid;
+        border-width: 2px;
+        border-color: #575768;
+        padding-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-content: center;
+    }
 </style>
 
 @code {
@@ -146,10 +191,12 @@
     [Parameter] public List<ActionCommandButtonData> ActionCommandButtonDataList { get; set; } = new List<ActionCommandButtonData>();
     [Parameter] public int MinHeight { get; set; } = 59;
     [Parameter] public int MaxHeight { get; set; } = 59;
-    [Parameter] public bool IsCopyLinesButtonVisible
+    [Parameter]
+    public bool IsCopyLinesButtonVisible
     {
         get => isCopyLinesButtonVisible;
-        set {
+        set
+        {
             isCopyLinesButtonVisible = value;
             StateHasChanged();
         }
@@ -263,6 +310,6 @@
     {
         var textToCopy = string.Join("\n", Output);
         var idb = ("copy-all-btn_" + id);
-        await JSRuntime.InvokeVoidAsync("hiodotnet.initCopyAllButton", new object[] { idb, textToCopy } );
+        await JSRuntime.InvokeVoidAsync("hiodotnet.initCopyAllButton", new object[] { idb, textToCopy });
     }
 }

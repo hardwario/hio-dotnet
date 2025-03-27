@@ -46,6 +46,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         public event EventHandler<bool> OnIsBusy;
         public event EventHandler<bool> OnIsPPKConnected;
         public event EventHandler<bool> OnIsPPKDisconnected;
+        public event EventHandler<bool> OnIsPPKVoltageChanged;
 
         public event EventHandler<bool> OnIsPPKVoltageOutputConnected;
         public event EventHandler<bool> OnIsPPKVoltageOutputDisconnected;
@@ -278,6 +279,8 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             Console.WriteLine($"Setting source voltage to {voltage} mV...");
             ppk2?.SetSourceVoltage(voltage);
             DeviceVoltage = voltage;
+
+            OnIsPPKVoltageChanged?.Invoke(this, true);
         }
 
         public async Task TurnOnPower(bool withMeasurement = false)
