@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace hio_dotnet.APIs.Wmbusmeters.Models
 {
-    public class WMBusMetersCommon
+    public class WMBusMetersCommon : IWMBusMeters
     {
         [JsonPropertyName("id")]
         public string Id { get; set; } = string.Empty;
