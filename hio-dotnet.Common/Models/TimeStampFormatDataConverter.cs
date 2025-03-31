@@ -327,10 +327,15 @@ namespace hio_dotnet.Common.Models
                 // Processing simple types
                 if (prop.PropertyType == typeof(string) ||
                     prop.PropertyType == typeof(bool) ||
+                    prop.PropertyType == typeof(bool?) ||
                     prop.PropertyType == typeof(int) ||
+                    prop.PropertyType == typeof(int?) ||
                     prop.PropertyType == typeof(float) ||
+                    prop.PropertyType == typeof(float?) ||
                     prop.PropertyType == typeof(double) ||
-                    prop.PropertyType == typeof(long))
+                    prop.PropertyType == typeof(double?) ||
+                    prop.PropertyType == typeof(long) || 
+                    prop.PropertyType == typeof(long?))
                 {
                     if (!returnJustNames)
                     {

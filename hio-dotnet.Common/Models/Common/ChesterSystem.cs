@@ -10,7 +10,7 @@ namespace hio_dotnet.Common.Models.Common
 {
     public class ChesterSystem
     {
-        [SimulationAttribute(false, 0, 1000000, true, true, 0.01)]
+        [SimulationAttribute(false, 1000, 1000000, true, false, 0.001)]
         [JsonPropertyName("uptime")]
         public long? Uptime { get; set; } = 0;
 
