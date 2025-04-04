@@ -38,15 +38,60 @@ namespace hio_dotnet.APIs.Wmbusmeters.Models
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? DeviceDateTimeStr { get; set; }
 
-        [JsonIgnore]
-        public DateTime? DeviceDateTime { get => DateTime.ParseExact(DeviceDateTimeStr ?? string.Empty, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture); }
+        //[JsonIgnore]
+        //public DateTime? DeviceDateTime { get => DateTime.ParseExact(DeviceDateTimeStr ?? string.Empty, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture); }
 
         [JsonPropertyName("set_date")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? SetDateStr { get; set; }
 
-        [JsonIgnore]
-        public DateTime? SetDateTime { get => DateTime.ParseExact(DeviceDateTimeStr ?? string.Empty, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture); }
+        //[JsonIgnore]
+        //public DateTime? SetDateTime { get => DateTime.ParseExact(DeviceDateTimeStr ?? string.Empty, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture); }
 
+        [JsonIgnore]
+        public DateTime? DeviceDateTime
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(DeviceDateTimeStr))
+                {
+                    return DateTime.MinValue;
+                }
+                else
+                {
+                    try
+                    {
+                        return DateTime.ParseExact(DeviceDateTimeStr ?? "2000-01-01", "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+                    }
+                    catch (Exception)
+                    {
+                        return DateTime.MinValue;
+                    }
+                }
+            }
+        }
+
+        [JsonIgnore]
+        public DateTime? SetDateTime
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(SetDateStr))
+                {
+                    return DateTime.MinValue;
+                }
+                else
+                {
+                    try
+                    {
+                        return DateTime.ParseExact(SetDateStr ?? "2000-01-01", "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+                    }
+                    catch (Exception)
+                    {
+                        return DateTime.MinValue;
+                    }
+                }
+            }
+        }
     }
 }
