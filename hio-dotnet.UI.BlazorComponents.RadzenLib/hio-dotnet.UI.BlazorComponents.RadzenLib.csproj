@@ -26,4 +26,11 @@
     <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="wwwroot\site.css">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

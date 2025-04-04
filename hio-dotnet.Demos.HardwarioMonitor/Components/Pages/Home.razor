@@ -7,6 +7,7 @@
 @inject LoadingOverlayService LoadingOverlayService
 @inject DialogService DialogService
 @inject AutomatedCommandsService AutomatedCommandsService
+@inject ThemeService ThemeService
 
 <LoadingOverlay />
 
@@ -57,9 +58,6 @@
             }
         </div>
 
-        <RadzenButton Click="SaveShellToFile" Style="margin-top: 5px; width: 100%;">Save Console To File</RadzenButton>
-        <RadzenButton Click="SaveLogToFile" Style="margin-top: 5px; width: 100%;">Save Log To File</RadzenButton>
-
         <div class="sidebar-section">
             <h5 class="sidebar-heading">
                 Session
@@ -80,32 +78,8 @@
 
             <RadzenButton Click="LoadFirmware" Style="margin-top: 5px; width: 100%;">Load Firmware</RadzenButton>
         </div>
-        <RadzenRow Style="margin-top: 5px; width: 100%;">
-            <RadzenColumn>
-                <RadzenLabel Text="Console Auto Scroll" Component="shellScrollOption" />
-                <RadzenSwitch @bind-Value="isShellScrollingAutomatically" Name="shellScrollOption" />
-            </RadzenColumn>
-        </RadzenRow>
-        <RadzenRow Style="margin-top: 5px; width: 100%;">
-            <RadzenColumn>
-                <RadzenLabel Text="Log Auto Scroll" Component="logScrollOption" />
-                <RadzenSwitch @bind-Value="isLogScrollingAutomatically" Name="logScrollOption" />
-            </RadzenColumn>
-        </RadzenRow>
-        <RadzenRow Style="margin-top: 5px; width: 100%;">
-            <RadzenColumn>
-                <RadzenLabel Text="Console Font Size" Component="consoleFontSize" />
-                <RadzenNumeric @bind-Value="ConsoleFontSize" Min="6" Max="24" Step="1" Name="consoleFontSize" />
-            </RadzenColumn>
-        </RadzenRow>
-        <RadzenRow Style="margin-top: 5px; width: 100%;">
-            <RadzenColumn>
-                <RadzenLabel Text="Display copy buttons" Component="consoleFontSize" />
-                <RadzenCheckBox @bind-Value="isCopyLinesButtonVisible" TValue="bool" />
-            </RadzenColumn>
-        </RadzenRow>
     </RadzenSidebar>
-    <RadzenBody Style="padding:5px;height: 100%;">
+    <RadzenBody Style="padding: 0px 8px 0px 8px; height: 100%;">
         <RadzenRow Style="height: 100%;">
             <RadzenColumn Style="height: 100%;">
                 <RadzenRow Style="height: 100%;">
@@ -115,21 +89,23 @@
                                 <RadzenSplitter>
                                     <RadzenSplitterPane Size="50%" Min="30px" Max="70%">
                                         <ConsoleComponent @ref=consoleComponentRef
-                                        IsCopyLinesButtonVisible="@isCopyLinesButtonVisible"
-                                        TextSize="@ConsoleFontSize"
                                         Output="@ConsoleService.ConsoleOutputShell"
                                         Hints="@Hints"
+                                        Theme=@ThemeService.Theme
                                         IsSendButtonDisabled="@isDisabled"
+                                        OnAutoScrollChange="HandleConsoleScrollChange"
                                         OnSendCommand="HandleSendCommand"
+                                        OnSaveLogToFileClicked="SaveShellToFile"
                                         IsActionPanelVisible="true"
                                         ActionCommandButtonDataList="@ActionCommandButtonDataList"
                                         OnActionSendCommandHandler="onSendCommandHandler" />
                                     </RadzenSplitterPane>
                                     <RadzenSplitterPane>
                                         <ConsoleComponent @ref=consoleComponentLogRef
-                                        IsCopyLinesButtonVisible="@isCopyLinesButtonVisible"
-                                        TextSize="@ConsoleFontSize"
                                         Headline="Log"
+                                        Theme=@ThemeService.Theme
+                                        OnSaveLogToFileClicked="SaveLogToFile"
+                                        OnAutoScrollChange="HandleLogScrollChange"
                                         Output="@ConsoleService.ConsoleOutputLog"
                                         HideCommandLine="true" />
                                     </RadzenSplitterPane>
@@ -138,7 +114,6 @@
                         </RadzenSplitter>
                     </RadzenColumn>
                 </RadzenRow>
-
             </RadzenColumn>
         </RadzenRow>
     </RadzenBody>
@@ -150,14 +125,12 @@
     private bool isLogScrollingAutomatically = true;
     private bool isShellScrollingAutomatically = true;
     private bool justAppSetting = false;
-    private bool isCopyLinesButtonVisible = false;
 
     private List<string> outputConfig = new List<string>();
     private List<string> output = new List<string>();
     ConsoleComponent? consoleComponentRef;
     ConsoleComponent? consoleComponentLogRef;
 
-    public int ConsoleFontSize { get; set; } = 12;
     public int Voltage { get; set; } = 3600;
 
     private List<string> Hints = new List<string>();
@@ -350,6 +323,16 @@
             await consoleComponentLogRef.Refresh();
         }
     });
+    }
+
+    private void HandleLogScrollChange(bool value)
+    {
+        isLogScrollingAutomatically = value;
+    }
+
+    private void HandleConsoleScrollChange(bool value)
+    {
+        isShellScrollingAutomatically = value;
     }
 
     private async Task OnDeviceSelectedHandler(AvailableDevice device)

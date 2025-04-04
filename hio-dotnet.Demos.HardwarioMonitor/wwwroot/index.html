@@ -11,12 +11,10 @@
     <link rel="icon" type="image/png" href="favicon.png" />
 
     <link class="theme" rel="stylesheet" href="_content/Radzen.Blazor/css/dark-base.css">
-    <link rel="stylesheet" href="css/site.css" />
-
+    <link class="customTheme" rel="stylesheet" href="css/site.css" />
 </head>
 
 <body>
-
     <div class="status-bar-safe-area"></div>
 
     <div id="app">Loading...</div>
@@ -40,6 +38,11 @@
             let themeLink = getHeadElement().getElementsByClassName("theme")[0];
             let theme = isDarkTheme ? "dark-base.css" : "material-base.css";
             themeLink.href = "_content/Radzen.Blazor/css/" + theme;
+
+            let customThemeLink = getHeadElement().getElementsByClassName("customTheme")[0];
+            let customTheme = isDarkTheme ? "site-dark.css" : "site.css";
+            customThemeLink.href = "css/" + customTheme;
+
         };
     </script>
     <script src="_framework/blazor.webview.js" autostart="false"></script>

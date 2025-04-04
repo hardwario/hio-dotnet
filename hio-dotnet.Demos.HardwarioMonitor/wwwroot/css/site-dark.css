@@ -19,24 +19,16 @@
     --rz-input-focus-border-color: #ff5722; /* Focus effect */
 
     --rz-base-background-color: #252532;
-    --rz-panel-menu-item-background-color: #3C3B49;
+    --rz-panel-menu-item-background-color: #252532;
     --rz-panel-menu-item-active-background-color: rgba(255, 255, 255, 0.2);
-    --rz-body-background-color: #EBF2FC;
+    --rz-body-background-color: #3D3D49;
     --rz-button-border-radius: 135px;
-    --rz-header-background-color: #EBF2FC;
+    --rz-header-background-color: #3D3D49;
     --rz-sidebar-toggle-background-color: #3D3D49;
-    --rz-sidebar-background-color: #EBF2FC;
-    --rz-footer-background-color: #EBF2FC;
-    --rz-panel-menu-item-active-color: white;
-    --rz-panel-menu-icon-color: white;
-    --rz-panel-menu-item-color: white;
+    --rz-sidebar-background-color: #3D3D49;
+    --rz-footer-background-color: #3D3D49;
     --rz-switch-checked-background-color: #35B29F;
-    --rz-switch-checked-circle-background-color: gray;
     --rz-text-font-family: sans-serif, Roboto;
-    --rz-card-background-color: white;
-    --rz-input-background-color: white;
-    --rz-panel-menu-item-hover-background-color: rgba(255, 255, 255, 0.2);
-    --rz-dropdown-open-background-color: white;
 }
 
 .rz-button-box {
@@ -52,7 +44,7 @@
 }
 
 h4 {
-    color: #252532;
+    color: white;
     font-weight: bold;
     text-transform: uppercase;
     font-size: 20px;
@@ -87,7 +79,7 @@ h4 {
 
 .voltage-input {
     border-radius: 10px;
-    background-color: white;
+    background-color: #252532;
     color: white;
     width: 50%;
 }
@@ -161,7 +153,7 @@ h4 {
     display: flex;
     flex-direction: column;
     height: 100%; /* Adjust as needed */
-    background-color: white;
+    background-color: #252532;
     padding: 25px 30px;
     border-radius: 10px;
 }
@@ -183,7 +175,7 @@ h4 {
 .config-heading {
     font-size: 14px;
     font-weight: bold;
-    color: #252532;
+    color: #dedede;
 }
 
 .config-block.margin-top {
@@ -197,8 +189,8 @@ h4 {
     gap: 12px;
 }
 
-.rz-button.rz-primary.copy-button.copy-button {
-    background: #4880FF;
+.copy-button {
+    background: none;
     border: none;
     cursor: pointer;
     color: white;
@@ -207,38 +199,32 @@ h4 {
 
 .rz-primary.rz-shade-default.rz-button-icon-only.theme-button {
     background: none;
-    color: #252532;
     border: none;
     cursor: pointer;
 }
 
-.rz-button-md  {
-    letter-spacing: normal;
-    font-weight: 600;
-}
-
 .rz-button.rz-primary.rz-shade-default.chester-command-button {
     background: none;
-    color: #252532;
+    color: #86B8FF;
     text-transform: uppercase;
 }
 
 .rz-button.rz-primary.rz-shade-default.chester-command-button:hover {
     box-shadow: none;
-    color: gray;
+    color: #3689FF;
 }
 
 .rz-inputtext.rz-autocomplete-input {
     box-shadow: none;
 }
 
-.rz-inputtext.rz-autocomplete-input:focus {
-    border: none;
-}
+    .rz-inputtext.rz-autocomplete-input:focus {
+        border: none;
+    }
 
 .rz-button.rz-primary.rz-shade-default.console-command-send-button {
     width: 100%;
-    background-color: #4880FF;
+    background-color: transparent;
 }
 
 .console-settings {
@@ -297,14 +283,10 @@ h4 {
     background: none;
     border: none;
     cursor: pointer;
-    color: #252532;
+    color: white;
     transition: color 0.3s;
 }
 
 .console-top-button:hover {
     color: gray;
-}
-
-.rz-text-body1.version-text {
-    color: white;
 }
