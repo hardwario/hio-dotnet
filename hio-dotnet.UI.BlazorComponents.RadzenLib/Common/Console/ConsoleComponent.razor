@@ -4,7 +4,7 @@
 
 @inject IJSRuntime JSRuntime
 
-<div class="card-container">
+<div class="card-container space-between">
     <div class="card-heading">
         <div class="card-heading-top">
             <h4>@Headline</h4>
@@ -49,7 +49,7 @@
             </div>
         </div>
     </div>
-    <RadzenRow>
+    <RadzenRow Style="overflow: scroll;">
         <RadzenColumn Width="12">
             <RadzenCard Class=@($"console-card {(Theme == "material-dark" ? "dark" : "")}")>
                 <div class="@("console-output_" + id)" id="@id">
@@ -113,7 +113,7 @@
     max-height: @(GetMaxHeight());
     }
 </style>
- 
+
 @code {
     [Parameter] public string Headline { get; set; } = "Console";
     [Parameter] public EventCallback<string> OnSendCommand { get; set; }
@@ -124,7 +124,7 @@
     [Parameter] public List<string> Hints { get; set; } = new List<string>();
     [Parameter] public bool HideCommandLine { get; set; } = false;
     [Parameter] public bool IsSendButtonDisabled { get; set; } = false;
-    [Parameter] public int TextSize { get; set; } = 8;
+    [Parameter] public int TextSize { get; set; } = 15;
     [Parameter] public EventCallback<bool> OnAutoScrollChange { get; set; }
     [Parameter] public EventCallback<List<string>> OnActionSendCommandHandler { get; set; }
     [Parameter] public EventCallback<bool> OnSaveLogToFileClicked { get; set; }
@@ -168,7 +168,7 @@
         }
     }
 
-    private bool isConsoleAutoScrolling = false;
+    private bool isConsoleAutoScrolling = true;
 
     private bool isCopyLinesButtonVisible = true;
     private string id = $"{Guid.NewGuid().ToString().Split('-')[0]}_Console";
@@ -200,21 +200,46 @@
 
     private string GetConsoleTextStyle(string line)
     {
-        if (line.Contains("<err>"))
+        string style = $"font-size: {TextSize}px;font-weight: bold;";
+
+        if(Theme == "material-dark")
         {
-            return $"color: red; font-size: {TextSize}px;";
+            if (line.Contains("<err>"))
+            {
+                return style + "color: red;";
+            }
+            else if (line.Contains("<wrn>"))
+            {
+                return style + "color: yellow;";
+            }
+            else if (line.Contains("<dbg>"))
+            {
+                return style + "color: tan;";
+            }
+            else
+            {
+                return style + "color: #d4d4d4;";
+            }
         }
-        else if (line.Contains("<wrn>"))
+        else 
         {
-            return $"color: yellow; font-size: {TextSize}px;";
-        }
-        else if (line.Contains("<dbg>"))
-        {
-            return $"color: tan; font-size: {TextSize}px;";
-        }
-        else
-        {
-            return $"color: #d4d4d4; font-size: {TextSize}px;";
+            style = style + "font-weight: bold; ";
+            if (line.Contains("<err>"))
+            {
+                return style + "color: #C0392B;";
+            }
+            else if (line.Contains("<wrn>"))
+            {
+                return style + "color: #D35400;";
+            }
+            else if (line.Contains("<dbg>"))
+            {
+                return style + "color: #2980B9;";
+            }
+            else
+            {
+                return style + "color: #252532;";
+            }
         }
     }
 

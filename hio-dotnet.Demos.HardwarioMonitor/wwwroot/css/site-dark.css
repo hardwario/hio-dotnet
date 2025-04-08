@@ -158,6 +158,10 @@ h4 {
     border-radius: 10px;
 }
 
+.card-container.space-between {
+    justify-content: space-between;
+}
+
 .card-heading {
     border-bottom: solid;
     border-width: 2px;
@@ -258,9 +262,6 @@ h4 {
 }
 
 .chester-actions-panel-container {
-    position: absolute;
-    bottom: 0;
-    left: 0;
     width: 100%;
     padding: 10px; /* Volitelnì pøidat padding */
 }
