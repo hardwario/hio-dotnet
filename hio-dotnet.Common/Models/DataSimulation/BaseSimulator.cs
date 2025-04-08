@@ -62,7 +62,8 @@ namespace hio_dotnet.Common.Models.DataSimulation
                     {
                         isList = true;
                     }
-
+                    if (property.Name == "Uptime")
+                        ;
                     if (!isList)
                         FillRandomValue(simulationAttr, obj, property, previousObj, forceTimestamp, timestamp);
                 }
@@ -994,6 +995,26 @@ namespace hio_dotnet.Common.Models.DataSimulation
                         else
                         {
                             property.SetValue(obj, random.Next((int)maxValue, (int)minValue));
+                        }
+                    }
+                    else if (property.PropertyType == typeof(long))
+                    {
+                        property.SetValue(obj, (long)random.Next((int)minValue, (int)maxValue));
+                    }
+                    else if (property.PropertyType == typeof(long?))
+                    {
+                        if (property.GetValue(obj) == null)
+                        {
+                            property.SetValue(obj, 0);
+                        }
+
+                        if (minValue < maxValue)
+                        {
+                            property.SetValue(obj, (long)random.Next((int)minValue, (int)maxValue));
+                        }
+                        else
+                        {
+                            property.SetValue(obj, (long)random.Next((int)maxValue, (int)minValue));
                         }
                     }
                 }

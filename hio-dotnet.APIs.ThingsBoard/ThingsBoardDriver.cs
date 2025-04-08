@@ -859,7 +859,7 @@ namespace hio_dotnet.APIs.ThingsBoard
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="Exception"></exception>
-        public async Task<ListableDevicesResponse> GetTenantDevicesAsync(int pageSize = 20, int page = 0, string jwtToken = "")
+        public async Task<ListableDevicesResponse> GetTenantDevicesAsync(int pageSize = 50, int page = 0, string jwtToken = "")
         {
             if (string.IsNullOrEmpty(jwtToken))
             {
@@ -908,7 +908,7 @@ namespace hio_dotnet.APIs.ThingsBoard
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="Exception"></exception>
-        public async Task<List<Device>?> GetCustomerDevicesAsync(string customerId, int pageSize = 20, int page = 0, string jwtToken = "")
+        public async Task<List<Device>?> GetCustomerDevicesAsync(string customerId, int pageSize = 50, int page = 0, string jwtToken = "")
         {
             if (string.IsNullOrEmpty(jwtToken))
             {

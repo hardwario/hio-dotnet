@@ -19,11 +19,11 @@ namespace hio_dotnet.Common.Models.CatalogApps.ClimeIAQ
         [JsonPropertyName("hygrometer")]
         public Hygrometer? Hygrometer { get; set; }
 
-        [SimulationMeasurementAttribute(false, 25, 35, true, false, 0, 3)]
+        [SimulationMeasurementAttribute(false, 25, 35, false, false, 0, 3)]
         [JsonPropertyName("w1_thermometers")]
         public List<W1_Thermometer>? W1_Thermometers { get; set; }
 
-        [SimulationMeasurementAttribute(false, 25, 35, true, false, 0, 5)]
+        [SimulationMeasurementAttribute(false, 25, 35, false, false, 0, 5)]
         [JsonPropertyName("rtd_thermometer")]
         public List<RTD_Thermometer>? RTD_Thermometers { get; set; }
 
