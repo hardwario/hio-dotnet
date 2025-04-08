@@ -49,10 +49,10 @@
             </div>
         </div>
     </div>
-    <RadzenRow Style="overflow: scroll;">
+    <RadzenRow Style="overflow: scroll;flex-grow:1;" id="@id">
         <RadzenColumn Width="12">
             <RadzenCard Class=@($"console-card {(Theme == "material-dark" ? "dark" : "")}")>
-                <div class="@("console-output_" + id)" id="@id">
+                <div class="@("console-output_" + id)">
                     @for (var i = 0; i < Output.Count; i++)
                     {
                         var line = Output[i];
