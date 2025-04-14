@@ -1,0 +1,293 @@
+:root {
+    --rz-primary: #4880FF; /* Change primary color (orange) */
+    --rz-primary-dark: #252532; /* Darker shade for hover/focus */
+    --rz-primary-light: #ff8a50; /* Lighter shade */
+    --rz-primary-text: black; /* Text color for primary buttons */
+
+    --rz-secondary: #2196F3; /* Change secondary color (blue) */
+    --rz-secondary-dark: #1976D2;
+    --rz-secondary-light: #64B5F6;
+    --rz-secondary-text: white;
+    --rz-border-radius: 10px; /* Round corners */
+    /* Button styles */
+    --rz-button-padding: 12px 24px;
+    --rz-button-font-size: 18px;
+    --rz-button-text-transform: uppercase;
+    /* Input fields */
+    --rz-input-border-color: #ccc;
+    --rz-input-border-radius: 6px;
+    --rz-input-focus-border-color: #ff5722; /* Focus effect */
+
+    --rz-base-background-color: #252532;
+    --rz-panel-menu-item-background-color: #252532;
+    --rz-panel-menu-item-active-background-color: rgba(255, 255, 255, 0.2);
+    --rz-body-background-color: #3D3D49;
+    --rz-button-border-radius: 135px;
+    --rz-header-background-color: #3D3D49;
+    --rz-sidebar-toggle-background-color: #3D3D49;
+    --rz-sidebar-background-color: #3D3D49;
+    --rz-footer-background-color: #3D3D49;
+    --rz-switch-checked-background-color: #35B29F;
+    --rz-text-font-family: sans-serif, Roboto;
+}
+
+.rz-button-box {
+    text-transform: uppercase;
+}
+
+.rz-panel-menu .rz-navigation-item {
+    border-bottom: none;
+}
+
+.rz-card.rz-variant-filled {
+    box-shadow: none;
+}
+
+h4 {
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 20px;
+    margin: 0px;
+}
+
+.sidebar-heading {
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-bottom: solid;
+    border-color: black;
+    border-width: 1px;
+    padding-left: 11px;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+}
+
+.sidebar-section {
+    margin-top: 32px;
+}
+
+.sidebar-dropdown {
+    width: 100%;
+    background-color: white;
+    border-radius: 135px;
+    color: rgba(37, 37, 50, 0.75);
+    font-weight: 400;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.voltage-input {
+    border-radius: 10px;
+    background-color: #252532;
+    color: white;
+    width: 50%;
+}
+
+.set-voltage-button {
+    width: 50%;
+    background-color: #35B29F !important;
+    border-radius: 10px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 9999px;
+}
+
+.dot.red {
+    background-color: #FF0000;
+}
+
+.dot.green {
+    background-color: #00FF00;
+}
+
+.footer-items {
+    display: flex;
+    column-gap: 0px;
+}
+
+.footer-item-wrapper {
+    display: flex;
+    column-gap: 11px;
+    align-items: center;
+    padding: 8px 30px;
+    border-right: solid;
+    border-width: 1px;
+    border-color: black;
+}
+
+.footer-item-wrapper.no-border {
+    border-right: none;
+}
+
+.footer-item-text {
+    margin-bottom: 0px;
+}
+
+.sidebar-toggle-button.rz-button.rz-primary {
+    background-color: transparent;
+}
+
+.rz-header {
+    border-bottom: none;
+    box-shadow: none;
+}
+
+.rz-footer {
+    border-top: none;
+}
+
+.header-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 14px 20px;
+}
+
+.card-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Adjust as needed */
+    background-color: #252532;
+    padding: 25px 30px;
+    border-radius: 10px;
+}
+
+.card-container.space-between {
+    justify-content: space-between;
+}
+
+.card-heading {
+    border-bottom: solid;
+    border-width: 2px;
+    border-color: #575768;
+    padding-bottom: 24px;
+    margin-bottom: 24px;
+}
+
+.card-heading-top {
+    display: flex;
+    justify-content: space-between;
+    align-content: center;
+}
+
+.config-heading {
+    font-size: 14px;
+    font-weight: bold;
+    color: #dedede;
+}
+
+.config-block.margin-top {
+    margin-top: 24px;
+}
+
+.config-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-top: 24px;
+    gap: 12px;
+}
+
+.copy-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: white;
+    transition: color 0.3s;
+}
+
+.rz-primary.rz-shade-default.rz-button-icon-only.theme-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.rz-button.rz-primary.rz-shade-default.chester-command-button {
+    background: none;
+    color: #86B8FF;
+    text-transform: uppercase;
+}
+
+.rz-button.rz-primary.rz-shade-default.chester-command-button:hover {
+    box-shadow: none;
+    color: #3689FF;
+}
+
+.rz-inputtext.rz-autocomplete-input {
+    box-shadow: none;
+}
+
+    .rz-inputtext.rz-autocomplete-input:focus {
+        border: none;
+    }
+
+.rz-button.rz-primary.rz-shade-default.console-command-send-button {
+    width: 100%;
+    background-color: transparent;
+}
+
+.console-settings {
+    margin-top: 16px;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 16px;
+}
+
+.console-settings-text {
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.console-command-input-wrapper {
+    border-top: solid;
+    border-bottom: solid;
+    border-width: 1px;
+    border-color: #575768;
+    padding: 16px 0px;
+    display: grid;
+    grid-template-columns: 5fr 1fr;
+    gap: 12px;
+    align-items: center;
+}
+
+.console-command-input {
+    width: 100%;
+    background: transparent;
+    border-color: transparent;
+    height: 100%;
+}
+
+.chester-actions-panel-container {
+    width: 100%;
+    padding: 10px; /* Volitelnì pøidat padding */
+}
+
+.console-line {
+    display: flex;
+    align-items: center;
+    justify-content: left;
+}
+
+.copy-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 8px;
+}
+
+.console-top-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: white;
+    transition: color 0.3s;
+}
+
+.console-top-button:hover {
+    color: gray;
+}

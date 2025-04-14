@@ -542,7 +542,7 @@ namespace hio_dotnet.APIs.HioCloud
 
             while (!isLast)
             {
-                var messages = await GetAllDeviceMessages(space_id, device_id, 100, lastmessageid, after: after, before: before);
+                var messages = await GetAllDeviceMessages(space_id, device_id, 100, lastmessageid, after: after, before: before, timeout:120);
                 if (messages != null && messages.Count > 0)
                 {
                     allmessages.AddRange(messages);

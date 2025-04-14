@@ -2,116 +2,95 @@
 @using hio_dotnet.Common.Enums.LTE
 @using hio_dotnet.Common.Config
 
-<RadzenCard Style="height: 100%;">
+<div class="card-container">
     <RadzenTemplateForm TItem="LTEConfig" Data="@Config" Style="height: 100%;">
-        <RadzenFieldset Text="LTE Settings" Style="height: 100%;">
-            <RadzenRow>
-                <RadzenColumn>
-                    <RadzenRow Style="margin-bottom: 1.5rem;">
-                        <RadzenColumn>
-                            <RadzenFieldset Text="Antenna">
-                                <RadzenRadioButtonList @bind-Value=@Config.Antenna TValue="AntennaType">
-                                    <Items>
-                                        <RadzenRadioButtonListItem Text="Internal" Value="AntennaType.Internal" />
-                                        <RadzenRadioButtonListItem Text="External" Value="AntennaType.External" />
-                                    </Items>
-                                </RadzenRadioButtonList>
-                            </RadzenFieldset>
-                        </RadzenColumn>
-                    </RadzenRow>
+        <div class="card-heading">
+            <h4>LTE Settings</h4>
+        </div>
+        <div class="config-block">
+            <h5 class="config-heading">Antenna</h5>
+            <RadzenRadioButtonList @bind-Value=@Config.Antenna TValue="AntennaType">
+                <Items>
+                    <RadzenRadioButtonListItem Text="Internal" Value="AntennaType.Internal" />
+                    <RadzenRadioButtonListItem Text="External" Value="AntennaType.External" />
+                </Items>
+            </RadzenRadioButtonList>
+        </div>
 
-                    <RadzenRow Style="margin-bottom: 1.5rem;">
-                        <RadzenColumn>
-                            <RadzenFieldset Text="Network mode">
-                                <RadzenRadioButtonList Value=@NetworkMode TValue="bool" ValueChanged="OnNetworkModeChangedHandler">
-                                    <Items>
-                                        <RadzenRadioButtonListItem Text="LTE-M" Value="true" />
-                                        <RadzenRadioButtonListItem Text="NB-IoT" Value="false" />
-                                    </Items>
-                                </RadzenRadioButtonList>
-                            </RadzenFieldset>
-                        </RadzenColumn>
-                        <RadzenColumn>
-                            <RadzenFieldset Text="Auto connection">
-                                <RadzenRadioButtonList @bind-Value=@Config.AutoConn TValue="bool">
-                                    <Items>
-                                        <RadzenRadioButtonListItem Text="Yes" Value="true" />
-                                        <RadzenRadioButtonListItem Text="No" Value="false" />
-                                    </Items>
-                                </RadzenRadioButtonList>
-                            </RadzenFieldset>
-                        </RadzenColumn>
-                    </RadzenRow>
+        <div class="config-grid">
+            <div class="config-block">
+                <h5 class="config-heading">Network mode</h5>
+                <RadzenRadioButtonList Value=@NetworkMode TValue="bool" ValueChanged="OnNetworkModeChangedHandler">
+                    <Items>
+                        <RadzenRadioButtonListItem Text="LTE-M" Value="true" />
+                        <RadzenRadioButtonListItem Text="NB-IoT" Value="false" />
+                    </Items>
+                </RadzenRadioButtonList>
+            </div>
 
-                    <RadzenRow Style="margin-bottom: 1.5rem;">
-                        <RadzenColumn>
-                            <RadzenFieldset Text="Authorization">
-                                <RadzenRadioButtonList @bind-Value=@Config.Authorization TValue="LTEAuthType">
-                                    <Items>
-                                        <RadzenRadioButtonListItem Text="None" Value="LTEAuthType.None" />
-                                        <RadzenRadioButtonListItem Text="PAP" Value="LTEAuthType.PAP" />
-                                        <RadzenRadioButtonListItem Text="CHAP" Value="LTEAuthType.CHAP" />
-                                    </Items>
-                                </RadzenRadioButtonList>
-                            </RadzenFieldset>
-                        </RadzenColumn>
-                        <RadzenColumn>
-                            <RadzenFieldset Text="Clock synchronization">
-                                <RadzenRadioButtonList @bind-Value=@Config.ClkSync TValue="bool">
-                                    <Items>
-                                        <RadzenRadioButtonListItem Text="Yes" Value="true" />
-                                        <RadzenRadioButtonListItem Text="No" Value="false" />
-                                    </Items>
-                                </RadzenRadioButtonList>
-                            </RadzenFieldset>
-                        </RadzenColumn>
-                    </RadzenRow>
+            <div class="config-block">
+                <h5 class="config-heading">Auto connection</h5>
+                <RadzenRadioButtonList @bind-Value=@Config.AutoConn TValue="bool">
+                    <Items>
+                        <RadzenRadioButtonListItem Text="Yes" Value="true" />
+                        <RadzenRadioButtonListItem Text="No" Value="false" />
+                    </Items>
+                </RadzenRadioButtonList>
+            </div>
 
-                    <RadzenRow Style="margin-bottom: 1.5rem;">
-                        <RadzenColumn>
-                            <RadzenFieldset Text="APN">
-                                <RadzenTextBox Placeholder="APN..." @bind-Value="Config.Apn" Style="width: 100%" aria-label="LTE APN" />
-                            </RadzenFieldset>
-                        </RadzenColumn>
-                        <RadzenColumn>
-                            <RadzenFieldset Text="Network ID">
-                                <RadzenNumeric TValue="int" @bind-Value="Config.PlmnId" Min="0" Max="65356" Style="width: 100%" />
-                            </RadzenFieldset>
-                        </RadzenColumn>
-                    </RadzenRow>
+            <div class="config-block">
+                <h5 class="config-heading">Authorization</h5>
+                <RadzenRadioButtonList @bind-Value=@Config.Authorization TValue="LTEAuthType">
+                    <Items>
+                        <RadzenRadioButtonListItem Text="None" Value="LTEAuthType.None" />
+                        <RadzenRadioButtonListItem Text="PAP" Value="LTEAuthType.PAP" />
+                        <RadzenRadioButtonListItem Text="CHAP" Value="LTEAuthType.CHAP" />
+                    </Items>
+                </RadzenRadioButtonList>
+            </div>
 
-                    <RadzenRow Style="margin-bottom: 1.5rem;">
-                        <RadzenColumn>
-                            <RadzenFieldset Text="Username">
-                                <RadzenTextBox Placeholder="Username..." @bind-Value="Config.Username" Style="width: 100%" aria-label="LTE Username" />
-                            </RadzenFieldset>
-                        </RadzenColumn>
-                        <RadzenColumn>
-                            <RadzenFieldset Text="Password">
-                                <RadzenPassword @bind-Value="Config.Password" Style="width: 100%" aria-label="LTE Password" />
-                            </RadzenFieldset>
-                        </RadzenColumn>
-                    </RadzenRow>
+            <div class="config-block">
+                <h5 class="config-heading">Clock synchronization</h5>
+                <RadzenRadioButtonList @bind-Value=@Config.ClkSync TValue="bool">
+                    <Items>
+                        <RadzenRadioButtonListItem Text="Yes" Value="true" />
+                        <RadzenRadioButtonListItem Text="No" Value="false" />
+                    </Items>
+                </RadzenRadioButtonList>
+            </div>
+        </div>
 
-                    <RadzenRow Style="margin-bottom: 1.5rem;">
-                        <RadzenColumn>
-                            <RadzenFieldset Text="IP address">
-                                <RadzenTextBox Placeholder="IP Address..." @bind-Value="Config.Address" Style="width: 100%" aria-label="LTE Username" />
-                            </RadzenFieldset>
-                        </RadzenColumn>
-                        <RadzenColumn>
-                            <RadzenFieldset Text="Port">
-                                <RadzenNumeric TValue="int" @bind-Value="Config.Port" Min="0" Max="65356" Style="width: 100%" />
-                            </RadzenFieldset>
-                        </RadzenColumn>
-                    </RadzenRow>
-
-                </RadzenColumn>
-            </RadzenRow>
-        </RadzenFieldset>
-
+        <div class="config-grid">
+            <div class="config-block">
+                <h5 class="config-heading">APN</h5>
+                <RadzenTextBox Placeholder="APN..." @bind-Value="Config.Apn" Style="width: 100%" aria-label="LTE APN" />
+            </div>
+            <div class="config-block">
+                <h5 class="config-heading">Network ID</h5>
+                <RadzenNumeric TValue="int" @bind-Value="Config.PlmnId" Min="0" Max="65356" Style="width: 100%" />
+            </div>
+        </div>
+        <div class="config-grid">
+            <div class="config-block">
+                <h5 class="config-heading">Username</h5>
+                <RadzenTextBox Placeholder="Username..." @bind-Value="Config.Username" Style="width: 100%" aria-label="LTE Username" />
+            </div>
+            <div class="config-block">
+                <h5 class="config-heading">Password</h5>
+                <RadzenPassword @bind-Value="Config.Password" Style="width: 100%" aria-label="LTE Password" />
+            </div>
+            <div class="config-block">
+                <h5 class="config-heading">IP address</h5>
+                <RadzenTextBox Placeholder="IP Address..." @bind-Value="Config.Address" Style="width: 100%" aria-label="LTE Username" />
+            </div>
+            <div class="config-block">
+                <h5 class="config-heading">Port</h5>
+                <RadzenNumeric TValue="int" @bind-Value="Config.Port" Min="0" Max="65356" Style="width: 100%" />
+            </div>
+        </div>
     </RadzenTemplateForm>
-</RadzenCard>
+</div>
+
 @code {
     [Parameter] public LTEConfig Config { get; set; } = new LTEConfig();
 

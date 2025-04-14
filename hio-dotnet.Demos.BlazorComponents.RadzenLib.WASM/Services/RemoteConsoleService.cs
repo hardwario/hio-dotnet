@@ -46,6 +46,7 @@ namespace hio_dotnet.Demos.BlazorComponents.RadzenLib.Services
         public event EventHandler<bool> OnIsBusy;
         public event EventHandler<bool> OnIsPPKConnected;
         public event EventHandler<bool> OnIsPPKDisconnected;
+        public event EventHandler<bool> OnIsPPKVoltageChanged;
 
         public event EventHandler<bool> OnIsPPKVoltageOutputConnected;
         public event EventHandler<bool> OnIsPPKVoltageOutputDisconnected;
