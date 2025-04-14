@@ -112,7 +112,7 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
             }
             try
             {
-                var devices = await _driver.GetTenantDevicesAsync();
+                var devices = await _driver.GetTenantDevicesAsync(pageSize:100);
                 if (devices != null)
                 {
                     DevicesListable = devices;
@@ -231,6 +231,8 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
             {
                 return null;
             }
+            request.CustomerId.Id = User.CustomerId.Id;
+            request.CustomerId.EntityType = "CUSTOMER";
             var res = await _driver.CreateDeviceAsync(request);
             if (res != null)
             {

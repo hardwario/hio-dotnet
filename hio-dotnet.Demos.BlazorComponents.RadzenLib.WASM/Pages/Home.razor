@@ -1,5 +1,7 @@
 ﻿@using Services
 @using hio_dotnet.UI.BlazorComponents.RadzenLib.Common.Models
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER
+@using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Models
 @using hio_dotnet.Common.Config
 @using hio_dotnet.HWDrivers.MCU
 @page "/"
@@ -13,6 +15,7 @@
 
 <RadzenLayout Style="height: 100%; grid-template-rows: 1fr; grid-template-columns: 1fr auto; grid-template-areas: 'rz-body rz-sidebar'">
     <RadzenSidebar Style="padding: 5px;">
+        <DeviceSelector OnDeviceSelected="OnDeviceSelectedHandler" />
         @if (!ConsoleService.IsPPK2Connected)
         {
             <RadzenButton Click="OnInitPPK2Handler" Style="margin-top: 5px; width: 100%;">Init PPK2</RadzenButton>
@@ -96,6 +99,12 @@
                 <RadzenNumeric @bind-Value="ConsoleFontSize" Min="6" Max="24" Step="1" Name="consoleFontSize" />
             </RadzenColumn>
         </RadzenRow>
+        <RadzenRow Style="margin-top: 5px; width: 100%;">
+            <RadzenColumn>
+                <RadzenLabel Text="Display copy buttons" Component="consoleFontSize" />
+                <RadzenCheckBox @bind-Value="isCopyLinesButtonVisible" TValue="bool" />
+            </RadzenColumn>
+        </RadzenRow>
         <hr style="margin-top: 5px; width: 100%;" />
 
     </RadzenSidebar>
@@ -109,6 +118,7 @@
                                 <RadzenSplitter>
                                     <RadzenSplitterPane Size="50%" Min="30px" Max="70%">
                                         <ConsoleComponent @ref=consoleComponentRef 
+                                                          IsCopyLinesButtonVisible="@isCopyLinesButtonVisible"
                                                           TextSize="@ConsoleFontSize" 
                                                           Output="@ConsoleService.ConsoleOutputShell" 
                                                           Hints="@Hints"
@@ -119,7 +129,12 @@
                                                           OnActionSendCommandHandler="onSendCommandHandler" />
                                     </RadzenSplitterPane>
                                     <RadzenSplitterPane>
-                                        <ConsoleComponent @ref=consoleComponentLogRef TextSize="@ConsoleFontSize" Headline="Log" Output="@ConsoleService.ConsoleOutputLog" HideCommandLine="true" />
+                                        <ConsoleComponent @ref=consoleComponentLogRef 
+                                                          IsCopyLinesButtonVisible="@isCopyLinesButtonVisible" 
+                                                          TextSize="@ConsoleFontSize" 
+                                                          Headline="Log" 
+                                                          Output="@ConsoleService.ConsoleOutputLog" 
+                                                          HideCommandLine="true" />
                                     </RadzenSplitterPane>
                                 </RadzenSplitter>
                             </RadzenSplitterPane>
@@ -138,6 +153,7 @@
     private bool isLogScrollingAutomatically = true;
     private bool isShellScrollingAutomatically = true;
     private bool justAppSetting = true;
+    private bool isCopyLinesButtonVisible = true;
 
     private List<string> outputConfig = new List<string>();
     private List<string> output = new List<string>();
@@ -338,6 +354,11 @@
                 await consoleComponentLogRef.Refresh();
             }
         });
+    }
+
+    private async Task OnDeviceSelectedHandler(AvailableDevice device)
+    {
+        await ConsoleService.SetDevice(device);
     }
 
     private async Task HandleSendCommand(string command)

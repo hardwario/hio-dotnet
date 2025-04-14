@@ -14,6 +14,12 @@ namespace hio_dotnet.APIs.HioCloud
     {
         private static readonly HttpClient httpClient = new HttpClient();
 
+        /// <summary>
+        /// Downloads the firmware from the specified URL and saves it to the specified path.
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="savePath"></param>
+        /// <returns></returns>
         public static async Task DownloadFirmwareAsync(string url, string savePath)
         {
             try
@@ -39,6 +45,13 @@ namespace hio_dotnet.APIs.HioCloud
                 Console.WriteLine($"Error occurred while downloading firmware: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Downloads the firmware with the specified hash from the Hardwario firmware server and saves it to the specified path.
+        /// </summary>
+        /// <param name="hash"></param>
+        /// <param name="savePath"></param>
+        /// <returns></returns>
 
         public static async Task DownloadFirmwareByHashAsync(string hash, string savePath)
         {
@@ -68,6 +81,13 @@ namespace hio_dotnet.APIs.HioCloud
             }
         }
 
+        /// <summary>
+        /// Fetches the firmware information from the Hardwario firmware server.
+        /// </summary>
+        /// <param name="hash"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
         public async static Task<FirmwareInfo?> GetFirmwareInfoAsync(string hash)
         {
             if (string.IsNullOrEmpty(hash))

@@ -12,38 +12,38 @@ namespace hio_dotnet.Common.Models.Common
     {
         [SimulationAttribute(true)]
         [JsonPropertyName("eest")]
-        public int Eest { get; set; } = 0;
+        public int? Eest { get; set; } = 0;
 
         [SimulationAttribute(true)]
         [JsonPropertyName("ecl")]
-        public int Ecl { get; set; } = 0;
+        public int? Ecl { get; set; } = 0;
 
         [SimulationAttribute(false, -120, 10, false, false, 0.01)]
         [JsonPropertyName("rsrp")]
-        public int Rsrp { get; set; } = -120;
+        public int? Rsrp { get; set; } = -120;
 
         [SimulationAttribute(true)]
         [JsonPropertyName("rsrq")]
-        public int Rsrq { get; set; } = -20;
+        public int? Rsrq { get; set; } = -20;
 
         [SimulationAttribute(true)]
         [JsonPropertyName("snr")]
-        public int Snr { get; set; } = 0;
+        public int? Snr { get; set; } = 0;
 
         [SimulationAttribute(true)]
         [JsonPropertyName("plmn")]
-        public int Plmn { get; set; } = 0;
+        public int? Plmn { get; set; } = 0;
 
         [SimulationAttribute(true)]
         [JsonPropertyName("cid")]
-        public int Cid { get; set; } = 0;
+        public int? Cid { get; set; } = 0;
 
         [SimulationAttribute(true)]
         [JsonPropertyName("band")]
-        public int Band { get; set; } = 0;
+        public int? Band { get; set; } = 0;
 
         [SimulationAttribute(true)]
         [JsonPropertyName("earfcn")]
-        public int Earfcn { get; set; } = 0;
+        public int? Earfcn { get; set; } = 0;
     }
 }

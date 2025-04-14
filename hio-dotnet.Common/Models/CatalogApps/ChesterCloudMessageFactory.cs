@@ -8,6 +8,7 @@ using hio_dotnet.Common.Models.CatalogApps.Dust;
 using hio_dotnet.Common.Models.CatalogApps.Input;
 using hio_dotnet.Common.Models.CatalogApps.Meteo;
 using hio_dotnet.Common.Models.CatalogApps.Motion;
+using hio_dotnet.Common.Models.CatalogApps.Push;
 using hio_dotnet.Common.Models.CatalogApps.Radon;
 using hio_dotnet.Common.Models.CatalogApps.Range;
 using hio_dotnet.Common.Models.CatalogApps.Scale;
@@ -86,6 +87,10 @@ namespace hio_dotnet.Common.Models.CatalogApps
                     return new ChesterDustSps30CloudMessage();
                 case DeviceType.FAKE_CHESTER_DUST:
                     return new ChesterDustSps30CloudMessage();
+                case DeviceType.CHESTER_PUSH:
+                    return new ChesterPushCloudMessage();
+                case DeviceType.FAKE_CHESTER_PUSH:
+                    return new ChesterPushCloudMessage();
                 default:
                     return null;
             }

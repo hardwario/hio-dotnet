@@ -17,13 +17,20 @@
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageReference Include="ClosedXML" Version="0.104.2" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.11" />
-    <PackageReference Include="Radzen.Blazor" Version="5.7.4" />
+    <PackageReference Include="Radzen.Blazor" Version="6.5.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\hio-dotnet.APIs.HioCloudv2\hio-dotnet.APIs.HioCloud.csproj" />
     <ProjectReference Include="..\hio-dotnet.APIs.ThingsBoard\hio-dotnet.APIs.ThingsBoard.csproj" />
     <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="wwwroot\site.css">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

@@ -39,10 +39,10 @@ namespace hio_dotnet.Demos.HardwarioMonitor
             builder.Services.AddMauiBlazorWebView();
             builder.Services.AddRadzenComponents();
             builder.Services.AddScoped<ConsoleService>();
-            builder.Services.AddScoped<HioCloudService>();
-            builder.Services.AddScoped<ThingsBoardService>();
+            builder.Services.AddScoped<HioCloudService>(); 
             builder.Services.AddScoped<LoadingOverlayService>();
             builder.Services.AddScoped<AutomatedCommandsService>();
+            builder.Services.AddScoped<AppService>();
             builder.Services.AddBlazoredLocalStorage();
 
 #if DEBUG
@@ -69,9 +69,15 @@ namespace hio_dotnet.Demos.HardwarioMonitor
             if (config != null)
             {
                 MainDataContext.Initialize(config);
+
+                builder.Services.AddScoped<ThingsBoardService>(sp => new ThingsBoardService(baseUrl: config?.ThingsBoardBaseURL,
+                                                                            port: config?.ThingsBoardBasePort ?? 8080,
+                                                                            useDefaultLogin: config?.UseDefaultLoginForThingsBoard ?? false,
+                                                                            defaultLogin: config?.DefaultLoginForThingsBoard,
+                                                                            defaultPass: config?.DefaultPasswordForThingsBoard));
             }
 
-            return builder.Build(); ;
+            return builder.Build();
         }
 
         public static string LoadEmbeddedResource(string resourceName)

@@ -32,7 +32,7 @@ namespace hio_dotnet.HWDrivers.MCU
 
     public class MCUMultiRTTConsole
     {
-        public MCUMultiRTTConsole(List<MultiRTTClientBase> clients, string mcutype, int speed, string consoleName, string jlinkSN = "0")
+        public MCUMultiRTTConsole(List<MultiRTTClientBase> clients, string mcutype, int speed, string consoleName, string jlinkSN = "0", uint rtt_address = 0)
         {
 
             if (!string.IsNullOrEmpty(consoleName))
@@ -55,7 +55,7 @@ namespace hio_dotnet.HWDrivers.MCU
                 }
                 else if (client.DriverType == RTTDriverType.JLinkRTT)
                 {
-                    var cd = new JLinkDriver(mcutype, speed, jlinkSN);
+                    var cd = new JLinkDriver(mcutype, speed, jlinkSN, rtt_address);
 
                     Clients.TryAdd(client.Name, new MultiRTTClient() 
                     { 
@@ -126,16 +126,17 @@ namespace hio_dotnet.HWDrivers.MCU
                                 var lines = message.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
                                 foreach (var line in lines)
                                 {
+                                    var ln = line.Replace("\u001b[0m", "").Replace("\u001b[1m", "").Replace(" \u001b[m","").Replace("\u001b[1;32m","");
                                     var l = new Tuple<string, MultiRTTClientBase>(
-                                        line,
+                                        ln,
                                         new MultiRTTClientBase()
                                         {
                                             Name = client.Name,
                                             Channel = client.Channel,
                                             DriverType = client.DriverType
                                         });
-                                        ReceivedLines.Add(l);
-                                        NewRTTMessageLineReceived?.Invoke(this, l);
+                                    ReceivedLines.Add(l);
+                                    NewRTTMessageLineReceived?.Invoke(this, l);
                                 }
                             }
                         }
@@ -229,6 +230,12 @@ namespace hio_dotnet.HWDrivers.MCU
             //});
         }
 
+        /// <summary>
+        /// Function will automatically iterate via device shell help and capture all commands and subcommands
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="channel"></param>
+        /// <returns></returns>
         public async Task<List<ZephyrRTOSCommand>> LoadCommandsFromDeviceHelp(string parent, int channel)
         {
             var client = Clients.Values.FirstOrDefault(x => x.Channel == channel);
@@ -408,6 +415,9 @@ namespace hio_dotnet.HWDrivers.MCU
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Close all connections
+        /// </summary>
         public void CloseAll()
         {
             foreach (var client in Clients.Values)

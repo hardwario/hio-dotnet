@@ -118,7 +118,7 @@ namespace hio_dotnet.HWDrivers.Server
         /// If PPK2 is not initialized, it will try to find and connect to the first available PPK2 device
         /// </summary>
         /// <returns></returns>
-        public async Task<string> JLink_Init(bool withppk2 = true)
+        public async Task<string> JLink_Init(bool withppk2 = true, string mcu = "nRF52840_xxAA", int speed = 4000, uint rttaddr = 0)
         {
             if (DriversServerMainDataContext.MCUMultiRTTConsole != null)
             {
@@ -188,7 +188,7 @@ namespace hio_dotnet.HWDrivers.Server
                 {
                     new MultiRTTClientBase(){ Channel = 0, DriverType= RTTDriverType.JLinkRTT, Name = "ConfigConsole" },
                     new MultiRTTClientBase(){ Channel = 1, DriverType= RTTDriverType.JLinkRTT, Name = "LogConsole" }
-                }, "nRF52840_xxAA", 4000, "mcumulticonsole", devsn);
+                }, mcu, speed, "mcumulticonsole", devsn, rttaddr);
             }
             catch (Exception ex)
             {

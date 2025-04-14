@@ -469,7 +469,7 @@ namespace hio_dotnet.UI.BlazorComponents.RadzenLib.Services
             }
             else
             {
-                msgs = await hioCloudDriver.GetAllDeviceMessages(Guid.Parse(spaceId), Guid.Parse(deviceId), 1);
+                msgs = await hioCloudDriver.GetAllDeviceMessages(Guid.Parse(spaceId), Guid.Parse(deviceId), 1, timeout: 5);
             }
 
             if (msgs != null)

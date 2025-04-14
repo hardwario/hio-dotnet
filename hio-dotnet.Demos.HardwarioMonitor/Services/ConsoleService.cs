@@ -6,6 +6,7 @@ using hio_dotnet.HWDrivers.JLink;
 using hio_dotnet.HWDrivers.MCU;
 using hio_dotnet.HWDrivers.PPK2;
 using hio_dotnet.HWDrivers.Server;
+using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Models;
 using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.DataCollection;
 using Radzen;
 using System;
@@ -45,6 +46,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         public event EventHandler<bool> OnIsBusy;
         public event EventHandler<bool> OnIsPPKConnected;
         public event EventHandler<bool> OnIsPPKDisconnected;
+        public event EventHandler<bool> OnIsPPKVoltageChanged;
 
         public event EventHandler<bool> OnIsPPKVoltageOutputConnected;
         public event EventHandler<bool> OnIsPPKVoltageOutputDisconnected;
@@ -76,6 +78,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
         public LoRaWANConfig LoRaWANConfig { get; set; } = new LoRaWANConfig();
         public LTEConfig LTEConfig { get; set; } = new LTEConfig();
 
+        public AvailableDevice SelectedDevice { get; set; } = new AvailableDevice();
         public Guid RemoteSessionId { get => remoteWebSocketClient?.SessionId ?? Guid.Empty; }
 
         public async Task LoadCommandsFromFile(string url)
@@ -276,6 +279,8 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             Console.WriteLine($"Setting source voltage to {voltage} mV...");
             ppk2?.SetSourceVoltage(voltage);
             DeviceVoltage = voltage;
+
+            OnIsPPKVoltageChanged?.Invoke(this, true);
         }
 
         public async Task TurnOnPower(bool withMeasurement = false)
@@ -405,6 +410,15 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
             }
         }
 
+        public async Task SetDevice(AvailableDevice device)
+        {
+            if (device != null)
+            {
+                SelectedDevice = device;
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "MCU Selected", Detail = $"{device.MCU} has been selected.", Duration = 3000 });
+            }
+        }
+
         public async Task StartListening(bool withPPK2 = true)
         {
             OnIsBusy?.Invoke(this, true);
@@ -455,7 +469,7 @@ namespace hio_dotnet.Demos.HardwarioMonitor.Services
                 {
                     new MultiRTTClientBase(){ Channel = 0, DriverType= RTTDriverType.JLinkRTT, Name = "ConfigConsole" },
                     new MultiRTTClientBase(){ Channel = 1, DriverType= RTTDriverType.JLinkRTT, Name = "LogConsole" }
-                }, "nRF52840_xxAA", 4000, "mcumulticonsole", devsn);
+                }, SelectedDevice.MCU, SelectedDevice.Speed, "mcumulticonsole", devsn, SelectedDevice.RTTAddress);
             }
             catch (Exception ex)
             {

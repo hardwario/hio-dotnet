@@ -139,6 +139,10 @@ namespace hio_dotnet.HWDrivers.Server
             return string.Empty;
         }
 
+        /// <summary>
+        /// Get PPK2 Ports Names
+        /// </summary>
+        /// <returns></returns>
         public async Task<List<GetPortsResponse>> PPK2_GetPortsNames()
         {
             var request = new DriversWebSocketRequest()
@@ -164,6 +168,11 @@ namespace hio_dotnet.HWDrivers.Server
             return new List<GetPortsResponse>();
         }
 
+        /// <summary>
+        /// Initialize PPK2
+        /// </summary>
+        /// <param name="portname"></param>
+        /// <returns></returns>
         public async Task<string> PPK2_Init(string portname)
         {
             var request = new DriversWebSocketRequest()
@@ -177,6 +186,11 @@ namespace hio_dotnet.HWDrivers.Server
             return response;
         }
 
+        /// <summary>
+        /// Set PPK2 output voltage
+        /// </summary>
+        /// <param name="voltage">in millivolts</param>
+        /// <returns></returns>
         public async Task<string> PPK2_SetVoltage(int voltage)
         {
             var request = new DriversWebSocketRequest()
@@ -190,6 +204,10 @@ namespace hio_dotnet.HWDrivers.Server
             return response;
         }
 
+        /// <summary>
+        /// Turn on PPK2
+        /// </summary>
+        /// <returns></returns>
         public async Task<string> PPK2_TurnOn()
         {
             var request = new DriversWebSocketRequest()
@@ -203,6 +221,10 @@ namespace hio_dotnet.HWDrivers.Server
             return response;
         }
 
+        /// <summary>
+        /// Turn off PPK2
+        /// </summary>
+        /// <returns></returns>
         public async Task<string> PPK2_TurnOff()
         {
             var request = new DriversWebSocketRequest()
@@ -238,6 +260,10 @@ namespace hio_dotnet.HWDrivers.Server
             return false;
         }
 
+        /// <summary>
+        /// Get PPK2 Device Voltage
+        /// </summary>
+        /// <returns></returns>
         public async Task<int> PPK2_DeviceVoltage()
         {
             var request = new DriversWebSocketRequest()
@@ -261,17 +287,29 @@ namespace hio_dotnet.HWDrivers.Server
             return 0;
         }
 
-        public async Task<string> JLink_Init(bool withPPK2 = true)
+        /// <summary>
+        /// Initialize JLink
+        /// </summary>
+        /// <param name="withPPK2"></param>
+        /// <param name="mcu"></param>
+        /// <param name="speed"></param>
+        /// <param name="rttaddr"></param>
+        /// <returns></returns>
+        public async Task<string> JLink_Init(bool withPPK2 = true, string mcu = "nRF52840_xxAA", int speed = 4000, uint rttaddr = 0)
         {
             var request = new DriversWebSocketRequest()
             {
-                Message = $"/api/jlink/init/{withPPK2}",
+                Message = $"/api/jlink/init/{withPPK2}/{mcu}/{speed}/{rttaddr}",
                 Id = Guid.NewGuid()
             };
             var response = await SendApiRequest(request);
             return response;
         }
 
+        /// <summary>
+        /// Stop JLink
+        /// </summary>
+        /// <returns></returns>
         public async Task<string> JLink_Stop()
         {
             var request = new DriversWebSocketRequest()
@@ -283,6 +321,12 @@ namespace hio_dotnet.HWDrivers.Server
             return response;
         }
 
+        /// <summary>
+        /// Send JLink Command by Channel
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
         public async Task<string> JLink_SendCommandByChannel(int channel, string message)
         {
             message = System.Net.WebUtility.UrlEncode(message);
@@ -295,6 +339,12 @@ namespace hio_dotnet.HWDrivers.Server
             return response;
         }
 
+        /// <summary>
+        /// Send JLink Command by Name
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
         public async Task<string> JLink_SendCommandByName(string name, string message)
         {
             message = System.Net.WebUtility.UrlEncode(message);
@@ -307,6 +357,12 @@ namespace hio_dotnet.HWDrivers.Server
             return response;
         }
 
+        /// <summary>
+        /// Load all commands from JLink Help
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="parent"></param>
+        /// <returns></returns>
         public async Task<string> JLink_LoadAllCommandsFromHelp(int channel, string parent)
         {
             var uri = $"/api/jlink/loadcommandsfromhelp/{channel}";
@@ -328,7 +384,12 @@ namespace hio_dotnet.HWDrivers.Server
             return response;
         }
 
-
+        /// <summary>
+        /// Upload Firmware to JLink
+        /// </summary>
+        /// <param name="hash"></param>
+        /// <param name="filename"></param>
+        /// <returns></returns>
         public async Task<string> JLink_UploadFirmware(string hash, string filename)
         {
             var request = new DriversWebSocketRequest();

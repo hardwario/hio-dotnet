@@ -8,74 +8,73 @@
 <LoadingOverlay />
 
 <RadzenLayout Style="height: 100%; grid-template-rows: 1fr; grid-template-columns: 1fr auto; grid-template-areas: 'rz-body rz-sidebar'">
-    <RadzenSidebar Style="padding: 5px;">
-        @if (!ConsoleService.IsPPK2Connected)
-        {
-            <RadzenButton Click="OnInitPPK2Handler" Style="margin-top: 5px; width: 100%;">Init PPK2</RadzenButton>
-        }
-        else
-        {
-            <RadzenButton Click="OnInitPPK2Handler" Disabled="true" Style="margin-top: 5px; width: 100%;">Init PPK2</RadzenButton>
-        }
-        <RadzenNumeric @bind-Value=Voltage Min="3300" Max="4000" Style="margin-top: 5px; width: 100%;"></RadzenNumeric>
-        <RadzenButton Click="SetPPK2Voltage" Style="margin-top: 5px; width: 100%;">Set Voltage</RadzenButton>
-        @if (!ConsoleService.IsDeviceOn)
-        {
-            <RadzenButton Click="StartPPK2" Style="margin-top: 5px; width: 100%;">Turn On</RadzenButton>
-            <RadzenButton Click="StartPPK2WithGraph" Style="margin-top: 5px; width: 100%;">Turn On With Graph</RadzenButton>
-        }
-        else
-        {
-            <RadzenButton Click="StopPPK2" Style="margin-top: 5px; width: 100%;">Turn Off</RadzenButton>
-        }
+    <RadzenSidebar Style="padding: 15px;">
+        <div style="margin-top: 16px; margin-bottom: 32px;">
+            <div style="display: flex;
+                    align-items:center;
+                    column-gap: 8px">
 
-        <RadzenRow Style="margin-top: 5px; width: 100%;">
-            <RadzenColumn>
-                <RadzenStack Orientation="Orientation.Horizontal">
-                    @if (ConsoleService.IsPPK2Connected)
-                    {
-                        <RadzenText Text="PPK Connected" />
-                    }
-                    else
-                    {
-                        <RadzenText Text="PPK Disconnected" />
-                    }
-                </RadzenStack>
-            </RadzenColumn>
-        </RadzenRow>
-        <RadzenRow Style="margin-top: 5px; width: 100%;">
-            <RadzenColumn>
-                <RadzenStack Orientation="Orientation.Horizontal">
-                    <RadzenText Text="PPK Voltage: " />
-                    <RadzenText Text="@($"{ConsoleService.DeviceVoltage.ToString()} mV")" />
-                </RadzenStack>
-            </RadzenColumn>
-        </RadzenRow>
+                <RadzenNumeric ShowUpDown="false" class="voltage-input" @bind-Value=Voltage Min="3300" Max="4000"></RadzenNumeric>
+                <RadzenButton Click="SetPPK2Voltage" class="set-voltage-button">SET</RadzenButton>
+            </div>
+            <div style="display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-top: 16px">
+                <label>
+                    TURN VOLTAGE ON/OFF
+                </label>
+                <RadzenSwitch @bind-Value="@ConsoleService.IsDeviceOn" Change="@SwitchPPK2" />
+            </div>
+        </div>
+        <div class="sidebar-section">
+            <h5 class="sidebar-heading">
+                Initialization
+            </h5>
+            @if (!ConsoleService.IsPPK2Connected)
+            {
+                <RadzenButton Click="OnInitPPK2Handler" Style="margin-top: 5px; width: 100%;">Init PPK2</RadzenButton>
+            }
+            else
+            {
+                <RadzenButton Click="OnInitPPK2Handler" Disabled="true" Style="margin-top: 5px; width: 100%;">Init PPK2</RadzenButton>
+            }
+        </div>
 
+        <div class="sidebar-section">
+            <h5 class="sidebar-heading">
+                Others
+            </h5>
+            @if (!ConsoleService.IsDeviceOn)
+            {
+                <RadzenButton Click="StartPPK2WithGraph" Style="margin-top: 5px; width: 100%;">Turn On With Graph</RadzenButton>
+            }
+            else
+            {
+                <RadzenButton Click="StopPPK2" Style="margin-top: 5px; width: 100%;">Turn Off</RadzenButton>
+            }
+        </div>
     </RadzenSidebar>
     <RadzenBody>
-        <RadzenRow Style="height: 100%;">
-            <RadzenColumn Style="height: 100%;">
-
-                <RadzenRow>
-                    <RadzenColumn>
-                        <RadzenChart @ref=radzenChartRef>
-                            <RadzenChartTooltipOptions Shared="@sharedTooltip" />
-                            <RadzenLineSeries Smooth="@smooth" Data="@ConsoleService.dataPoints" CategoryProperty="Time" Title="Current" LineType="LineType.Solid" ValueProperty="Current">
-                                <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Circle" />
-                                <RadzenSeriesDataLabels Visible="@showDataLabels" />
-                            </RadzenLineSeries>
-                            <RadzenCategoryAxis Padding="20" />
-                            <RadzenValueAxis Formatter="@FormatAsString">
-                                <RadzenGridLines Visible="true" />
-                                <RadzenAxisTitle Text="MircroAmpers" />
-                            </RadzenValueAxis>
-                        </RadzenChart>
-                    </RadzenColumn>
-                </RadzenRow>
-
-            </RadzenColumn>
-        </RadzenRow>
+        <div class="card-container">
+            <div class="card-heading">
+                <h4>Graph</h4>
+            </div>
+            <div>
+                <RadzenChart @ref=radzenChartRef>
+                    <RadzenChartTooltipOptions Shared="@sharedTooltip" />
+                    <RadzenLineSeries Smooth="@smooth" Data="@ConsoleService.dataPoints" CategoryProperty="Time" Title="Current" LineType="LineType.Solid" ValueProperty="Current">
+                        <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Circle" />
+                        <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                    </RadzenLineSeries>
+                    <RadzenCategoryAxis Padding="20" />
+                    <RadzenValueAxis Formatter="@FormatAsString">
+                        <RadzenGridLines Visible="true" />
+                        <RadzenAxisTitle Text="MircroAmpers" />
+                    </RadzenValueAxis>
+                </RadzenChart>
+            </div>
+        </div>
     </RadzenBody>
 </RadzenLayout>
 
@@ -145,5 +144,17 @@
     public async Task StopPPK2()
     {
         await ConsoleService.TurnOffPower();
+    }
+
+    public async Task SwitchPPK2(bool turnPPKOn)
+    {
+        if (turnPPKOn)
+        {
+            await ConsoleService.TurnOnPower();
+        }
+        else
+        {
+            await ConsoleService.TurnOffPower();
+        }
     }
 }

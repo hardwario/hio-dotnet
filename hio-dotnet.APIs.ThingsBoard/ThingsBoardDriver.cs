@@ -50,6 +50,13 @@ namespace hio_dotnet.APIs.ThingsBoard
         private int _port = 0;
         private string _jwtToken = string.Empty;
 
+        /// <summary>
+        /// Login to ThingsBoard using username and password to obtain JWT token.
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public async Task<string?> Login(string username, string password)
         {
             if (string.IsNullOrEmpty(username))
@@ -70,6 +77,13 @@ namespace hio_dotnet.APIs.ThingsBoard
         }
 
         #region Users
+        /// <summary>
+        /// Get user details from ThingsBoard by user ID.
+        /// </summary>
+        /// <param name="jwtToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
         public async Task<User> GetActiveUserInfo(string jwtToken = "")
         {
             if (string.IsNullOrEmpty(jwtToken))
@@ -382,6 +396,16 @@ namespace hio_dotnet.APIs.ThingsBoard
             }
         }
 
+        /// <summary>
+        /// Send telemetry data to ThingsBoard.
+        /// </summary>
+        /// <param name="telemetryData">any class. It will be serialized as json</param>
+        /// <param name="connectionToken">Device connection token</param>
+        /// <param name="jwtToken"></param>
+        /// <param name="serializeData">default is true. if you clear this then input object must be already json string</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
         public async Task<string?> SendTelemetryData(object telemetryData, string connectionToken, string jwtToken = "", bool serializeData = true)
         {
             if (string.IsNullOrEmpty(jwtToken))
@@ -582,7 +606,14 @@ namespace hio_dotnet.APIs.ThingsBoard
             }
         }
 
-        //Delete customer request
+        /// <summary>
+        /// Delete customer by ID
+        /// </summary>
+        /// <param name="customerId"></param>
+        /// <param name="jwtToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
         public async Task<string> DeleteCustomerAsync(string customerId, string jwtToken = "")
         {
             if (string.IsNullOrEmpty(jwtToken))
@@ -819,7 +850,16 @@ namespace hio_dotnet.APIs.ThingsBoard
 
         #region Devices
 
-        public async Task<ListableDevicesResponse> GetTenantDevicesAsync(int pageSize = 20, int page = 0, string jwtToken = "")
+        /// <summary>
+        /// Get devices details from ThingsBoard for whole tenant.
+        /// </summary>
+        /// <param name="pageSize"></param>
+        /// <param name="page"></param>
+        /// <param name="jwtToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
+        public async Task<ListableDevicesResponse> GetTenantDevicesAsync(int pageSize = 50, int page = 0, string jwtToken = "")
         {
             if (string.IsNullOrEmpty(jwtToken))
             {
@@ -858,7 +898,17 @@ namespace hio_dotnet.APIs.ThingsBoard
             }
         }
 
-        public async Task<List<Device>?> GetCustomerDevicesAsync(string customerId, int pageSize = 20, int page = 0, string jwtToken = "")
+        /// <summary>
+        /// Get devices of some customer details from ThingsBoard by customer ID.
+        /// </summary>
+        /// <param name="customerId"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="page"></param>
+        /// <param name="jwtToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
+        public async Task<List<Device>?> GetCustomerDevicesAsync(string customerId, int pageSize = 50, int page = 0, string jwtToken = "")
         {
             if (string.IsNullOrEmpty(jwtToken))
             {
@@ -993,6 +1043,11 @@ namespace hio_dotnet.APIs.ThingsBoard
             }
         }
 
+        /// <summary>
+        /// Parse connection token from DeviceConnectivity object
+        /// </summary>
+        /// <param name="connectivity"></param>
+        /// <returns></returns>
         public string? ParseConnectionToken(DeviceConnectivity connectivity)
         {
             if (connectivity != null)
@@ -1015,7 +1070,14 @@ namespace hio_dotnet.APIs.ThingsBoard
             return null;
         }
 
-        //Delete device request
+        /// <summary>
+        /// Delete device by ID
+        /// </summary>
+        /// <param name="deviceId"></param>
+        /// <param name="jwtToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
         public async Task<string> DeleteDeviceAsync(string deviceId, string jwtToken = "")
         {
             if (string.IsNullOrEmpty(jwtToken))
@@ -1058,6 +1120,15 @@ namespace hio_dotnet.APIs.ThingsBoard
 
         #region Dashboards
 
+        /// <summary>
+        /// Get dashboards from ThingsBoard for whole tenant.
+        /// </summary>
+        /// <param name="pageSize"></param>
+        /// <param name="page"></param>
+        /// <param name="jwtToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
         public async Task<ListableDashboardResponse?> GetTenantDashboardsAsync(int pageSize = 20, int page = 0, string jwtToken = "")
         {
             if (string.IsNullOrEmpty(jwtToken))
@@ -1097,6 +1168,14 @@ namespace hio_dotnet.APIs.ThingsBoard
             }
         }
 
+        /// <summary>
+        /// Get dashboard details from ThingsBoard by dashboard ID.
+        /// </summary>
+        /// <param name="dashboardId"></param>
+        /// <param name="jwtToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
         public async Task<Dashboard?> GetTenantDashboardAsync(string dashboardId, string jwtToken = "")
         {
             if (string.IsNullOrEmpty(jwtToken))
@@ -1187,7 +1266,14 @@ namespace hio_dotnet.APIs.ThingsBoard
             }
         }
 
-        //Delete dashboard request
+        /// <summary>
+        /// Delete dashboard by ID
+        /// </summary>
+        /// <param name="dashboardId"></param>
+        /// <param name="jwtToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
         public async Task<string> DeleteDashboardAsync(string dashboardId, string jwtToken = "")
         {
             if (string.IsNullOrEmpty(jwtToken))

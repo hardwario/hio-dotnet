@@ -11,7 +11,7 @@ namespace hio_dotnet.Common.Models.CatalogApps.Meteo
 {
     public class BarometerMeasurements
     {
-        [SimulationMeasurementAttribute(false, 200.0, 500.0, true, false, 0.02, 3)]
+        [SimulationMeasurementAttribute(false, 200.0, 500.0, false, false, 0.02, 3)]
         [JsonPropertyName("pressure")]
         public MeasurementGroup Pressure { get; set; } = new MeasurementGroup();
     }

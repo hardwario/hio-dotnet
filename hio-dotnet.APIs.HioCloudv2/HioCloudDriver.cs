@@ -80,6 +80,13 @@ namespace hio_dotnet.APIs.HioCloud
         private string _apitoken = string.Empty;
         private bool _useapitoken = false;
 
+        /// <summary>
+        /// This method is used to obtain JWT token from Hardwario Cloud.
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public async Task<string?> Login(string username, string password)
         {
             if (string.IsNullOrEmpty(username))
@@ -94,7 +101,7 @@ namespace hio_dotnet.APIs.HioCloud
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Cannot obtain JWT token from ThingsBoard. Error: " + ex.Message);
+                Console.WriteLine("Cannot obtain JWT token from Hardwario Cloud. Error: " + ex.Message);
                 return null;
             }
         }
@@ -440,6 +447,14 @@ namespace hio_dotnet.APIs.HioCloud
             }
         }
 
+        /// <summary>
+        /// Update device in cloud
+        /// </summary>
+        /// <param name="space_id"></param>
+        /// <param name="device_id"></param>
+        /// <param name="devupdate"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task<HioCloudDevice?> UpdateDevice(Guid space_id, Guid device_id, HioCloudDeviceUpdateRequest devupdate)
         {
             using (var httpClient = GetHioClient())
@@ -475,23 +490,50 @@ namespace hio_dotnet.APIs.HioCloud
             }
         }
 
-        #endregion
-
-        #region Messages
-
         /// <summary>
-        /// Return All messages between two dates
-        /// It solves paging because API offers max 100 messages at a time
-        /// There is 500ms delay to prevent API rate limiting
-        /// There is max messages count limit default to 5000
+        /// Add Label to the device
         /// </summary>
         /// <param name="space_id"></param>
         /// <param name="device_id"></param>
-        /// <param name="after"></param>
-        /// <param name="before"></param>
-        /// <param name="delay"></param>
-        /// <param name="maxmessages"></param>
+        /// <param name="device"></param>
+        /// <param name="labelname"></param>
+        /// <param name="labelvalue"></param>
         /// <returns></returns>
+        public async Task<HioCloudDevice?> AddDeviceLabel(Guid space_id, Guid device_id, HioCloudDevice device, string labelname, string labelvalue)
+        {
+            var devupdate = new HioCloudDeviceUpdateRequest()
+            {
+                Comment = device.Comment,
+                Name = device.Name,
+                Label = device.Label,
+                Tags = device.Tags
+            };
+
+            if (devupdate.Label == null)
+                devupdate.Label = new Dictionary<string, string>();
+
+            devupdate.Label.Add(labelname, labelvalue);
+
+            return await UpdateDevice(space_id, device_id, devupdate);
+        }
+
+        #endregion
+
+            #region Messages
+
+            /// <summary>
+            /// Return All messages between two dates
+            /// It solves paging because API offers max 100 messages at a time
+            /// There is 500ms delay to prevent API rate limiting
+            /// There is max messages count limit default to 5000
+            /// </summary>
+            /// <param name="space_id"></param>
+            /// <param name="device_id"></param>
+            /// <param name="after"></param>
+            /// <param name="before"></param>
+            /// <param name="delay"></param>
+            /// <param name="maxmessages"></param>
+            /// <returns></returns>
         public async Task <List<HioCloudMessage>> GetAllMessagesBetweenDates(Guid space_id, Guid device_id, DateTime after, DateTime before, int delay = 500, int maxmessages = 5000)
         {
             var allmessages = new List<HioCloudMessage>();
@@ -500,7 +542,7 @@ namespace hio_dotnet.APIs.HioCloud
 
             while (!isLast)
             {
-                var messages = await GetAllDeviceMessages(space_id, device_id, 100, lastmessageid, after: after, before: before);
+                var messages = await GetAllDeviceMessages(space_id, device_id, 100, lastmessageid, after: after, before: before, timeout:120);
                 if (messages != null && messages.Count > 0)
                 {
                     allmessages.AddRange(messages);
@@ -542,7 +584,8 @@ namespace hio_dotnet.APIs.HioCloud
                                                                          string tag_id = "",
                                                                          DateTime? after = null,
                                                                          DateTime? before = null,
-                                                                         string[]? type = null)
+                                                                         string[]? type = null,
+                                                                         int timeout = 30)
         {
 
             if (!string.IsNullOrEmpty(direction) && !HioCloudMessageDirection.IsMessageDirection(direction))
@@ -588,7 +631,7 @@ namespace hio_dotnet.APIs.HioCloud
                 }
                 else
                 {
-                    url = $"{url}&after=2000-01-01T08:00:00.000Z";
+                    url = $"{url}&after=2016-01-01T08:00:00.000Z";
                 }
 
                 if (before != null)
@@ -598,7 +641,7 @@ namespace hio_dotnet.APIs.HioCloud
 
                 try
                 {
-                    httpClient.Timeout = new TimeSpan(0,0,30);
+                    httpClient.Timeout = new TimeSpan(0,0,timeout);
                     var response = await httpClient.GetAsync(url);
                     var cnt = response.Content.ReadAsStringAsync().Result;
 

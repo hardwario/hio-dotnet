@@ -18,28 +18,40 @@
         <RadzenButton Text="Select Props" Click="OpenPropsDialog" />
     </RadzenColumn>
 </RadzenRow>
-<RadzenRow>
+<RadzenRow Style="margin-top:1rem;">
     <RadzenColumn>
         <RadzenRow>
             <RadzenColumn>
                 <RadzenText Text="Select Number of messages" />
-                <RadzenNumeric Min="1" Max="100" @bind-Value="SimulateMessagesNum" TValue="int" />
+                <RadzenNumeric Min="1" Max="1000000" @bind-Value="SimulateMessagesNum" TValue="int" />
             </RadzenColumn>
         </RadzenRow>
         <RadzenRow>
             <RadzenColumn>
                 <RadzenText Text="Select Number of Minutes between messages" />
-                <RadzenNumeric Min="1" Max="100" @bind-Value="SimulateMessagesNumMinutes" TValue="int" />
+                <RadzenNumeric Min="1" Max="10000" @bind-Value="SimulateMessagesNumMinutes" TValue="int" />
             </RadzenColumn>
         </RadzenRow>
     </RadzenColumn>
 </RadzenRow>
-<RadzenRow>
+<RadzenRow Style="margin-top:1rem;">
     <RadzenColumn>
         <RadzenButton Text="Simulate" Click="SendSimulatedData" Style="height:100%;" />
     </RadzenColumn>
 </RadzenRow>
-
+<RadzenRow Style="margin-top:1rem;">
+    <RadzenColumn>
+        <RadzenText Text="@($"Processed messages: {SimulatedMessageIndex} of {SimulatedMessageTotal}")" />
+    </RadzenColumn>
+</RadzenRow>
+@if (IsSimulating)
+{
+    <RadzenRow Style="margin-top:1rem;">
+        <RadzenColumn>
+            <RadzenButton Text="Cancel" Click="CancelSimulation" Style="height:100%;" />
+        </RadzenColumn>
+    </RadzenRow>
+}
 
 @code {
     [Parameter] public DeviceOpenedTab Tab { get; set; } = new DeviceOpenedTab();
@@ -47,13 +59,18 @@
 
     private HioCloudFlattenJSONForDevice? flatener;
 
-    public List<string> SimulatedMessages { get; set; } = new List<string>();
+    public Dictionary<string,long> SimulatedMessages { get; set; } = new Dictionary<string, long>();
     public string SimulatedMessage { get; set; } = string.Empty;
     public int SimulateMessagesNum { get; set; } = 2;
     public int SimulateMessagesNumMinutes { get; set; } = 15;
+    public int SimulatedMessageTotal { get; set; } = 0;
+    public int SimulatedMessageIndex { get; set; } = 0;
 
     public string SimulatorJSDataProcessingScriptBase { get; set; } = string.Empty;
     public string SimulatorJSDataProcessingScript { get; set; } = string.Empty;
+
+    public bool EndSimulation { get; set; } = false;
+    public bool IsSimulating { get; set; } = false;
 
     private object? result;
 
@@ -107,20 +124,25 @@
         }
     }
 
-    private void CreateFullTestScript(string message)
+    private void CreateFullTestScript(string message, long time)
     {
         if (SimulatorJSDataProcessingScriptBase != null)
         {
-            var time = hio_dotnet.Common.Helpers.TimeHelpers.DateTimeToUnixTimestamp(DateTime.Now);
+            //var time = hio_dotnet.Common.Helpers.TimeHelpers.DateTimeToUnixTimestamp(DateTime.Now);
 
             SimulatorJSDataProcessingScript = $@"
                 const data = [];
                 const sharedtimestamp = {time};
                 const job = {{ message: {{ body: {message} }} }};
-            {SimulatorJSDataProcessingScriptBase}
+    {SimulatorJSDataProcessingScriptBase}
                 return data;
             ";
         }
+    }
+
+    private async Task CancelSimulation()
+    {
+        EndSimulation = true;
     }
 
     private async Task SendSimulatedData()
@@ -144,27 +166,37 @@
             BaseSimulator.GetSimulatedData(messageObject, null, true, timestamp);
             SimulatedMessages.Clear();
             messageObjectPrevious = messageObject;
+            EndSimulation = false;
+            IsSimulating = true;
 
             for (int i = 0; i < SimulateMessagesNum; i++)
             {
                 var time = lasttime.AddMinutes(-SimulateMessagesNumMinutes);
                 timestamp = hio_dotnet.Common.Helpers.TimeHelpers.DateTimeToUnixTimestamp(time) / 1000;
-                
+
                 var mo = Activator.CreateInstance(type);
                 if (mo != null)
                 {
                     BaseSimulator.GetSimulatedData(mo, messageObjectPrevious, true, timestamp);
-                    SimulatedMessages.Add(JsonSerializer.Serialize(mo));
+                    SimulatedMessages.TryAdd(JsonSerializer.Serialize(mo), timestamp);
                     messageObjectPrevious = mo;
                 }
 
                 lasttime = time;
             }
 
+            SimulatedMessageTotal = SimulatedMessages.Count;
+            SimulatedMessageIndex = 0;
+
             foreach (var msg in SimulatedMessages)
             {
+                if (EndSimulation)
+                {
+                    IsSimulating = false;
+                    break;
+                }
 
-                CreateFullTestScript(msg);
+                CreateFullTestScript(msg.Key, msg.Value * 1000);
                 if (string.IsNullOrEmpty(SimulatorJSDataProcessingScript))
                     return;
 
@@ -182,10 +214,17 @@
                         if (!string.IsNullOrEmpty(str))
                         {
                             await ThingsBoardService.SendTelemetryData(str, ConnectionToken);
+                            SimulatedMessageIndex++;
+                            await InvokeAsync(StateHasChanged);
+                            await Task.Delay(5);
                         }
                     }                    
                 }
             }
+
+            IsSimulating = false;
+            EndSimulation = false;
+            await InvokeAsync(StateHasChanged);
 
             if (ThingsBoardService.DevicesDataKeys.ContainsKey(DeviceData.Id.Id))
                 ThingsBoardService.DevicesDataKeys.Remove(DeviceData.Id.Id);

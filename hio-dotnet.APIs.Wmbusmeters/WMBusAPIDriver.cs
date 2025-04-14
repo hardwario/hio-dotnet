@@ -46,6 +46,21 @@ namespace hio_dotnet.APIs.Wmbusmeters
             response.EnsureSuccessStatusCode();
         }
 
+        public string GetIdFromData(string data)
+        {
+            string reversedId = data.Substring(8, 8);
+            return reversedId.Substring(6, 2) + reversedId.Substring(4, 2) + reversedId.Substring(2, 2) + reversedId.Substring(0, 2);
+        }
+
+        public string SetIdToTelegram(string id, string telegram)
+        {
+            if (string.IsNullOrEmpty(telegram))
+                telegram = "3e446d147341523505077a83003005f302b0316ecfdb0f53ef6beb8e094ace59b1d1c11b9061d4ade6e2789f9b4fb86c32c8ff6666649fa842465213676565";
+            string reversedId = id.Substring(6, 2) + id.Substring(4, 2) + id.Substring(2, 2) + id.Substring(0, 2);
+            telegram = telegram.Substring(0, 8) + reversedId + telegram.Substring(16);
+            return telegram;
+        }
+
         /// <summary>
         /// Analyze telegram from WM-Bus meter with optional drivername and password.
         /// </summary>

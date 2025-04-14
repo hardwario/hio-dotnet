@@ -12,11 +12,11 @@ namespace hio_dotnet.Common.Models.Common
     {
         [SimulationAttribute(true)]
         [JsonPropertyName("imei")]
-        public long Imei { get; set; } = 0;
+        public long? Imei { get; set; } = 0;
 
         [SimulationAttribute(true)]
         [JsonPropertyName("imsi")]
-        public long Imsi { get; set; } = 0;
+        public long? Imsi { get; set; } = 0;
 
         [SimulationAttribute(false)]
         [JsonPropertyName("parameter")]

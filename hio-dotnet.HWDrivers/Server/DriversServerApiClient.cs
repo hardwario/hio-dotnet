@@ -34,6 +34,11 @@ namespace hio_dotnet.HWDrivers.Server
         private string _baseUrl = string.Empty;
         private int _port = 0;
 
+        /// <summary>
+        /// Get PPK2 ports names
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task<List<GetPortsResponse>> PPK2_GetPortsNames()
         {
             using (var httpClient = new HttpClient())
@@ -62,6 +67,12 @@ namespace hio_dotnet.HWDrivers.Server
             }
         }
 
+        /// <summary>
+        /// Initialize PPK2 on specific port
+        /// </summary>
+        /// <param name="portname"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task<string> PPK2_Init(string portname)
         {
             using (var httpClient = new HttpClient())
@@ -90,6 +101,12 @@ namespace hio_dotnet.HWDrivers.Server
             }
         }
 
+        /// <summary>
+        /// Set voltage for PPK2
+        /// </summary>
+        /// <param name="voltage">in millivolts</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task<string> PPK2_SetVoltage(int voltage)
         {
             using (var httpClient = new HttpClient())
@@ -118,6 +135,11 @@ namespace hio_dotnet.HWDrivers.Server
             }
         }
 
+        /// <summary>
+        /// Turn on PPK2
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task<string> PPK2_TurnOn()
         {
             using (var httpClient = new HttpClient())
@@ -146,6 +168,11 @@ namespace hio_dotnet.HWDrivers.Server
             }
         }
 
+        /// <summary>
+        /// Turn off PPK2
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task<string> PPK2_TurnOff()
         {
             using (var httpClient = new HttpClient())
@@ -209,6 +236,11 @@ namespace hio_dotnet.HWDrivers.Server
             }
         }
 
+        /// <summary>
+        /// PPK2: Get Device Voltage
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task<int> PPK2_DeviceVoltage()
         {
             using (var httpClient = new HttpClient())
@@ -237,13 +269,22 @@ namespace hio_dotnet.HWDrivers.Server
             }
         }
 
-        public async Task<string> JLink_Init()
+        /// <summary>
+        /// Initialize JLink
+        /// </summary>
+        /// <param name="withPPK2"></param>
+        /// <param name="mcu"></param>
+        /// <param name="speed"></param>
+        /// <param name="rttaddr"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<string> JLink_Init(bool withPPK2 = true, string mcu = "nRF52840_xxAA", int speed = 4000, uint rttaddr = 0)
         {
             using (var httpClient = new HttpClient())
             {
                 httpClient.BaseAddress = new System.Uri(_baseUrl);
 
-                var url = $"/api/jlink/init";
+                var url = $"/api/jlink/init/{withPPK2}/{mcu}/{speed}/{rttaddr}";
 
                 try
                 {
@@ -265,6 +306,11 @@ namespace hio_dotnet.HWDrivers.Server
             }
         }
 
+        /// <summary>
+        /// Stop JLink
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task<string> JLink_Stop()
         {
             using (var httpClient = new HttpClient())
@@ -293,6 +339,13 @@ namespace hio_dotnet.HWDrivers.Server
             }
         }
 
+        /// <summary>
+        /// Send command by channel to JLink
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task<string> JLink_SendCommandByChannel(int channel, string message)
         {
             using (var httpClient = new HttpClient())
@@ -322,6 +375,13 @@ namespace hio_dotnet.HWDrivers.Server
             }
         }
 
+        /// <summary>
+        /// Send command by name to JLink
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task<string> JLink_SendCommandByName(string name, string message)
         {
             using (var httpClient = new HttpClient())
@@ -348,6 +408,13 @@ namespace hio_dotnet.HWDrivers.Server
             }
         }
 
+        /// <summary>
+        /// Load all commands from help
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="parent"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task<string> JLink_LoadAllCommandsFromHelp(int channel, string parent)
         {
             using (var httpClient = new HttpClient())

@@ -44,6 +44,7 @@
 
   <PropertyGroup>
     <DefineConstants>WINDOWS;SERIALPORT</DefineConstants>
+    <!--<DefineConstants>LINUX;LIBSERIALPORT</DefineConstants>-->
   </PropertyGroup>
 
   <ItemGroup>

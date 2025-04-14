@@ -23,7 +23,8 @@ namespace hio_dotnet.Common.Models.CatalogApps
         public static Type FindTypeByMessageStructure(string message)
         {
             if (message.Contains("CHESTER Push") ||
-               (message.Contains("button_1") && message.Contains("button_2")))
+               (message.Contains("button_1") && message.Contains("button_2")) ||
+               (message.Contains("buttons")))
             {
                 return typeof(ChesterPushCloudMessage);
             }

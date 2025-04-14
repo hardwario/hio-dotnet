@@ -1,0 +1,29 @@
+﻿@using Models
+
+<RadzenDropDown TValue="string"
+    Data="@AvailableDevices.Devices"
+    Placeholder="Select Device"
+    TextProperty="Name"
+    ValueProperty="Name"
+    Value="SelectedDeviceName"
+    ValueChanged="@OnDeviceSelectedHandler"
+    class="sidebar-dropdown">
+</RadzenDropDown>
+
+@code {
+    [Parameter] public EventCallback<AvailableDevice> OnDeviceSelected { get; set; }
+
+    public AvailableDevice SelectedDevice = new AvailableDevice();
+    public string SelectedDeviceName = "CHESTER";
+
+    private async Task OnDeviceSelectedHandler(string name)
+    {
+        if (name != null)
+        {
+            var device = AvailableDevices.Devices.Where(d => d.Name == name).FirstOrDefault() ?? new AvailableDevice();
+            SelectedDevice = device;
+            SelectedDeviceName = device.Name;
+            await OnDeviceSelected.InvokeAsync(device);
+        }
+    }
+}

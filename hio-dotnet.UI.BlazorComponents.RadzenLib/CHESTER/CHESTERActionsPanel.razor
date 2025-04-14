@@ -20,8 +20,9 @@
             @foreach (var buttonData in rowGroup.OrderBy(b => b.PositionX))
             {
                 <RadzenColumn Style="margin-top:0px; margin-bottom:0px; width:100%;">
-                    <RadzenButton Size="ButtonSize.ExtraSmall"
+                    <RadzenButton Size="ButtonSize.Medium"
                     Text="@buttonData.ButtonText"
+                    class="chester-command-button"
                     Click="() => HandleButtonClick(buttonData)"
                     Style="margin-top:0px; margin-bottom:0px; width:100%;" />
                 </RadzenColumn>

@@ -6,24 +6,39 @@
 {
     @if (!IsJustIcon)
     {
-        <RadzenButton Click="copyCodeToClipboard" Style="@Style">@ButtonText</RadzenButton>
+        <RadzenButton @onclick="copyCodeToClipboard" Style="@Style" class="copy-button">@ButtonText</RadzenButton>
     }
     else
     {
-        <RadzenButton Click="copyCodeToClipboard"><RadzenIcon Icon="content_copy" /></RadzenButton>
+        <RadzenButton @onclick="copyCodeToClipboard" class="copy-button"><RadzenIcon Icon="content_copy" /></RadzenButton>
     }
 }
 else
 {
     @if (!IsJustIcon)
     {
-        <RadzenButton Style="@Style">Copied <RadzenIcon Icon="check" /></RadzenButton>
+        <RadzenButton Style="@Style" class="copy-button">Copied <RadzenIcon Icon="check" /></RadzenButton>
     }
     else
     {
-        <RadzenButton><RadzenIcon Icon="check" /></RadzenButton>
+        <RadzenButton class="copy-button"><RadzenIcon Icon="check" /></RadzenButton>
     }
 }
+
+<style>
+    .rz-button.rz-primary.copy-button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: white;
+        transition: color 0.3s;
+        margin-left: 8px;
+    }
+
+    .copy-button:hover {
+        color: gray;
+    }
+</style>
 
 @code {
     [Parameter] public bool IsJustIcon { get; set; } = false;
