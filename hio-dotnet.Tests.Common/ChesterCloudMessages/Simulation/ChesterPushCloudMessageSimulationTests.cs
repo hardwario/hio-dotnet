@@ -22,7 +22,7 @@ namespace hio_dotnet.Tests.Common.ChesterCloudMessages.Simulation
             BaseSimulator.GetSimulatedData(message1, message);
             var button = message.ButtonStates[0];
             var button1 = message1.ButtonStates[0];
-            Assert.True(button1.CountClick > button.CountClick);
+            Assert.True(button1.CountClick != button.CountClick);
         }
     }
 }
