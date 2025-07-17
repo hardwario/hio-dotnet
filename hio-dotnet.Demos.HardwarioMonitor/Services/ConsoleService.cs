@@ -7,7 +7,6 @@ using hio_dotnet.HWDrivers.MCU;
 using hio_dotnet.HWDrivers.PPK2;
 using hio_dotnet.HWDrivers.Server;
 using hio_dotnet.UI.BlazorComponents.RadzenLib.CHESTER.Models;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.DataCollection;
 using Radzen;
 using System;
 using System.Collections.Generic;

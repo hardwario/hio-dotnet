@@ -1,14 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <RootNamespace>hio_dotnet.APIs.HioCloudv2</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Version>0.2.0</Version>
+    <PackageId>HIONET.APIs.HioCloud</PackageId>
+    <Authors>fyziktom</Authors>
+    <Company>HARDWARIO</Company>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />
+    <!--<ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />-->
+    <PackageReference Include="HIONET.Common" Version="0.2.0" />
   </ItemGroup>
 
 </Project>

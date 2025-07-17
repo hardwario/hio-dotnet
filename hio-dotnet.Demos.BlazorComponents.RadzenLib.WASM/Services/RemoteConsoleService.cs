@@ -3,7 +3,6 @@ using hio_dotnet.HWDrivers.Enums;
 using hio_dotnet.HWDrivers.JLink;
 using hio_dotnet.HWDrivers.MCU;
 using hio_dotnet.HWDrivers.PPK2;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.DataCollection;
 using Radzen;
 using System;
 using System.Collections.Generic;

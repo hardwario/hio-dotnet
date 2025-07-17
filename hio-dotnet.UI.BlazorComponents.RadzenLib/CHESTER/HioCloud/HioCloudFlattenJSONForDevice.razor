@@ -274,10 +274,10 @@
 
     /*
     private void onConnectorValueChanged(string value)
-        {
+    {
         if (value != null && value != connector)
             connector = value;
-    }
+        }
     */
     private string getListOfKeys()
     {
@@ -417,6 +417,8 @@
         {
             forcedTypeOfHioMessage = type;
             forceType = true;
+            await InvokeAsync(StateHasChanged);
+            await Task.Delay(1);
 
             if (UseSimulatedMessage)
             {
