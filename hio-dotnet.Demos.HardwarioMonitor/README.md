@@ -5,7 +5,7 @@ This application offers way for communication with the microcontrollers via J-Li
 It opens channel for logs and settings and display the results on the screen. 
 It has integrated driver for [Power Profiler Kit II (PPK2)](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2). It means it can power supply the microcontroller.
 
-![HIO-Monitor-new-netsdk](https://github.com/user-attachments/assets/bd5cae44-438c-4fa2-9a4f-ea31187dcb5e)
+![MainScreen](https://github.com/user-attachments/assets/45ed9ea9-b30b-4914-ac22-d55c87302bee)
 
 ## Main features
 ### HW related features

@@ -9,13 +9,13 @@ This SDK focuses to .NET C# developers mainly, but thanks to the simplicity and 
 
 SDK consists of several libraries and example projects which will be described below. Here is screenshot of one of the example application you can find in this SDK:
 
-![HIO-Monitor-new-netsdk](https://github.com/user-attachments/assets/bd5cae44-438c-4fa2-9a4f-ea31187dcb5e)
+![MainScreen](https://github.com/user-attachments/assets/45ed9ea9-b30b-4914-ac22-d55c87302bee)
 
 *Please note that HARDWARIO .NET SDK is still under the development. We are happy to receive tips and bugreports if you would like to help us.*
 
 ## Requirements
 
-HARDWARIO .NET SDK is created in [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) (tested in actual Version 17.12.1) with [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) (updated to .NET 9 is in roadmap). 
+HARDWARIO .NET SDK is created in [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) (tested in actual Version 17.13.5) with [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) (update to .NET 9 is in roadmap). 
 
 Compilation and building MAUI applications for Android requires Installlation of [Android SDK](https://visualstudio.microsoft.com/vs/android/).
 
