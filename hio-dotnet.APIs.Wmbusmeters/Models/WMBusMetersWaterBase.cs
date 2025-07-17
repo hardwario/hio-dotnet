@@ -36,7 +36,7 @@ namespace hio_dotnet.APIs.Wmbusmeters.Models
                 {
                     try
                     {
-                        var dt = DateTime.ParseExact(MeterDateTimeStr ?? "2000-01-01", "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+                        var dt = WMBusHelpers.ParseToUtc(MeterDateTimeStr); //DateTime.ParseExact(MeterDateTimeStr ?? "2000-01-01", "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
                         return DateTime.SpecifyKind(dt, DateTimeKind.Utc);
                     }
                     catch (Exception)

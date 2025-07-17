@@ -61,7 +61,7 @@ namespace hio_dotnet.APIs.Wmbusmeters.Models
                 {
                     try
                     {
-                        var dt = DateTime.ParseExact(DeviceDateTimeStr ?? "2000-01-01", "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+                        var dt = WMBusHelpers.ParseToUtc(DeviceDateTimeStr);//DateTime.ParseExact(DeviceDateTimeStr ?? "2000-01-01", "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
                         return DateTime.SpecifyKind(dt, DateTimeKind.Utc);
                     }
                     catch (Exception)
@@ -85,7 +85,7 @@ namespace hio_dotnet.APIs.Wmbusmeters.Models
                 {
                     try
                     {
-                        var dt = DateTime.ParseExact(SetDateStr ?? "2000-01-01", "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+                        var dt = WMBusHelpers.ParseToUtc(SetDateStr);//DateTime.ParseExact(SetDateStr ?? "2000-01-01", "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
                         return DateTime.SpecifyKind(dt, DateTimeKind.Utc);
                     }
                     catch (Exception)

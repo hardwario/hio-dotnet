@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -40,6 +41,29 @@ namespace hio_dotnet.Common.Helpers
             DateTime unixStart = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
             long unixTimeStampInTicks = (dateTime.ToUniversalTime() - unixStart).Ticks;
             return (long)unixTimeStampInTicks / TimeSpan.TicksPerSecond * 1000;
+        }
+
+        public static DateTime ParseToUtc(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return DateTime.MinValue;
+
+            string[] formats = {
+            "yyyy-MM-dd'T'HH:mm",
+            "yyyy-MM-dd HH:mm"
+        };
+
+            if (DateTime.TryParseExact(
+                    input,
+                    formats,
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeLocal,
+                    out DateTime localDateTime))
+            {
+                return localDateTime.ToUniversalTime();
+            }
+
+            return DateTime.MinValue; 
         }
 
         public static DateTime UtcNow => DateTime.UtcNow;

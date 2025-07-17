@@ -90,6 +90,10 @@ namespace hio_dotnet.APIs.HioCloud
         /// </summary>
         public override event EventHandler<CloudMessagesGrabberEventArgs>? OnNewDataReceived;
         /// <summary>
+        /// Async version of event which fires anytime when a new message is grabbed from cloud
+        /// </summary>
+        public override event Func<object?, HioCloudMessage, Task>? OnNewDataAsync;
+        /// <summary>
         /// This event will occur when the grabber is started
         /// </summary>
         public override event EventHandler<Guid>? OnGrabberStarted;
@@ -243,6 +247,18 @@ namespace hio_dotnet.APIs.HioCloud
                                 GrabberId = Id,
                                 Message = receivedMessage
                             });
+
+                            if (OnNewDataAsync != null)
+                            {
+                                try
+                                {
+                                    await OnNewDataAsync(this, receivedMessage);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"\n\nERROR>>>>>Grabber: {Name}, ID: {Id} cannot send message to the external software, Exception Message: {ex.Message}\n\n");
+                                }
+                            }
                         }
                     }
                     catch (Exception ex)

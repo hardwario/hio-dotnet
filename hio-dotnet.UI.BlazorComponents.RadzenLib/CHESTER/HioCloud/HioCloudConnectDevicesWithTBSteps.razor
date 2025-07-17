@@ -1,4 +1,4 @@
-@using Microsoft.JSInterop
+﻿@using Microsoft.JSInterop
 @using Services
 @using CHESTER.HioCloud.Models
 @using hio_dotnet.UI.BlazorComponents.RadzenLib.ThingsBoard
@@ -555,6 +555,7 @@
                             .WithTag(selectedTag);
             conn.Transformation = connector;
             
+            /*
             var res = await HioCloudService.AddConnector(Space.Id.ToString(), conn);
             if (res)
             {
@@ -564,6 +565,7 @@
             {
                 ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Add Connector failed", Detail = "Cannot create new Connector in the Hardwario Cloud.", Duration = 4000 });
             }
+            */
         
         }
         if (acejsEditorRef != null)

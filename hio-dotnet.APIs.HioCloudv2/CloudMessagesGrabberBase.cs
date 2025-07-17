@@ -63,6 +63,10 @@ namespace hio_dotnet.APIs.HioCloud
         /// </summary>
         public abstract event EventHandler<CloudMessagesGrabberEventArgs>? OnNewDataReceived;
         /// <summary>
+        /// Async version of event which fires anytime when a new message is grabbed by any grabber
+        /// </summary>
+        public abstract event Func<object?, HioCloudMessage, Task>? OnNewDataAsync;
+        /// <summary>
         /// This event will occur when the grabber is started
         /// </summary>
         public abstract event EventHandler<Guid>? OnGrabberStarted;

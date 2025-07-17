@@ -19,6 +19,12 @@ namespace hio_dotnet.APIs.HioCloud
         /// </summary>
         public event EventHandler<CloudMessagesGrabberEventArgs> OnNewDataReceived;
 
+        /// <summary>
+        /// Aync version of event which fires anytime when a new message is grabbed by any grabber
+        /// </summary>
+        public event Func<object?, HioCloudMessage, Task>? OnNewDataAsync;
+
+
         private void OnNewDataReceivedHandler(object sender, CloudMessagesGrabberEventArgs args)
         {
             OnNewDataReceived?.Invoke(sender, args);
@@ -67,6 +73,13 @@ namespace hio_dotnet.APIs.HioCloud
             grab.Name = name;
 
             grab.OnNewDataReceived += OnNewDataReceivedHandler;
+            grab.OnNewDataAsync += async (sender, message) =>
+            {
+                if (OnNewDataAsync != null)
+                {
+                    await OnNewDataAsync(sender, message);
+                }
+            };
 
             if (!string.IsNullOrEmpty(description))
                 grab.Description = description;

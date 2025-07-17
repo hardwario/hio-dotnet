@@ -198,7 +198,7 @@ namespace hio_dotnet.APIs.HioCloud
                 try
                 {
                     var response = await httpClient.GetAsync(url);
-                    var cnt = response.Content.ReadAsStringAsync().Result;
+                    var cnt = await response.Content.ReadAsStringAsync();
 
                     CheckResponse(response);
 
@@ -231,7 +231,7 @@ namespace hio_dotnet.APIs.HioCloud
                 try
                 {
                     var response = await httpClient.GetAsync(url);
-                    var cnt = response.Content.ReadAsStringAsync().Result;
+                    var cnt = await response.Content.ReadAsStringAsync();
 
                     CheckResponse(response);
 
@@ -366,7 +366,7 @@ namespace hio_dotnet.APIs.HioCloud
                 try
                 {
                     var response = await httpClient.GetAsync(url);
-                    var cnt = response.Content.ReadAsStringAsync().Result;
+                    var cnt = await response.Content.ReadAsStringAsync();
 
                     CheckResponse(response);
 
@@ -397,7 +397,10 @@ namespace hio_dotnet.APIs.HioCloud
                 try
                 {
                     var response = await httpClient.GetAsync(url);
-                    var cnt = response.Content.ReadAsStringAsync().Result;
+                    var cnt = await response.Content.ReadAsStringAsync();
+
+                    if (cnt == "not found")
+                        return null;
 
                     CheckResponse(response);
 
@@ -547,6 +550,7 @@ namespace hio_dotnet.APIs.HioCloud
                 {
                     allmessages.AddRange(messages);
                     lastmessageid = messages.Last().Id.ToString();
+                    Console.WriteLine($"Last Message Id: {messages.Last().Id}, Date: {messages.Last().CreatedAt}");
                 }
                 else
                 {
@@ -643,7 +647,7 @@ namespace hio_dotnet.APIs.HioCloud
                 {
                     httpClient.Timeout = new TimeSpan(0,0,timeout);
                     var response = await httpClient.GetAsync(url);
-                    var cnt = response.Content.ReadAsStringAsync().Result;
+                    var cnt = await response.Content.ReadAsStringAsync();
 
                     CheckResponse(response);
 
@@ -676,7 +680,7 @@ namespace hio_dotnet.APIs.HioCloud
                 try
                 {
                     var response = await httpClient.GetAsync(url);
-                    var cnt = response.Content.ReadAsStringAsync().Result;
+                    var cnt = await response.Content.ReadAsStringAsync();
 
                     CheckResponse(response);
 
@@ -723,7 +727,7 @@ namespace hio_dotnet.APIs.HioCloud
                                                               new StringContent(System.Text.Json.JsonSerializer.Serialize(body), 
                                                               Encoding.UTF8, "application/json"));
 
-                    var cnt = response.Content.ReadAsStringAsync().Result;
+                    var cnt = await response.Content.ReadAsStringAsync();
 
                     CheckResponse(response);
 
@@ -772,7 +776,7 @@ namespace hio_dotnet.APIs.HioCloud
                                                               new StringContent(bodystr, 
                                                               Encoding.UTF8, "application/json"));
 
-                    var cnt = response.Content.ReadAsStringAsync().Result;
+                    var cnt = await response.Content.ReadAsStringAsync();
 
                     CheckResponse(response);
 
@@ -841,7 +845,7 @@ namespace hio_dotnet.APIs.HioCloud
                 try
                 {
                     var response = await httpClient.GetAsync(url);
-                    var cnt = response.Content.ReadAsStringAsync().Result;
+                    var cnt = await response.Content.ReadAsStringAsync();
 
                     CheckResponse(response);
 
@@ -871,7 +875,7 @@ namespace hio_dotnet.APIs.HioCloud
                 try
                 {
                     var response = await httpClient.GetAsync(url);
-                    var cnt = response.Content.ReadAsStringAsync().Result;
+                    var cnt = await response.Content.ReadAsStringAsync();
 
                     CheckResponse(response);
 
@@ -950,7 +954,7 @@ namespace hio_dotnet.APIs.HioCloud
                 try
                 {
                     var response = await httpClient.GetAsync(url);
-                    var cnt = response.Content.ReadAsStringAsync().Result;
+                    var cnt = await response.Content.ReadAsStringAsync();
 
                     CheckResponse(response);
 
@@ -989,7 +993,7 @@ namespace hio_dotnet.APIs.HioCloud
                 try
                 {
                     var response = await httpClient.GetAsync(url);
-                    var cnt = response.Content.ReadAsStringAsync().Result;
+                    var cnt = await response.Content.ReadAsStringAsync();
 
                     CheckResponse(response);
 
