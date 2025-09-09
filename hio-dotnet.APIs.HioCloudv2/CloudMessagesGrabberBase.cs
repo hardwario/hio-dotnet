@@ -89,7 +89,7 @@ namespace hio_dotnet.APIs.HioCloud
         /// Start the data grabbing process
         /// </summary>
         /// <returns></returns>
-        public abstract Task Start();
+        public abstract Task Start(CancellationTokenSource? cts = null);
         /// <summary>
         /// Stop the data grabbing process
         /// </summary>

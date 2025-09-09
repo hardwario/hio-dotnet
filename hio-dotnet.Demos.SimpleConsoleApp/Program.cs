@@ -35,7 +35,7 @@ var PPK2_TEST = false;
 var CHIRPSTACK_TEST = false;
 var THINGSBOARD_TEST = false;
 var HIOCLOUD_TEST = false;
-var HIOCLOUD_TEST_DOWNLINK = false;
+var HIOCLOUD_TEST_DOWNLINK = true;
 var HIOCLOUD_TEST_ADD_DEVICE_WITH_CONNECTOR = false;
 var HIOCLOUD_TEST_SIMPLEGRABBER = false;
 var HIOCLOUD_TEST_SIMPLEGRABBER_HANDLER = false;
@@ -988,6 +988,9 @@ if (HIOCLOUD_TEST_SIMPLEGRABBER_HANDLER)
     var deviceid2 = "YOUR_DEVICE_ID";
 
     var grabberHandler = new CloudMessagesGrabbersHandler();
+
+    var cts = new CancellationTokenSource();
+    grabberHandler.Init(cts);
 
     grabberHandler.AddNewGrabber(new Guid(spaceid), 
                                  new Guid(deviceid), 

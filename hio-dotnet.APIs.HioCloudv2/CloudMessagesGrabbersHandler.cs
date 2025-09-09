@@ -24,10 +24,21 @@ namespace hio_dotnet.APIs.HioCloud
         /// </summary>
         public event Func<object?, HioCloudMessage, Task>? OnNewDataAsync;
 
+        private CancellationTokenSource _cts = new CancellationTokenSource();
 
         private void OnNewDataReceivedHandler(object sender, CloudMessagesGrabberEventArgs args)
         {
             OnNewDataReceived?.Invoke(sender, args);
+        }
+
+        public bool Init(CancellationTokenSource? cts = null)
+        {
+            if (cts != null)
+                _cts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token);
+            else
+                _cts = new CancellationTokenSource();
+
+            return true;
         }
 
         public Guid AddNewGrabber(Guid spaceId,
@@ -133,7 +144,7 @@ namespace hio_dotnet.APIs.HioCloud
                 if (GrabbersTasks.ContainsKey(id))
                     return true;
 
-                var task = grab.Start();
+                var task = grab.Start(_cts);
                 return GrabbersTasks.TryAdd(id, task);
             }
             return false;
@@ -240,10 +251,10 @@ namespace hio_dotnet.APIs.HioCloud
         /// </summary>
         /// <returns></returns>
         public Task MonitorGrabbers()
-        {
+        { 
             return Task.Run(async () =>
             {
-                while (GrabbersTasks.Count > 0)
+                while (GrabbersTasks.Count > 0 && !_cts.IsCancellationRequested)
                 {
                     // Await any non-completed tasks in the dictionary of Grabber Tasks
                     var completedTask = await Task.WhenAny(GrabbersTasks.Values);
