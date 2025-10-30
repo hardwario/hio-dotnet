@@ -603,8 +603,8 @@ namespace hio_dotnet.APIs.HioCloud
                 {
                     foreach (var t in type)
                     {
-                        if (!string.IsNullOrEmpty(t) && !HioCloudMessageType.IsMessageType(t))
-                            url = $"{url}%5B%5D={t}";
+                        if (!string.IsNullOrEmpty(t) && HioCloudMessageType.IsMessageType(t))
+                            url = $"{url}&type%5B%5D={t}";
                     }
                 }
 

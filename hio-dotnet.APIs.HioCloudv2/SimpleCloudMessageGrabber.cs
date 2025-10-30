@@ -167,9 +167,16 @@ namespace hio_dotnet.APIs.HioCloud
         /// Start the data grabbing process
         /// </summary>
         /// <returns></returns>
-        public override Task Start()
+        public override Task Start(CancellationTokenSource? cts = null)
         {
-            _cancellationTokenSource = new CancellationTokenSource();
+            if (cts != null)
+            {
+                _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cts.Token);
+            }
+            else
+            {
+                _cancellationTokenSource = new CancellationTokenSource();
+            }
 
             return RunGrabber(_cancellationTokenSource.Token);
         }
@@ -193,8 +200,6 @@ namespace hio_dotnet.APIs.HioCloud
                 {
                     try
                     {
-                        await Task.Delay((int)Interval, cancellationToken);
-
                         HioCloudMessage? receivedMessage = null;
                         // get the last message from the cloud
                         try
@@ -215,6 +220,8 @@ namespace hio_dotnet.APIs.HioCloud
                                 _messages.ContainsKey(receivedMessage.Id))
                             {
                                 Console.WriteLine($"Grabber: {Name} >>> No new messages on cloud for the device: {DeviceId}.");
+                                await Task.Delay((int)Interval, cancellationToken);
+
                                 continue;
                             }
 
@@ -260,6 +267,8 @@ namespace hio_dotnet.APIs.HioCloud
                                 }
                             }
                         }
+
+                        await Task.Delay((int)Interval, cancellationToken);
                     }
                     catch (Exception ex)
                     {
