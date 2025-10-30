@@ -10,7 +10,7 @@ namespace hio_dotnet.Common.Models.CatalogApps.wMBus
     public class WMBusData
     {
         [JsonPropertyName("cycle")]
-        public int Cycle { get; set; } = 0;
+        public long Cycle { get; set; } = 0;
         [JsonPropertyName("devices")]
         public int Devices { get; set; } = 0;
 
@@ -21,7 +21,7 @@ namespace hio_dotnet.Common.Models.CatalogApps.wMBus
         public int Received { get; set; } = 0;
 
         [JsonPropertyName("scan_time")]
-        public int ScanTime { get; set; } = 0;
+        public long ScanTime { get; set; } = 0;
 
         [JsonPropertyName("packets")]
         public List<WMBusPacket> Packets { get; set; } = new List<WMBusPacket>();

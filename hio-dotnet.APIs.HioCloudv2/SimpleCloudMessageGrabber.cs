@@ -220,6 +220,8 @@ namespace hio_dotnet.APIs.HioCloud
                                 _messages.ContainsKey(receivedMessage.Id))
                             {
                                 Console.WriteLine($"Grabber: {Name} >>> No new messages on cloud for the device: {DeviceId}.");
+                                await Task.Delay((int)Interval, cancellationToken);
+
                                 continue;
                             }
 

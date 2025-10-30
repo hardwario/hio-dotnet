@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU</Platforms>
-    <Version>0.3.0</Version>
+    <Version>0.4.0</Version>
     <PackageId>HIONET.Common</PackageId>
     <Authors>fyziktom</Authors>
     <Company>HARDWARIO</Company>

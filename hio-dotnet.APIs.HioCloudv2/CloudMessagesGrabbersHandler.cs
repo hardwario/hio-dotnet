@@ -254,7 +254,7 @@ namespace hio_dotnet.APIs.HioCloud
         { 
             return Task.Run(async () =>
             {
-                while (GrabbersTasks.Count > 0 && !_cts.IsCancellationRequested)
+                while (!_cts.IsCancellationRequested)
                 {
                     // Await any non-completed tasks in the dictionary of Grabber Tasks
                     var completedTask = await Task.WhenAny(GrabbersTasks.Values);
@@ -266,6 +266,9 @@ namespace hio_dotnet.APIs.HioCloud
                         //Console.WriteLine($"[INFO] Grabber with ID {completedId} has completed.");
                         GrabbersTasks.TryRemove(completedId, out _);
                     }
+
+                    // Small delay to prevent tight loop
+                    await Task.Delay(1000);
                 }
             });
         }

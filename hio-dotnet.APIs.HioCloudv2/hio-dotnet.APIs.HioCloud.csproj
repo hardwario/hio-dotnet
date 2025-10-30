@@ -5,7 +5,7 @@
     <RootNamespace>hio_dotnet.APIs.HioCloudv2</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>0.3.0</Version>
+    <Version>0.4.0</Version>
     <PackageId>HIONET.APIs.HioCloud</PackageId>
     <Authors>fyziktom</Authors>
     <Company>HARDWARIO</Company>
@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <!--<ProjectReference Include="..\hio-dotnet.Common\hio-dotnet.Common.csproj" />-->
-    <PackageReference Include="HIONET.Common" Version="0.3.0" />
+    <PackageReference Include="HIONET.Common" Version="0.4.0" />
   </ItemGroup>
 
 </Project>
