@@ -24,6 +24,11 @@ namespace hio_dotnet.APIs.HioCloud
         /// </summary>
         public event Func<object?, HioCloudMessage, Task>? OnNewDataAsync;
 
+        /// <summary>
+        /// Happens when log event will happen
+        /// </summary>
+        public event EventHandler<(Guid, string, Exception?)>? OnLogHappened;
+
         private CancellationTokenSource _cts = new CancellationTokenSource();
 
         private void OnNewDataReceivedHandler(object sender, CloudMessagesGrabberEventArgs args)
@@ -84,6 +89,10 @@ namespace hio_dotnet.APIs.HioCloud
             grab.Name = name;
 
             grab.OnNewDataReceived += OnNewDataReceivedHandler;
+            grab.OnLogHappened += (sender, logInfo) =>
+            {
+                OnLogHappened?.Invoke(sender, logInfo);
+            };
             grab.OnNewDataAsync += async (sender, message) =>
             {
                 if (OnNewDataAsync != null)
@@ -199,6 +208,10 @@ namespace hio_dotnet.APIs.HioCloud
             {
                 await StopGrabber(id);
                 grab.OnNewDataReceived -= OnNewDataReceivedHandler;
+                grab.OnLogHappened -= (sender, logInfo) =>
+                {
+                    OnLogHappened?.Invoke(sender, logInfo);
+                };
 
                 return Grabbers.TryRemove(id, out _);
             }
@@ -243,6 +256,11 @@ namespace hio_dotnet.APIs.HioCloud
                     var stopTasks = grabbersToStop.Select(id => StopGrabber(id));
                     await Task.WhenAll(stopTasks);
                 }
+
+                if (GrabbersTasks.IsEmpty)
+                {
+                    _cts.Cancel();
+                }
             });
         }
 
@@ -257,6 +275,11 @@ namespace hio_dotnet.APIs.HioCloud
                 while (!_cts.IsCancellationRequested)
                 {
                     // Await any non-completed tasks in the dictionary of Grabber Tasks
+                    if (GrabbersTasks.IsEmpty)
+                    {
+                        await Task.Delay(1000);
+                        continue;
+                    }
                     var completedTask = await Task.WhenAny(GrabbersTasks.Values);
 
                     // Remove completed task from the dictionary

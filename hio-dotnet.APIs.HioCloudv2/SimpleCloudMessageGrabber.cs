@@ -102,6 +102,10 @@ namespace hio_dotnet.APIs.HioCloud
         /// </summary>
         public override event EventHandler<Guid>? OnGrabberEnded;
         /// <summary>
+        /// Happens when log event will happen
+        /// </summary>
+        public override event EventHandler<(Guid, string, Exception?)>? OnLogHappened;
+        /// <summary>
         /// Cloud driver that will be used to communicate with the cloud
         /// </summary>
         public override HioCloudDriver? CloudDriver { get; set; }
@@ -204,12 +208,12 @@ namespace hio_dotnet.APIs.HioCloud
                         // get the last message from the cloud
                         try
                         {
-                            Console.WriteLine($"Grabber: {Name} >>> checking the new messages on cloud...");
+                            OnLogHappened?.Invoke(this, (Id, $"Grabber: {Name} is checking the new messages on cloud...", null));
                             receivedMessage = CloudDriver?.GetAllDeviceMessages(SpaceId, DeviceId)?.Result?.FirstOrDefault();
                         }
                         catch (Exception ex) 
                         {
-                            Console.WriteLine($"\n\nERROR>>>>>Grabber: {Name}, ID: {Id} cannot get message from the Hio Cloud, Exception Message: {ex.Message}\n\n");
+                            OnLogHappened?.Invoke(this, (Id, $"Grabber: {Name} cannot get message from the Hio Cloud, Exception Message: {ex.Message}", ex));
                         }
 
                         if (receivedMessage != null)
@@ -219,7 +223,7 @@ namespace hio_dotnet.APIs.HioCloud
                                 receivedMessage.Id == LastMessage?.Id ||
                                 _messages.ContainsKey(receivedMessage.Id))
                             {
-                                Console.WriteLine($"Grabber: {Name} >>> No new messages on cloud for the device: {DeviceId}.");
+                                OnLogHappened?.Invoke(this, (Id, $"Grabber: {Name} >>> No new messages on cloud for the device: {DeviceId}.", null));
                                 await Task.Delay((int)Interval, cancellationToken);
 
                                 continue;
@@ -263,7 +267,7 @@ namespace hio_dotnet.APIs.HioCloud
                                 }
                                 catch (Exception ex)
                                 {
-                                    Console.WriteLine($"\n\nERROR>>>>>Grabber: {Name}, ID: {Id} cannot send message to the external software, Exception Message: {ex.Message}\n\n");
+                                    OnLogHappened?.Invoke(this, (Id, $"Grabber: {Name} cannot send message to the external software, Exception Message: {ex.Message}", ex));
                                 }
                             }
                         }
@@ -272,7 +276,7 @@ namespace hio_dotnet.APIs.HioCloud
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"\n\nERROR>>>>>Exception in Grabber: {Name}, ID: {Id}, Exception Message: {ex.Message}\n\n");
+                        OnLogHappened?.Invoke(this, (Id, $"Exception in Grabber: {Name}, ID: {Id}, Exception Message: {ex.Message}", ex));
                     }
 
                 }

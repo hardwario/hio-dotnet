@@ -5,7 +5,7 @@
     <RootNamespace>hio_dotnet.APIs.HioCloudv2</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>0.4.0</Version>
+    <Version>0.4.2</Version>
     <PackageId>HIONET.APIs.HioCloud</PackageId>
     <Authors>fyziktom</Authors>
     <Company>HARDWARIO</Company>

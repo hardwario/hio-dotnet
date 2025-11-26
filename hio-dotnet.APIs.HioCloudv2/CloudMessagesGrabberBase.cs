@@ -75,6 +75,10 @@ namespace hio_dotnet.APIs.HioCloud
         /// </summary>
         public abstract event EventHandler<Guid>? OnGrabberEnded;
         /// <summary>
+        /// Happens when log event will happen
+        /// </summary>
+        public abstract event EventHandler<(Guid, string, Exception?)>? OnLogHappened;
+        /// <summary>
         /// Cloud driver that will be used to communicate with the cloud
         /// </summary>
         public abstract HioCloudDriver? CloudDriver { get; set; }
